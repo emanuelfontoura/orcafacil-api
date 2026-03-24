@@ -1,8 +1,0 @@
-import { Router } from "express";
-import { userController } from "../controllers/userController";
-
-const userRouter = Router()
-
-userRouter.post('/register', userController.userRegisterController)
-
-export { userRouter }

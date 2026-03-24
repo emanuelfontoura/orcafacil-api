@@ -1,12 +1,15 @@
-export interface RegisterUserDTO {
-    name: string
+export interface CreateUserDTO{
     email: string
+    name: string
     password: string
     confirmPassword: string
+    created_at: string
+    updated_at: string
 }
 
 export interface UserResponseDTO{
-    id: number
-    name: string
     email: string
+    name: string
+    created_at: string
+    updated_at: string
 }

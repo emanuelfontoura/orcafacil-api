@@ -1,11 +1,13 @@
 import validator from 'validator'
-import { AuthUserVerifyDTO, AuthUserConfirmDTO } from '../../types/auth'
+import { AuthUserVerifyDTO, AuthUserConfirmDTO, UserInfo } from '../../types/auth'
 import { AuthUserRepository } from 'repositories/auth/authUserRepository'
 import { userRepository } from 'repositories/user/userRepository'
+import { redis } from 'lib/redis'
+import bcrypt from "bcrypt" 
 
 export class AuthUserService{
 
-    static async verifyEmail(data: AuthUserVerifyDTO){
+    static async verifyEmail(data: AuthUserVerifyDTO):Promise<UserInfo>{
         const missingFields: string[] = []
 
         // Missing Fields
@@ -25,6 +27,29 @@ export class AuthUserService{
         // Email exists
         const user = await userRepository.findByEmail(data.email)
         if(user) throw new Error('Esse email já está cadastrado.')
+
+        const hashedPassword = await bcrypt.hash(data.password, await bcrypt.genSalt(10))
+        // Save on Redis
+        const code = Math.floor(100000 + Math.random() * 900000).toString()
+
+        try{
+            await redis.set(
+                `verify:${data.email}`,
+                JSON.stringify({
+                    code,
+                    name: data.name,
+                    password: hashedPassword
+                }),
+                "EX",
+                600
+            )
+        }catch(error){
+            throw new Error('Erro ao salvar código de verificação. Entre em contato!')
+        }
+
+        await AuthUserRepository.sendEmailVerificationCode({email: data.email, code})
+
+        return {email: data.email, name: data.name}
     }
 
     static async confirmEmail(data: AuthUserConfirmDTO){

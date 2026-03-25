@@ -9,3 +9,13 @@ export interface AuthUserConfirmDTO{
     email: string
     code: number
 }
+
+export type EmailCode = {
+    email: string
+    code: string
+}
+
+export type UserInfo = {
+    email: string
+    name: string
+}

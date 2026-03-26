@@ -7,7 +7,7 @@ export interface AuthUserVerifyDTO{
 
 export interface AuthUserConfirmDTO{
     email: string
-    code: number
+    code: string
 }
 
 export type EmailCode = {

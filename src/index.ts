@@ -1,10 +1,10 @@
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
-import 'dotenv/config';
 
 // Import routes
 import { userRouter } from './routes/user/userRoutes'
-import { userAuthRouter } from 'routes/auth/authUserRoutes'
+import { authUserRoutes } from './routes/auth/authUserRoutes'
 
 const PORT = process.env.PORT || 3000;
 
@@ -15,7 +15,7 @@ app.use(cors());
 app.use(express.json());
 
 // Apply Routes
-app.use('/user/auth', userAuthRouter)
+app.use('/user/auth', authUserRoutes)
 app.use('/user', userRouter)
 
 // Start on database and server connection

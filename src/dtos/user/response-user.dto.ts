@@ -1,0 +1,6 @@
+export interface UserResponseDTO{
+    email: string
+    name: string
+    created_at: string
+    updated_at: string
+}

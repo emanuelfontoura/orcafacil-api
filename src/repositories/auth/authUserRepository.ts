@@ -1,4 +1,4 @@
-import { EmailCode } from '../../types/auth'
+import { EmailCode } from '../../types/auth/auth.types'
 import nodemailer from "nodemailer"
 import "dotenv/config"
 
@@ -28,9 +28,4 @@ export class AuthUserRepository {
             throw new Error('Erro ao enviar email de verificação. Entre em contato!')
         }
     }
-
-    static async getVerificationCode(){
-        //
-    }
-
 }

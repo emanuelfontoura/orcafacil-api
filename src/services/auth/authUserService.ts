@@ -1,13 +1,14 @@
 import validator from 'validator'
-import { AuthUserVerifyDTO, AuthUserConfirmDTO, UserInfo } from '../../types/auth'
-import { AuthUserRepository } from 'repositories/auth/authUserRepository'
-import { userRepository } from 'repositories/user/userRepository'
-import { redis } from 'lib/redis'
+import { VerifyEmailRequestDTO, VerifyEmailResponseDTO } from "../../dtos/auth/verify-email.dto"
+import { ConfirmEmailRequestDTO, ConfirmEmailResponseDTO } from "../../dtos/auth/confirm-email.dto"
+import { AuthUserRepository } from '../../repositories/auth/authUserRepository'
+import { userRepository } from '../../repositories/user/userRepository'
+import { redis } from '../../lib/redis'
 import bcrypt from "bcrypt" 
 
 export class AuthUserService{
 
-    static async verifyEmail(data: AuthUserVerifyDTO):Promise<UserInfo>{
+    static async verifyEmail(data: VerifyEmailRequestDTO):Promise<VerifyEmailResponseDTO>{
         const missingFields: string[] = []
 
         // Missing Fields
@@ -52,8 +53,29 @@ export class AuthUserService{
         return {email: data.email, name: data.name}
     }
 
-    static async confirmEmail(data: AuthUserConfirmDTO){
-        //
+    static async confirmEmail(data: ConfirmEmailRequestDTO): Promise<ConfirmEmailResponseDTO>{
+        const dataUser = await redis.get(`verify: ${data.email}`) 
+        if(!dataUser){
+            throw new Error('Código expirado ou não encontrado.')
+        }
+        const dataParsed = JSON.parse(dataUser)
+
+        if(dataParsed.code !==  data.code){
+            throw new Error('Código inválido.')
+        }
+
+        const user = await userRepository.createUser({
+            email: dataParsed.email,
+            name: dataParsed.name,
+            password: dataParsed.password 
+        })
+        if(!user) throw new Error('Houve um erro ao criar o usuário.')
+        return {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            createdAt: user.createdAt,
+        }
     }
 
 }

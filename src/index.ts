@@ -1,10 +1,11 @@
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
+import { handleError } from './middlewares/handleError';
 
 // Import routes
-import { userRouter } from './routes/user/userRoutes'
-import { authUserRoutes } from './routes/auth/authUserRoutes'
+import { userRouter } from './modules/user/user.route'
+import { authUserRoutes } from './modules/auth/auth.route'
 
 const PORT = process.env.PORT || 3000;
 
@@ -18,4 +19,10 @@ app.use(express.json());
 app.use('/user/auth', authUserRoutes)
 app.use('/user', userRouter)
 
-// Start on database and server connection
+// HandleError
+app.use(handleError)
+
+// Start server connection
+app.listen(PORT, () => {
+    console.log('Server is running...')
+})

@@ -1,10 +1,12 @@
-import { EmailCode } from '../../types/auth/auth.types'
+import { AuthTypes } from './auth.types'
 import nodemailer from "nodemailer"
 import "dotenv/config"
+import { AppError } from '../../shared/errors/AppError'
+import { ErrorCode } from '../../shared/errors/ErrorCodes'
 
 export class AuthUserRepository {
 
-    static async sendEmailVerificationCode(data: EmailCode){
+    static async sendEmailVerificationCode(data: AuthTypes['EmailCode']){
         try{
             const transporter = nodemailer.createTransport({
                 service: "gmail",
@@ -25,7 +27,7 @@ export class AuthUserRepository {
                 `
             })
         }catch(error){
-            throw new Error('Erro ao enviar email de verificação. Entre em contato!')
+            throw new AppError('Erro ao enviar email de verificação', 400, ErrorCode.SEND_EMAIL_CODE_ERROR)
         }
     }
 }

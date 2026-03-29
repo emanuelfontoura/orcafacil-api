@@ -1,4 +1,4 @@
-import { UserComplete, UserResponse } from "../../types/user/user.types"
+import { UserComplete, UserResponse } from "./user.types"
 import { prisma } from "../../lib/prisma"
 
 export class userRepository {

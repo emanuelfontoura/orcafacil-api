@@ -1,0 +1,25 @@
+export interface AuthDTOs{
+    ConfirmEmailRequestDTO: {
+        email: string
+        code: string
+    }
+
+    ConfirmEmailResponseDTO: {
+        id: number
+        email: string
+        name: string
+        createdAt: Date
+    }
+
+    VerifyEmailRequestDTO: {
+        name: string
+        email: string
+        password: string
+        confirmPassword: string
+    }
+
+    VerifyEmailResponseDTO: {
+        email: string
+        name: string
+    }
+}

@@ -1,8 +1,9 @@
 <div align="center">
-  <h1>💰 OrçaFácil API</h1>
-  <h2>(em desenvolvimento)</h2>
+  <h1>💰 OrçaFácil API</br>
+    (em desenvolvimento)
+  </h1>
   
-  <p><em>Sistema inteligente para gestão de orçamentos, clientes e vendas.</em></p>
+  <p><em>Sistema inteligente para gestão de orçamentos</em></p>
   
   [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)]()
   [![Node.js](https://img.shields.io/badge/Node.js-43853D?style=for-the-badge&logo=node.js&logoColor=white)]()
@@ -11,15 +12,13 @@
   [![Redis](https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white)]()
 </div>
 
----
-
-## 💙 API desenvolvida inteiramente por mim, sem uso de nocoding ou vibecoding.
+<p align="center"><strong>Desenvolvido sem uso de de vibecoding ou nocoding</strong></p> 
 
 ## 📖 Sobre o Projeto
 
 O **OrçaFácil** é uma API projetada para agilizar e organizar o processo de criação de orçamentos, facilitando o gerenciamento contínuo de clientes e o acompanhamento de vendas. Com uma arquitetura moderna, garante segurança, escalabilidade e performance no controle das operações comerciais.
 
----
+</br>
 
 ## 🚀 Tecnologias
 
@@ -36,7 +35,7 @@ O **OrçaFácil** é uma API projetada para agilizar e organizar o processo de c
 ### Arquitetura
 - **Arquitetura em Camadas (Layered Architecture):** Separação clara de responsabilidades (route, controller, service e repository) para garantir que o código seja testável, escalável e de fácil manutenção.
 
----
+</br>
 
 ## 📡 Endpoints
 
@@ -47,11 +46,13 @@ O **OrçaFácil** é uma API projetada para agilizar e organizar o processo de c
 | POST   | /user/auth/email/confirm | Recebe o código de validação                       | X    |
 
 ### 👤 Usuários
-(em breve)
+**(em breve)**
 
-## 📚 Documentação completa
-A documentação detalhada da API está disponível via Swagger:
-(em breve)
+### 📚 Documentação completa
+A documentação detalhada da API está disponível via Swagger:</br>
+**(em breve)**
+
+</br>
 
 ## ⚙️ Como Executar Localmente
 
@@ -105,7 +106,7 @@ npm run dev
 
 *As requisições para a API poderão ser feitas no endereço local (ex: `http://localhost:3000`).*
 
----
+</br>
 
 ## 📝 Licença
 Distribuído sob a licença **ISC**.

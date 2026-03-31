@@ -17,25 +17,11 @@
 
 ## 📖 Sobre o Projeto
 
-O **OrçaFácil** é uma API robusta projetada para agilizar e organizar o processo de criação de orçamentos, facilitando o gerenciamento contínuo de clientes e o acompanhamento de vendas. Com uma arquitetura moderna, garante segurança, escalabilidade e performance no controle das operações comerciais.
-
----
-
-## ✨ Principais Funcionalidades
-
-- **Gestão de Orçamentos:** Criação, edição e controle de status de orçamentos.
-- **Controle de Clientes:** Cadastro e histórico detalhado de clientes.
-- **Controle de Vendas:** Acompanhamento do ciclo de vida das vendas estruturadas.
-- **Autenticação Segura:** Login utilizando **JWT** e criptografia confiável com **Bcrypt**.
-- **Envio de E-mails:** Notificações e alertas transacionais usando **Nodemailer**.
-- **Validação de Dados:** Integridade dos dados garantida com esquema rigoroso pelo **Zod**.
-- **Cache Local:** Performance aprimorada de requisições frequentes via **Redis**.
+O **OrçaFácil** é uma API projetada para agilizar e organizar o processo de criação de orçamentos, facilitando o gerenciamento contínuo de clientes e o acompanhamento de vendas. Com uma arquitetura moderna, garante segurança, escalabilidade e performance no controle das operações comerciais.
 
 ---
 
 ## 🚀 Tecnologias
-
-Este projeto foi desenvolvido utilizando as ferramentas mais modernas do ecossistema Node.js:
 
 ### Stack Principal
 - **[Node.js](https://nodejs.org/)** & **[TypeScript](https://www.typescriptlang.org/)**
@@ -45,11 +31,27 @@ Este projeto foi desenvolvido utilizando as ferramentas mais modernas do ecossis
 - **[Redis](https://redis.io/)** & **[ioredis](https://github.com/redis/ioredis)** - Armazenamento de cache em memória
 - **[Nodemailer](https://nodemailer.com/)** - Envio de emails e transações
 - **[JWT](https://jwt.io/) / [Bcrypt](https://www.npmjs.com/package/bcrypt)** - Segurança e autenticação
+- **Entre outros...**
 
 ### Arquitetura
-- **Arquitetura em Camadas (Layered Architecture):** Separação clara de responsabilidades (Rotas, Controladores, Serviços e Repositórios) para garantir que o código seja testável, escalável e de fácil manutenção.
+- **Arquitetura em Camadas (Layered Architecture):** Separação clara de responsabilidades (route, controller, service e repository) para garantir que o código seja testável, escalável e de fácil manutenção.
 
 ---
+
+## 📡 Endpoints
+
+### 🔐 Autenticação
+| Método | Rota                     | Descrição                                          | Auth |
+|--------|--------------------------|----------------------------------------------------|------|
+| POST   | /user/auth/email/verify  | Envia um código de validação para o email inserido | X    |
+| POST   | /user/auth/email/confirm | Recebe o código de validação                       | X    |
+
+### 👤 Usuários
+(em breve)
+
+## 📚 Documentação completa
+A documentação detalhada da API está disponível via Swagger:
+(em breve)
 
 ## ⚙️ Como Executar Localmente
 

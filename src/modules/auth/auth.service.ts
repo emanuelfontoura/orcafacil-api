@@ -2,7 +2,8 @@ import { AuthDTOs } from './auth.dtos'
 import { AuthUserRepository } from './auth.repository'
 import { userRepository } from '../user/user.repository'
 import { redis } from '../../lib/redis'
-import bcrypt from "bcrypt" 
+import argon2 from "argon2"
+import 'dotenv/config'
 import { ConflictError } from '../../shared/errors/ConflictError'
 import { ErrorCode } from '../../shared/errors/ErrorCodes'
 import { AppError } from '../../shared/errors/AppError'
@@ -16,7 +17,17 @@ export class AuthUserService{
         const user = await userRepository.findByEmail(data.email)
         if(user) throw new ConflictError('Esse email já está cadastrado.', ErrorCode.USER_ALREADY_EXISTS)
 
-        const hashedPassword = await bcrypt.hash(data.password, await bcrypt.genSalt(10))
+        let hashedPassword: string
+        try{
+            hashedPassword = await argon2.hash(data.password + process.env.PEPPER, {
+                type: argon2.argon2id,
+                memoryCost: 65536,
+                timeCost: 3,
+                parallelism: 1
+            }) 
+        }catch(error){
+            throw new AppError('Ocorreu um erro ao realizar a criptografia da senha', 500, ErrorCode.INTERNAL_HASH_ERROR)
+        }
         // Save on Redis
         const code = Math.floor(100000 + Math.random() * 900000).toString()
 

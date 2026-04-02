@@ -1,8 +1,6 @@
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
-import swaggerUi from "swagger-ui-express"
-import swaggerDoc from "./docs/swagger"
 import { handleError } from './middlewares/handleError';
 
 // Import routes
@@ -16,9 +14,6 @@ const app = express();
 // Essentials middlewares
 app.use(cors());
 app.use(express.json());
-
-// Swagger Documentation
-app.use('/doc', swaggerUi.serve, swaggerUi.setup(swaggerDoc))
 
 // Apply Routes
 app.use('/user/auth', authUserRoutes)

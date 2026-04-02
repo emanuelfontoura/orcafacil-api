@@ -17,6 +17,7 @@ export class AuthUserService{
         const user = await userRepository.findByEmail(data.email)
         if(user) throw new ConflictError('Esse email já está cadastrado.', ErrorCode.USER_ALREADY_EXISTS)
 
+        // Password hash with Argon2
         let hashedPassword: string
         try{
             hashedPassword = await argon2.hash(data.password + process.env.PEPPER, {
@@ -28,6 +29,7 @@ export class AuthUserService{
         }catch(error){
             throw new AppError('Ocorreu um erro ao realizar a criptografia da senha', 500, ErrorCode.INTERNAL_HASH_ERROR)
         }
+        
         // Save on Redis
         const code = Math.floor(100000 + Math.random() * 900000).toString()
 

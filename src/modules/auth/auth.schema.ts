@@ -1,4 +1,4 @@
-import { z } from "zod"
+import { email, z } from "zod"
 
 export const authSchemas = {
     verifyEmailSchema: z.object({
@@ -13,5 +13,8 @@ export const authSchemas = {
     confirmEmailSchema: z.object({
         email: z.email().max(255),
         code: z.string().min(6).max(6).regex(/^\d+$/, 'O código precisa ter 6 dígitos')
+    }),
+    resendCodeEmailSchema: z.object({
+        email: z.email().max(255)
     })
 }

@@ -42,4 +42,19 @@ export class AuthUserController {
         }
     }
 
+    static async resendEmailCode(req: Request, res: Response<ApiResponse<AuthDTOs['ResendEmailCodeDTO']>>, next: NextFunction){
+        const data: AuthDTOs['ResendEmailCodeDTO'] = req.body
+        const {email} = data
+        try{
+            const dataEmail = await AuthUserService.resendEmailCode({email})
+
+            res.status(200).json({
+                success: true,
+                data: {email: dataEmail.email}
+            })
+        }catch(error){
+            next(error)
+        }
+    }
+
 }

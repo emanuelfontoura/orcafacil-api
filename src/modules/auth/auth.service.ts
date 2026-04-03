@@ -9,6 +9,8 @@ import { ErrorCode } from '../../shared/errors/ErrorCodes'
 import { AppError } from '../../shared/errors/AppError'
 import { NotFoundError } from '../../shared/errors/NotFoundError'
 import { UnauthorizedError } from '../../shared/errors/UnauthorizedError'
+import { verifyKeyExists } from '../../shared/utils/verifyKeyExists'
+import { generateCode } from '../../shared/utils/generateCode'
 
 export class AuthUserService{
 
@@ -30,12 +32,15 @@ export class AuthUserService{
             throw new AppError('Ocorreu um erro ao realizar a criptografia da senha', 500, ErrorCode.INTERNAL_HASH_ERROR)
         }
         
+        const keyExists = await verifyKeyExists(`verify-email-cooldown-${data.email}`)
+        if(keyExists) throw new ConflictError('Aguarde para realizar esta ação novamente', ErrorCode.SENDING_EMAIL_LIMIT)
+
         // Save on Redis
-        const code = Math.floor(100000 + Math.random() * 900000).toString()
+        const code = generateCode()
 
         try{
             await redis.set(
-                `verify:${data.email}`,
+                `verify-email-${data.email}`,
                 JSON.stringify({
                     code,
                     name: data.name,
@@ -45,16 +50,27 @@ export class AuthUserService{
                 600
             )
         }catch(error){
-            throw new AppError('Erro ao salvar código de verificação', 400, ErrorCode.REDIS_SAVE_ERROR)
+            throw new AppError('Erro ao salvar código de verificação', 500, ErrorCode.REDIS_SAVE_ERROR)
         }
-
+        
         await AuthUserRepository.sendEmailVerificationCode({email: data.email, code})
+
+        try{
+            await redis.set(
+                `verify-email-cooldown-${data.email}`,
+                1,
+                "EX",
+                60
+            )
+        }catch(error){
+            throw new AppError('Erro ao salvar email na fila de cooldown', 500, ErrorCode.REDIS_SAVE_ERROR)
+        }
 
         return {email: data.email, name: data.name}
     }
 
     static async confirmEmail(data: AuthDTOs['ConfirmEmailRequestDTO']): Promise<AuthDTOs['ConfirmEmailResponseDTO']>{
-        const dataUser = await redis.get(`verify:${data.email}`) 
+        const dataUser = await redis.get(`verify-email-${data.email}`) 
         if(!dataUser){
             throw new NotFoundError('Código expirado ou não encontrado.', ErrorCode.INVALID_OR_EXPIRED_CODE)
         }
@@ -76,6 +92,50 @@ export class AuthUserService{
             name: user.name,
             createdAt: user.createdAt,
         }
+    }
+
+    static async resendEmailCode(data: AuthDTOs['ResendEmailCodeDTO']): Promise<AuthDTOs['ResendEmailCodeDTO']>{
+        const keyCooldown = `verify-email-cooldown-${data.email}`
+        const keyNewCode = `verify-email-${data.email}`
+
+        const keyExists = await verifyKeyExists(keyCooldown)
+        if(keyExists) throw new ConflictError('Aguarde para realizar esta ação novamente', ErrorCode.SENDING_EMAIL_LIMIT)
+
+        const oldKey = await redis.get(keyNewCode)
+        if(!oldKey) throw new ConflictError('Tempo esgotado. Registre-se novamente', ErrorCode.TIME_OUT_REGISTER)
+
+        const parsedOldKey = JSON.parse(oldKey)
+
+        const newCode = generateCode()
+
+        try{
+            await redis.set(
+                keyNewCode,
+                JSON.stringify({
+                    ...parsedOldKey,
+                    code: newCode,
+                }),
+                "EX",
+                600
+            )
+        }catch(error){
+            throw new AppError('Erro ao salvar código de verificação', 500, ErrorCode.REDIS_SAVE_ERROR)
+        }
+
+        await AuthUserRepository.sendEmailVerificationCode({email: data.email, code: newCode})
+
+        try{
+            await redis.set(
+                keyCooldown,
+                1,
+                "EX",
+                60
+            )
+        }catch(error){
+            throw new AppError('Erro ao salvar email na fila de cooldown', 500, ErrorCode.REDIS_SAVE_ERROR)
+        }
+
+        return {email: data.email}
     }
 
 }

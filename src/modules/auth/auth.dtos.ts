@@ -22,4 +22,8 @@ export interface AuthDTOs{
         email: string
         name: string
     }
+
+    ResendEmailCodeDTO: {
+        email: string
+    }
 }

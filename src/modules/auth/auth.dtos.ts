@@ -26,4 +26,14 @@ export interface AuthDTOs{
     ResendEmailCodeDTO: {
         email: string
     }
+
+    LoginTokensDTO: {
+        accessToken: string,
+        refreshToken: string
+    }
+
+    LoginRequestDTO: {
+        email: string,
+        password: string
+    }
 }

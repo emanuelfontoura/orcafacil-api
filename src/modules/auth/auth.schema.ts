@@ -16,5 +16,9 @@ export const authSchemas = {
     }),
     resendCodeEmailSchema: z.object({
         email: z.email().max(255)
+    }),
+    loginSchema: z.object({
+        email: z.email().max(255),
+        password: z.string().min(8).max(128)
     })
 }

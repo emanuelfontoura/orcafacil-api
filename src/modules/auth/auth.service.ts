@@ -4,6 +4,8 @@ import { userRepository } from '@/modules/user/user.repository'
 import { redis } from '@/lib/redis'
 import argon2 from "argon2"
 import 'dotenv/config'
+import jwt from 'jsonwebtoken'
+import { randomUUID } from "crypto";
 import { ConflictError } from '@/shared/errors/ConflictError'
 import { ErrorCode } from '@/shared/errors/ErrorCodes'
 import { AppError } from '@/shared/errors/AppError'
@@ -136,6 +138,43 @@ export class AuthUserService{
         }
 
         return {email: data.email}
+    }
+
+    static async login(data: AuthDTOs['LoginRequestDTO']): Promise<AuthDTOs['LoginTokensDTO']>{
+        const {email, password} = data
+
+        const userCredentials = await userRepository.returnLoginCredentials(email)
+        if(!userCredentials) throw new UnauthorizedError('Credenciais inválidas', ErrorCode.INVALID_CREDENTIALS)
+
+        const passwordMatch = await argon2.verify(userCredentials.password, password) 
+        if(!passwordMatch) throw new UnauthorizedError('Credenciais inválidas', ErrorCode.INVALID_CREDENTIALS)
+
+        let accessToken, refreshToken: string
+        try{
+            accessToken = jwt.sign(
+                {sub: userCredentials.id},
+                process.env.JWT_ACCESS_SECRET!,
+                {expiresIn: "15m"}
+            )
+            const jti = randomUUID()
+            refreshToken = jwt.sign(
+                {sub: userCredentials.id, jti},
+                process.env.JWT_REFRESH_SECRET!,
+                {expiresIn: "7d"}
+            )
+            await redis.set(
+                `refresh-token-${jti}`,
+                userCredentials.id,
+                "EX",
+                604800
+            )
+        }catch(error){
+            throw new AppError('Erro ao gerar token', 500, ErrorCode.INTERNAL_SERVER_ERROR)
+        }
+
+        if(!accessToken || !refreshToken) throw new AppError('Token inválido', 500, ErrorCode.INTERNAL_SERVER_ERROR)
+
+        return {accessToken, refreshToken}
     }
 
 }

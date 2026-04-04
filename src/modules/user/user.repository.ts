@@ -1,9 +1,9 @@
-import { UserComplete, UserResponse } from "./user.types"
+import { UserTypes } from "./user.types"
 import { prisma } from "../../lib/prisma"
 
 export class userRepository {
 
-    static async findByEmail(email: string): Promise<UserResponse | null>{
+    static async findByEmail(email: string): Promise<UserTypes['UserResponse']>{
         const data =  await prisma.user.findUnique({
             where: {email},
             select: {
@@ -24,7 +24,7 @@ export class userRepository {
         } 
     }
 
-    static async createUser(data: UserComplete): Promise<UserResponse | null>{
+    static async createUser(data: UserTypes['UserComplete']): Promise<UserTypes['UserResponse']>{
         const dataUser = await prisma.user.create({
             data: {
                 email: data.email,
@@ -39,6 +39,23 @@ export class userRepository {
             name: dataUser.name,
             createdAt: dataUser.createdAt,
             updatedAt: dataUser.updatedAt
+        }
+    }
+
+    static async returnLoginCredentials(email: string): Promise<UserTypes['UserCredentials']>{
+        const userCredentials = await prisma.user.findUnique({
+            where: {email},
+            select: {
+                id: true,
+                email: true,
+                password: true
+            }
+        })
+        if(!userCredentials) return null
+        return {
+            id: userCredentials.id,
+            email: userCredentials.email,
+            password: userCredentials.password
         }
     }
     

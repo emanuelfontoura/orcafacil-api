@@ -57,4 +57,33 @@ export class AuthUserController {
         }
     }
 
+    static async login(req: Request, res: Response<ApiResponse<null>>, next: NextFunction){
+        const data: AuthDTOs['LoginRequestDTO'] = req.body
+
+        try {
+            const tokens = await AuthUserService.login(data)
+            const {accessToken, refreshToken} = tokens
+
+            res.cookie('accessToken', accessToken, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === "production",
+                sameSite: "strict",
+                maxAge: 15 * 60 * 1000 // 15 min
+            })
+            res.cookie('refreshToken', refreshToken, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === "production",
+                sameSite: "strict",
+                path: "auth/refresh",
+                maxAge: 7 * 24 * 60 * 60 * 1000 // 7 dias
+            })
+            res.status(200).json({
+                success: true,
+                data: null
+            })
+        }catch(error){
+            next(error)
+        }
+    }
+
 }

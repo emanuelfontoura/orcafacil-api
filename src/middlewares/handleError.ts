@@ -1,7 +1,7 @@
 import { ZodError } from "zod"
-import { AppError } from "../shared/errors/AppError"
+import { AppError } from "@/shared/errors/AppError"
 import { Request, Response, NextFunction } from "express"
-import { ApiResponse } from "../shared/types/apiResponse"
+import { ApiResponse } from "@/shared/types/apiResponse"
 
 export function handleError(
     error: any,

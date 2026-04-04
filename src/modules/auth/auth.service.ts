@@ -1,16 +1,16 @@
-import { AuthDTOs } from './auth.dtos'
-import { AuthUserRepository } from './auth.repository'
-import { userRepository } from '../user/user.repository'
-import { redis } from '../../lib/redis'
+import { AuthDTOs } from '@/modules/auth/auth.dtos'
+import { AuthUserRepository } from '@/modules/auth/auth.repository'
+import { userRepository } from '@/modules/user/user.repository'
+import { redis } from '@/lib/redis'
 import argon2 from "argon2"
 import 'dotenv/config'
-import { ConflictError } from '../../shared/errors/ConflictError'
-import { ErrorCode } from '../../shared/errors/ErrorCodes'
-import { AppError } from '../../shared/errors/AppError'
-import { NotFoundError } from '../../shared/errors/NotFoundError'
-import { UnauthorizedError } from '../../shared/errors/UnauthorizedError'
-import { verifyKeyExists } from '../../shared/utils/verifyKeyExists'
-import { generateCode } from '../../shared/utils/generateCode'
+import { ConflictError } from '@/shared/errors/ConflictError'
+import { ErrorCode } from '@/shared/errors/ErrorCodes'
+import { AppError } from '@/shared/errors/AppError'
+import { NotFoundError } from '@/shared/errors/NotFoundError'
+import { UnauthorizedError } from '@/shared/errors/UnauthorizedError'
+import { verifyKeyExists } from '@/shared/utils/verifyKeyExists'
+import { generateCode } from '@/shared/utils/generateCode'
 
 export class AuthUserService{
 

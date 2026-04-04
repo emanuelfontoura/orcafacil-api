@@ -1,4 +1,4 @@
-import { ErrorCode } from "./ErrorCodes"
+import { ErrorCode } from "@/shared/errors/ErrorCodes"
 
 export class AppError extends Error{
     public statusCode: number

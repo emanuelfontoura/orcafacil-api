@@ -1,8 +1,8 @@
 import { Router } from "express";
-import { AuthUserController } from './auth.controller'
-import { validateSchema } from "../../middlewares/validate";
-import { authSchemas } from "./auth.schema"
-import { rateLimit } from "../../middlewares/rateLimit";
+import { AuthUserController } from '@/modules/auth/auth.controller'
+import { validateSchema } from "@/middlewares/validate";
+import { authSchemas } from "@/modules/auth/auth.schema"
+import { rateLimit } from "@/middlewares/rateLimit";
 
 const authUserRoutes = Router()
 

@@ -1,11 +1,11 @@
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
-import { handleError } from './middlewares/handleError';
+import { handleError } from '@/middlewares/handleError';
 
 // Import routes
-import { userRouter } from './modules/user/user.route'
-import { authUserRoutes } from './modules/auth/auth.route'
+import { userRouter } from '@/modules/user/user.route'
+import { authUserRoutes } from '@/modules/auth/auth.route'
 
 const PORT = process.env.PORT || 3000;
 

@@ -1,8 +1,8 @@
-import { AuthTypes } from './auth.types'
+import { AuthTypes } from '@/modules/auth/auth.types'
 import nodemailer from "nodemailer"
 import "dotenv/config"
-import { AppError } from '../../shared/errors/AppError'
-import { ErrorCode } from '../../shared/errors/ErrorCodes'
+import { AppError } from '@/shared/errors/AppError'
+import { ErrorCode } from '@/shared/errors/ErrorCodes'
 
 export class AuthUserRepository {
 

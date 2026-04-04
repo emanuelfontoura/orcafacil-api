@@ -1,6 +1,6 @@
-import { redis } from "../../lib/redis";
-import { AppError } from "../errors/AppError";
-import { ErrorCode } from "../errors/ErrorCodes";
+import { redis } from "@/lib/redis";
+import { AppError } from "@/shared/errors/AppError";
+import { ErrorCode } from "@/shared/errors/ErrorCodes"
 
 export async function verifyKeyExists(key: string): Promise<boolean>{
     try{

@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
-import { AuthUserService } from "./auth.service";
-import { AuthDTOs } from "./auth.dtos";
-import { ApiResponse } from "../../shared/types/apiResponse";
+import { AuthUserService } from "@/modules/auth/auth.service";
+import { AuthDTOs } from "@/modules/auth/auth.dtos";
+import { ApiResponse } from "@/shared/types/apiResponse";
 
 export class AuthUserController {
 

@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express"
-import { redis } from "../lib/redis"
-import { AppError } from "../shared/errors/AppError"
-import { ErrorCode } from "../shared/errors/ErrorCodes"
+import { redis } from "@/lib/redis"
+import { AppError } from "@/shared/errors/AppError"
+import { ErrorCode } from "@/shared/errors/ErrorCodes"
 
 export const rateLimit = (maxReqLimit: number, maxTimeLimit: number, route: string) => {
     return async (req: Request, res: Response, next: NextFunction) => {

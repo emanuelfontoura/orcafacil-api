@@ -146,7 +146,7 @@ export class AuthUserService{
         const userCredentials = await userRepository.returnLoginCredentials(email)
         if(!userCredentials) throw new UnauthorizedError('Credenciais inválidas', ErrorCode.INVALID_CREDENTIALS)
 
-        const passwordMatch = await argon2.verify(userCredentials.password, password) 
+        const passwordMatch = await argon2.verify(userCredentials.password, password + process.env.PEPPER) 
         if(!passwordMatch) throw new UnauthorizedError('Credenciais inválidas', ErrorCode.INVALID_CREDENTIALS)
 
         let accessToken, refreshToken: string

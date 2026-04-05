@@ -140,6 +140,9 @@ export class AuthUserService{
         const passwordMatch = await ArgonHash.argonVerify(userCredentials.password, password) 
         if(!passwordMatch) throw new UnauthorizedError('Credenciais inválidas', ErrorCode.INVALID_CREDENTIALS)
 
+        const newHashedPassword = await ArgonHash.argonRehash(password, userCredentials.password)
+        if(newHashedPassword) await userRepository.updatePasswordHash(userCredentials.id, newHashedPassword)
+
         let accessToken, refreshToken: string
         try{
             accessToken = jwt.sign(

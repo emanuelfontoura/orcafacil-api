@@ -58,5 +58,12 @@ export class userRepository {
             password: userCredentials.password
         }
     }
+
+    static async updatePasswordHash(userId: number, newHashedPassword: string){
+        await prisma.user.update(
+            {where: {id: userId},
+            data: {password: newHashedPassword}
+        })
+    }
     
 }

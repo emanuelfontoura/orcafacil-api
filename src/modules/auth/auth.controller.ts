@@ -2,6 +2,8 @@ import { NextFunction, Request, Response } from "express";
 import { AuthUserService } from "@/modules/auth/auth.service";
 import { AuthDTOs } from "@/modules/auth/auth.dtos";
 import { ApiResponse } from "@/shared/types/apiResponse";
+import { UnauthorizedError } from "@/shared/errors/UnauthorizedError";
+import { setAuthCookies } from "@/shared/utils/setAuthCookies";
 
 export class AuthUserController {
 
@@ -62,21 +64,27 @@ export class AuthUserController {
 
         try {
             const tokens = await AuthUserService.login(data)
-            const {accessToken, refreshToken} = tokens
 
-            res.cookie('accessToken', accessToken, {
-                httpOnly: true,
-                secure: process.env.NODE_ENV === "production",
-                sameSite: "strict",
-                maxAge: 15 * 60 * 1000 // 15 min
+            setAuthCookies(res, tokens)
+
+            res.status(200).json({
+                success: true,
+                data: null
             })
-            res.cookie('refreshToken', refreshToken, {
-                httpOnly: true,
-                secure: process.env.NODE_ENV === "production",
-                sameSite: "strict",
-                path: "/auth/refresh",
-                maxAge: 7 * 24 * 60 * 60 * 1000 // 7 dias
-            })
+        }catch(error){
+            next(error)
+        }
+    }
+
+    static async refreshToken(req: Request, res: Response<ApiResponse<null>>, next: NextFunction){
+        try{
+            const refreshToken = req.cookies.refreshToken
+            if(!refreshToken) throw new UnauthorizedError('Refresh token não fornecido')
+
+            const newTokens = await AuthUserService.refreshToken(refreshToken)
+
+            setAuthCookies(res, newTokens)
+
             res.status(200).json({
                 success: true,
                 data: null

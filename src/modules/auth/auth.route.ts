@@ -6,9 +6,10 @@ import { rateLimit } from "@/middlewares/rateLimit";
 
 const authUserRoutes = Router()
 
-authUserRoutes.post('/email/verify', rateLimit(3, 60, 'auth/email/verify'), validateSchema(authSchemas.verifyEmailSchema), AuthUserController.verifyEmail)
-authUserRoutes.post('/email/confirm', rateLimit(3, 60, 'auth/email/confirm'), validateSchema(authSchemas.confirmEmailSchema), AuthUserController.confirmEmail)
-authUserRoutes.post('/email/resend-email-code', rateLimit(3, 60, 'auth/email/resend-email-code'), validateSchema(authSchemas.resendCodeEmailSchema), AuthUserController.resendEmailCode)
-authUserRoutes.post('/login', rateLimit(3, 60, 'auth/login'), validateSchema(authSchemas.loginSchema), AuthUserController.login)
+authUserRoutes.post('/email/verify', rateLimit(2, 60, 'auth/email/verify'), validateSchema(authSchemas.verifyEmailSchema), AuthUserController.verifyEmail)
+authUserRoutes.post('/email/confirm', rateLimit(5, 60, 'auth/email/confirm'), validateSchema(authSchemas.confirmEmailSchema), AuthUserController.confirmEmail)
+authUserRoutes.post('/email/resend-email-code', rateLimit(1, 60, 'auth/email/resend-email-code'), validateSchema(authSchemas.resendCodeEmailSchema), AuthUserController.resendEmailCode)
+authUserRoutes.post('/login', rateLimit(5, 60, 'auth/login'), validateSchema(authSchemas.loginSchema), AuthUserController.login)
+authUserRoutes.post('/refresh-token', rateLimit(10, 60, 'auth/refresh-token'), AuthUserController.refreshToken)
 
 export { authUserRoutes }

@@ -3,9 +3,8 @@ import { AuthUserRepository } from '@/modules/auth/auth.repository'
 import { userRepository } from '@/modules/user/user.repository'
 import { redis } from '@/lib/redis'
 import { ArgonHash } from '@/shared/utils/argonHash'
-import 'dotenv/config'
+import { env } from "@/config/env"
 import jwt from 'jsonwebtoken'
-import { randomUUID } from "crypto";
 import { ConflictError } from '@/shared/errors/ConflictError'
 import { ErrorCode } from '@/shared/errors/ErrorCodes'
 import { AppError } from '@/shared/errors/AppError'
@@ -13,6 +12,7 @@ import { NotFoundError } from '@/shared/errors/NotFoundError'
 import { UnauthorizedError } from '@/shared/errors/UnauthorizedError'
 import { verifyKeyExists } from '@/shared/utils/verifyKeyExists'
 import { generateCode } from '@/shared/utils/generateCode'
+import { generateTokens } from '@/shared/utils/generateTokens'
 
 export class AuthUserService{
 
@@ -143,32 +143,37 @@ export class AuthUserService{
         const newHashedPassword = await ArgonHash.argonRehash(password, userCredentials.password)
         if(newHashedPassword) await userRepository.updatePasswordHash(userCredentials.id, newHashedPassword)
 
-        let accessToken, refreshToken: string
-        try{
-            accessToken = jwt.sign(
-                {sub: userCredentials.id},
-                process.env.JWT_ACCESS_SECRET!,
-                {expiresIn: "15m"}
-            )
-            const jti = randomUUID()
-            refreshToken = jwt.sign(
-                {sub: userCredentials.id, jti},
-                process.env.JWT_REFRESH_SECRET!,
-                {expiresIn: "7d"}
-            )
-            await redis.set(
-                `refresh-token-${jti}`,
-                userCredentials.id,
-                "EX",
-                604800
-            )
-        }catch(error){
-            throw new AppError('Erro ao gerar token', 500, ErrorCode.INTERNAL_SERVER_ERROR)
-        }
+        const tokens = await generateTokens(userCredentials.id)
+        const {accessToken, refreshToken} = tokens
 
         if(!accessToken || !refreshToken) throw new AppError('Token inválido', 500, ErrorCode.INTERNAL_SERVER_ERROR)
 
         return {accessToken, refreshToken}
     }
 
+    static async refreshToken(refreshToken: string): Promise<AuthDTOs['RefreshTokensDTO']>{
+        try{
+            const decodedRefreshToken = jwt.verify(refreshToken, env.JWT_REFRESH_SECRET) as jwt.JwtPayload
+            const {jti, sub} = decodedRefreshToken
+            const dataTokens = await redis.exists(`refresh-token-${jti}`)
+            if(!dataTokens) throw new UnauthorizedError('Refresh token inválido', ErrorCode.INVALID_TOKEN)
+            await redis.del(`refresh-token-${jti}`)
+            const newTokens = await generateTokens(Number(sub))
+            return newTokens
+        }catch(error){
+            if(error instanceof jwt.TokenExpiredError){
+                throw new UnauthorizedError('Refresh token expirado', ErrorCode.TOKEN_EXPIRED)
+            }
+
+            if(error instanceof jwt.JsonWebTokenError){
+                throw new UnauthorizedError('Refresh token inválido', ErrorCode.INVALID_TOKEN)
+            }
+
+            if(error instanceof AppError){
+                throw error
+            }
+
+            throw new AppError('Erro ao renovar sessão', 500, ErrorCode.INTERNAL_SERVER_ERROR)
+        }
+    }
 }

@@ -36,4 +36,9 @@ export interface AuthDTOs{
         email: string,
         password: string
     }
+
+    RefreshTokensDTO: {
+        accessToken: string,
+        refreshToken: string
+    }
 }

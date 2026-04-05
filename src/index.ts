@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
+import cookieParser from "cookie-parser"
 import { handleError } from '@/middlewares/handleError';
 
 // Import routes
@@ -17,6 +18,7 @@ app.use(cors({
     credentials: true
 }));
 app.use(express.json());
+app.use(cookieParser())
 
 // Apply Routes
 app.use('/user/auth', authUserRoutes)

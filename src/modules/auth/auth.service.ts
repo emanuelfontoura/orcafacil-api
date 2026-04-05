@@ -2,7 +2,7 @@ import { AuthDTOs } from '@/modules/auth/auth.dtos'
 import { AuthUserRepository } from '@/modules/auth/auth.repository'
 import { userRepository } from '@/modules/user/user.repository'
 import { redis } from '@/lib/redis'
-import argon2 from "argon2"
+import { ArgonHash } from '@/shared/utils/argonHash'
 import 'dotenv/config'
 import jwt from 'jsonwebtoken'
 import { randomUUID } from "crypto";
@@ -22,29 +22,20 @@ export class AuthUserService{
         if(user) throw new ConflictError('Esse email já está cadastrado.', ErrorCode.USER_ALREADY_EXISTS)
 
         // Password hash with Argon2
-        let hashedPassword: string
-        try{
-            hashedPassword = await argon2.hash(data.password + process.env.PEPPER, {
-                type: argon2.argon2id,
-                memoryCost: 65536,
-                timeCost: 3,
-                parallelism: 1
-            }) 
-        }catch(error){
-            throw new AppError('Ocorreu um erro ao realizar a criptografia da senha', 500, ErrorCode.INTERNAL_HASH_ERROR)
-        }
+       const hashedPassword = await ArgonHash.argonHash(data.password)
         
         const keyExists = await verifyKeyExists(`verify-email-cooldown-${data.email}`)
         if(keyExists) throw new ConflictError('Aguarde para realizar esta ação novamente', ErrorCode.SENDING_EMAIL_LIMIT)
 
         // Save on Redis
         const code = generateCode()
+        const hashedCode = await ArgonHash.argonHash(code)
 
         try{
             await redis.set(
                 `verify-email-${data.email}`,
                 JSON.stringify({
-                    code,
+                    code: hashedCode,
                     name: data.name,
                     password: hashedPassword
                 }),
@@ -72,15 +63,14 @@ export class AuthUserService{
     }
 
     static async confirmEmail(data: AuthDTOs['ConfirmEmailRequestDTO']): Promise<AuthDTOs['ConfirmEmailResponseDTO']>{
+        
         const dataUser = await redis.get(`verify-email-${data.email}`) 
-        if(!dataUser){
-            throw new NotFoundError('Código expirado ou não encontrado.', ErrorCode.INVALID_OR_EXPIRED_CODE)
-        }
+        if(!dataUser) throw new NotFoundError('Código expirado ou não encontrado.', ErrorCode.INVALID_OR_EXPIRED_CODE)
+
         const dataParsed = JSON.parse(dataUser)
 
-        if(dataParsed.code !==  data.code){
-            throw new UnauthorizedError('Código inválido.', ErrorCode.INVALID_CODE)
-        }
+        const codeMatch = await ArgonHash.argonVerify(dataParsed.code, data.code)
+        if(!codeMatch) throw new UnauthorizedError('Código inválido.', ErrorCode.INVALID_CODE)
 
         const user = await userRepository.createUser({
             email: data.email,
@@ -88,6 +78,7 @@ export class AuthUserService{
             password: dataParsed.password 
         })
         if(!user) throw new AppError('Houve um erro ao criar o usuário.', 400, ErrorCode.USER_CREATION_FAILED)
+
         return {
             id: user.id,
             email: user.email,
@@ -146,7 +137,7 @@ export class AuthUserService{
         const userCredentials = await userRepository.returnLoginCredentials(email)
         if(!userCredentials) throw new UnauthorizedError('Credenciais inválidas', ErrorCode.INVALID_CREDENTIALS)
 
-        const passwordMatch = await argon2.verify(userCredentials.password, password + process.env.PEPPER) 
+        const passwordMatch = await ArgonHash.argonVerify(userCredentials.password, password) 
         if(!passwordMatch) throw new UnauthorizedError('Credenciais inválidas', ErrorCode.INVALID_CREDENTIALS)
 
         let accessToken, refreshToken: string

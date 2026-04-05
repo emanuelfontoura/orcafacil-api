@@ -1,5 +1,5 @@
-import { UserTypes } from "./user.types"
-import { prisma } from "../../lib/prisma"
+import { UserTypes } from "@/modules/user/user.types"
+import { prisma } from "@/lib/prisma"
 
 export class userRepository {
 

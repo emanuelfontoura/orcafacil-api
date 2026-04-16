@@ -69,7 +69,7 @@ export class AuthUserService{
         }catch{
             throw new AppError('Erro ao obter dados da recuperação de senha', 500, ErrorCode.REDIS_GET_ERROR)
         }
-        if(!dataUser) throw new NotFoundError('Código expirado ou não encontrado.', ErrorCode.INVALID_OR_EXPIRED_CODE)
+        if(!dataUser) throw new UnauthorizedError('Código expirado ou não encontrado.', ErrorCode.INVALID_OR_EXPIRED_CODE)
 
         const dataParsed = JSON.parse(dataUser)
 

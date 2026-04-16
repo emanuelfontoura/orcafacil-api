@@ -87,7 +87,7 @@ export class AuthUserService{
         }
     }
 
-    static async resendEmailCode(data: AuthDTOs['ResendEmailCodeDTO']): Promise<AuthDTOs['ResendEmailCodeDTO']>{
+    static async resendEmailCode(data: {email: string}): Promise<{email: string}>{
         const keyCooldown = `verify-email-cooldown-${data.email}`
         const keyNewCode = `verify-email-${data.email}`
 
@@ -111,7 +111,7 @@ export class AuthUserService{
                 "EX",
                 600
             )
-        }catch(error){
+        }catch{
             throw new AppError('Erro ao salvar código de verificação', 500, ErrorCode.REDIS_SAVE_ERROR)
         }
 
@@ -131,7 +131,7 @@ export class AuthUserService{
         return {email: data.email}
     }
 
-    static async login(data: AuthDTOs['LoginRequestDTO']): Promise<AuthDTOs['LoginTokensDTO']>{
+    static async login(data: AuthDTOs['LoginRequestDTO']): Promise<AuthDTOs['TokensDTO']>{
         const {email, password} = data
 
         const userCredentials = await userRepository.returnLoginCredentials(email)
@@ -151,7 +151,7 @@ export class AuthUserService{
         return {accessToken, refreshToken}
     }
 
-    static async refreshToken(refreshToken: string): Promise<AuthDTOs['RefreshTokensDTO']>{
+    static async refreshToken(refreshToken: string): Promise<AuthDTOs['TokensDTO']>{
         try{
             const decodedRefreshToken = jwt.verify(refreshToken, env.JWT_REFRESH_SECRET) as jwt.JwtPayload
             const {jti, sub} = decodedRefreshToken

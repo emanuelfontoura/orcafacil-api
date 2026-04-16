@@ -44,8 +44,8 @@ export class AuthUserController {
         }
     }
 
-    static async resendEmailCode(req: Request, res: Response<ApiResponse<AuthDTOs['ResendEmailCodeDTO']>>, next: NextFunction){
-        const data: AuthDTOs['ResendEmailCodeDTO'] = req.body
+    static async resendEmailCode(req: Request, res: Response<ApiResponse<{email: string}>>, next: NextFunction){
+        const data: {email: string} = req.body
         const {email} = data
         try{
             const dataEmail = await AuthUserService.resendEmailCode({email})

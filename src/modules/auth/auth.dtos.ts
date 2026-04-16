@@ -3,7 +3,6 @@ export interface AuthDTOs{
         email: string
         code: string
     }
-
     ConfirmEmailResponseDTO: {
         id: number
         email: string
@@ -17,17 +16,12 @@ export interface AuthDTOs{
         password: string
         confirmPassword: string
     }
-
     VerifyEmailResponseDTO: {
         email: string
         name: string
     }
 
-    ResendEmailCodeDTO: {
-        email: string
-    }
-
-    LoginTokensDTO: {
+    TokensDTO: {
         accessToken: string,
         refreshToken: string
     }

@@ -63,8 +63,12 @@ export class AuthUserService{
     }
 
     static async confirmEmail(data: AuthDTOs['ConfirmEmailRequestDTO']): Promise<AuthDTOs['ConfirmEmailResponseDTO']>{
-        
-        const dataUser = await redis.get(`verify-email-${data.email}`) 
+        let dataUser
+        try{
+            dataUser = await redis.get(`verify-email-${data.email}`) 
+        }catch{
+            throw new AppError('Erro ao obter dados da recuperação de senha', 500, ErrorCode.REDIS_GET_ERROR)
+        }
         if(!dataUser) throw new NotFoundError('Código expirado ou não encontrado.', ErrorCode.INVALID_OR_EXPIRED_CODE)
 
         const dataParsed = JSON.parse(dataUser)

@@ -3,9 +3,4 @@ export type AuthTypes = {
         email: string
         code: string
     }
-
-    UserInfo: {
-        email: string
-        name: string
-    }
 }

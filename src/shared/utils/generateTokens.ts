@@ -6,7 +6,7 @@ import { AppError } from "@/shared/errors/AppError";
 import { ErrorCode } from "@/shared/errors/ErrorCodes";
 import { env } from "@/config/env";
 
-export async function generateTokens(userId: number): Promise<AuthDTOs['RefreshTokensDTO']> {
+export async function generateTokens(userId: number): Promise<AuthDTOs['TokensDTO']> {
     let accessToken, refreshToken: string
     try{
         accessToken = jwt.sign(
@@ -27,7 +27,7 @@ export async function generateTokens(userId: number): Promise<AuthDTOs['RefreshT
             604800
         )
     }catch(error){
-        throw new AppError('Erro ao gerar tokens', 500, ErrorCode.INTERNAL_SERVER_ERROR)
+        throw new AppError('Erro ao gerar tokens.', 500, ErrorCode.INTERNAL_SERVER_ERROR)
     }
 
     return {accessToken, refreshToken}

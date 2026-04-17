@@ -5,10 +5,9 @@ import { ErrorCode } from "@/shared/errors/ErrorCodes"
 
 export class userRepository {
 
-    static async findByEmail(email: string): Promise<UserTypes['UserResponse']>{
-        let data
+    static async findByEmail(email: string): Promise<UserTypes['UserResponse'] | null>{
         try{
-            data =  await prisma.user.findUnique({
+            const data =  await prisma.user.findUnique({
                 where: {email},
                 select: {
                     id: true,
@@ -18,45 +17,43 @@ export class userRepository {
                     updatedAt: true
                 }
             })
+            if(!data) return null
+            return {
+                id: data.id,
+                email: data.email,
+                name: data.name,
+                createdAt: data.createdAt,
+                updatedAt: data.updatedAt
+            } 
         }catch{
             throw new AppError('Erro ao buscar dados do usuário.', 500, ErrorCode.QUERY_DATABASE_ERROR)
         }
-        if(!data) return null
-        return {
-            id: data.id,
-            email: data.email,
-            name: data.name,
-            createdAt: data.createdAt,
-            updatedAt: data.updatedAt
-        } 
     }
 
     static async createUser(data: UserTypes['UserComplete']): Promise<UserTypes['UserResponse']>{
-        let dataUser
         try{
-            dataUser = await prisma.user.create({
+            const dataUser = await prisma.user.create({
                 data: {
                     email: data.email,
                     name: data.name,
                     password: data.password
                 }
             })
+            return {
+                id: dataUser.id,
+                email: dataUser.email,
+                name: dataUser.name,
+                createdAt: dataUser.createdAt,
+                updatedAt: dataUser.updatedAt
+            }
         }catch{
             throw new AppError('Erro ao criar usuário.', 500, ErrorCode.USER_CREATION_FAILED)
         }   
-        return {
-            id: dataUser.id,
-            email: dataUser.email,
-            name: dataUser.name,
-            createdAt: dataUser.createdAt,
-            updatedAt: dataUser.updatedAt
-        }
     }
 
-    static async returnLoginCredentials(email: string): Promise<UserTypes['UserCredentials']>{
-        let userCredentials
+    static async returnLoginCredentials(email: string): Promise<UserTypes['UserCredentials'] | null>{
         try{
-            userCredentials = await prisma.user.findUnique({
+            const userCredentials = await prisma.user.findUnique({
                 where: {email},
                 select: {
                     id: true,
@@ -64,14 +61,14 @@ export class userRepository {
                     password: true
                 }
             })
+            if(!userCredentials) return null
+            return {
+                id: userCredentials.id,
+                email: userCredentials.email,
+                password: userCredentials.password
+            }
         }catch{
             throw new AppError('Erro ao buscar dados do usuário.', 500, ErrorCode.QUERY_DATABASE_ERROR)
-        }
-        if(!userCredentials) return null
-        return {
-            id: userCredentials.id,
-            email: userCredentials.email,
-            password: userCredentials.password
         }
     }
 

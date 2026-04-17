@@ -27,7 +27,7 @@ export class AuthUserRepository {
                 `
             })
         }catch(error){
-            throw new AppError('Erro ao enviar email de verificação', 500, ErrorCode.SEND_EMAIL_CODE_ERROR)
+            throw new AppError('Erro ao enviar email de verificação.', 500, ErrorCode.SEND_EMAIL_CODE_ERROR)
         }
     }
 }

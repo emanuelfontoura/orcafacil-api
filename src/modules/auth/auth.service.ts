@@ -25,7 +25,7 @@ export class AuthUserService{
        const hashedPassword = await ArgonHash.argonHash(data.password)
         
         const keyExists = await verifyKeyExists(`verify-email-cooldown-${data.email}`)
-        if(keyExists) throw new ConflictError('Aguarde para realizar esta ação novamente', ErrorCode.LIMIT_ATTEMPTS)
+        if(keyExists) throw new ConflictError('Aguarde para realizar esta ação novamente.', ErrorCode.LIMIT_ATTEMPTS)
 
         // Save on Redis
         const code = generateCode()
@@ -43,7 +43,7 @@ export class AuthUserService{
                 600
             )
         }catch(error){
-            throw new AppError('Erro ao salvar código de verificação', 500, ErrorCode.REDIS_SAVE_ERROR)
+            throw new AppError('Erro ao salvar código de verificação.', 500, ErrorCode.REDIS_SAVE_ERROR)
         }
         
         await AuthUserRepository.sendEmailVerificationCode({email: data.email, code})
@@ -56,7 +56,7 @@ export class AuthUserService{
                 60
             )
         }catch(error){
-            throw new AppError('Erro ao salvar email na fila de cooldown', 500, ErrorCode.REDIS_SAVE_ERROR)
+            throw new AppError('Erro ao salvar email na fila de cooldown.', 500, ErrorCode.REDIS_SAVE_ERROR)
         }
 
         return {email: data.email, name: data.name}
@@ -67,7 +67,7 @@ export class AuthUserService{
         try{
             dataUser = await redis.get(`verify-email-${data.email}`) 
         }catch{
-            throw new AppError('Erro ao obter dados da recuperação de senha', 500, ErrorCode.REDIS_GET_ERROR)
+            throw new AppError('Erro ao obter dados da recuperação de senha.', 500, ErrorCode.REDIS_GET_ERROR)
         }
         if(!dataUser) throw new UnauthorizedError('Código expirado ou não encontrado.', ErrorCode.EXPIRED_CODE)
 
@@ -81,7 +81,6 @@ export class AuthUserService{
             name: dataParsed.name,
             password: dataParsed.password 
         })
-        if(!user) throw new AppError('Houve um erro ao criar o usuário.', 500, ErrorCode.USER_CREATION_FAILED)
 
         return {
             id: user.id,
@@ -96,10 +95,10 @@ export class AuthUserService{
         const keyNewCode = `verify-email-${data.email}`
 
         const keyExists = await verifyKeyExists(keyCooldown)
-        if(keyExists) throw new ConflictError('Aguarde para realizar esta ação novamente', ErrorCode.LIMIT_ATTEMPTS)
+        if(keyExists) throw new ConflictError('Aguarde para realizar esta ação novamente.', ErrorCode.LIMIT_ATTEMPTS)
 
         const oldKey = await redis.get(keyNewCode)
-        if(!oldKey) throw new ConflictError('Tempo esgotado. Registre-se novamente', ErrorCode.TIME_OUT_REGISTER)
+        if(!oldKey) throw new ConflictError('Tempo esgotado. Registre-se novamente.', ErrorCode.TIME_OUT_REGISTER)
 
         const parsedOldKey = JSON.parse(oldKey)
 
@@ -116,7 +115,7 @@ export class AuthUserService{
                 600
             )
         }catch{
-            throw new AppError('Erro ao salvar código de verificação', 500, ErrorCode.REDIS_SAVE_ERROR)
+            throw new AppError('Erro ao salvar código de verificação.', 500, ErrorCode.REDIS_SAVE_ERROR)
         }
 
         await AuthUserRepository.sendEmailVerificationCode({email: data.email, code: newCode})
@@ -129,7 +128,7 @@ export class AuthUserService{
                 60
             )
         }catch(error){
-            throw new AppError('Erro ao salvar email na fila de cooldown', 500, ErrorCode.REDIS_SAVE_ERROR)
+            throw new AppError('Erro ao salvar email na fila de cooldown.', 500, ErrorCode.REDIS_SAVE_ERROR)
         }
 
         return {email: data.email}
@@ -150,7 +149,7 @@ export class AuthUserService{
         const tokens = await generateTokens(userCredentials.id)
         const {accessToken, refreshToken} = tokens
 
-        if(!accessToken || !refreshToken) throw new AppError('Token inválido', 500, ErrorCode.INTERNAL_SERVER_ERROR)
+        if(!accessToken || !refreshToken) throw new AppError('Token inválido.', 500, ErrorCode.INTERNAL_SERVER_ERROR)
 
         return {accessToken, refreshToken}
     }

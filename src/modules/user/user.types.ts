@@ -11,11 +11,11 @@ export type UserTypes = {
         name: string
         createdAt: Date
         updatedAt: Date
-    } | null
+    }
 
     UserCredentials: {
         id: number,
         email: string,
         password: string
-    } | null
+    }
 }

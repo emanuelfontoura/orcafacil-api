@@ -31,5 +31,13 @@ export interface AuthDTOs{
         password: string
     }
 
+    ConfirmCodeRecoveryRequestDTO: {
+        tokenUUID: string,
+        code: string
+    }
+
+    CreateNewPasswordRequestDTO: {
+        tokenUUID: string,
+        newPassword: string,
     }
 }

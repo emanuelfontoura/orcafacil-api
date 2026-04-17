@@ -93,4 +93,48 @@ export class AuthUserController {
             next(error)
         }
     }
+
+    static async sendCodeRecovery(req: Request, res: Response<ApiResponse<{tokenUUID: string | null}>>, next: NextFunction){
+        const data: {email: string} = req.body
+        const {email} = data
+
+        try{
+            const tokenUUID = await AuthUserService.sendCodeRecovery(email)
+            res.status(200).json({
+                success: true,
+                data: tokenUUID
+            })
+        }catch(error){
+            next(error)
+        }
+    } 
+
+    static async confirmCodeRecovery(req: Request, res: Response<ApiResponse<{tokenUUID: string | null}>>, next: NextFunction){
+        const data: AuthDTOs['ConfirmCodeRecoveryRequestDTO'] = req.body
+        const {tokenUUID, code} = data
+
+        try{
+            const newTokenUUID = await AuthUserService.confirmCodeRecovery({tokenUUID, code})
+            res.status(200).json({
+                success: true,
+                data: newTokenUUID
+            })
+        }catch(error){
+            next(error)
+        }
+    }
+
+    static async createNewPassword(req: Request, res: Response<ApiResponse<null>>, next: NextFunction){
+        const data: AuthDTOs['CreateNewPasswordRequestDTO'] = req.body
+        
+        try{
+            await AuthUserService.createNewPassword(data)
+            res.status(200).json({
+                success: true,
+                data: null
+            })
+        }catch(error){
+            next(error)
+        }
+    }
 }

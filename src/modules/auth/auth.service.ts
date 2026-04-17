@@ -12,6 +12,7 @@ import { UnauthorizedError } from '@/shared/errors/UnauthorizedError'
 import { verifyKeyExists } from '@/shared/utils/verifyKeyExists'
 import { generateCode } from '@/shared/utils/generateCode'
 import { generateTokens } from '@/shared/utils/generateTokens'
+import { randomUUID } from "crypto";
 
 export class AuthUserService{
 
@@ -178,5 +179,102 @@ export class AuthUserService{
 
             throw new AppError('Erro ao renovar sessão', 500, ErrorCode.INTERNAL_SERVER_ERROR)
         }
+    }
+
+    static async sendCodeRecovery(email: string): Promise<{tokenUUID: string | null}>{
+        const user = await userRepository.findByEmail(email)
+        if(!user) throw new UnauthorizedError('Credencial inválida', ErrorCode.INVALID_CREDENTIALS)
+
+        const tokenUUID = randomUUID()
+        const code = generateCode()
+        const hashedCode = await ArgonHash.argonHash(code)
+
+        try{
+            await redis.set(
+                `recovery-password-${tokenUUID}`,
+                JSON.stringify({
+                    id: user.id,
+                    code: hashedCode,
+                    authorized: false,
+                    attempts: 0
+                }),
+                "EX",
+                600
+            )
+        }catch{
+            throw new AppError('Erro ao salvar código de verificação', 500, ErrorCode.REDIS_SAVE_ERROR)
+        }
+
+        await AuthUserRepository.sendEmailVerificationCode({
+            email,
+            code
+        })
+
+        return {tokenUUID}
+    }
+
+    static async confirmCodeRecovery(data: AuthDTOs['ConfirmCodeRecoveryRequestDTO']): Promise<{tokenUUID: string | null}>{
+        const {tokenUUID, code} = data
+        const key = `recovery-password-${tokenUUID}`
+
+        let dataUser
+        try{
+            dataUser = await redis.get(key)
+        }catch{
+            throw new AppError('Erro ao obter dados da recuperação de senha', 500, ErrorCode.REDIS_GET_ERROR)
+        }
+        if(!dataUser) throw new UnauthorizedError('Código expirado ou não encontrado.', ErrorCode.EXPIRED_CODE)
+        const dataParsed = JSON.parse(dataUser)
+
+        if(dataParsed.attempts >= 5){
+            await redis.del(key)
+            throw new UnauthorizedError('Muitas tentativas. Solicite um novo código.', ErrorCode.LIMIT_ATTEMPTS)
+        }
+        dataParsed.attempts += 1
+
+        try{
+            await redis.set(key, JSON.stringify(dataParsed), "KEEPTTL")
+        }catch{
+            throw new AppError('Erro ao atualizar estado de recuperação', 500, ErrorCode.REDIS_SAVE_ERROR)
+        }
+
+        const codeMatch = await ArgonHash.argonVerify(dataParsed.code, code)
+        if(!codeMatch) throw new UnauthorizedError('Código inválido', ErrorCode.INVALID_CODE)
+
+        const newTokenUUID = randomUUID()
+        const newKey = `recovery-password-${newTokenUUID}`
+        try{
+            await redis.set(
+                newKey, 
+                JSON.stringify(
+                    {
+                        ...dataParsed, 
+                        authorized: true
+                    }
+                ), 
+                "EX",
+                600
+            )
+            await redis.del(key)
+        }catch{
+            throw new AppError('Erro ao atualizar estado de recuperação', 500, ErrorCode.REDIS_SAVE_ERROR)
+        }
+
+        return {tokenUUID: newTokenUUID}
+    }
+
+    static async createNewPassword(data: AuthDTOs['CreateNewPasswordRequestDTO']){
+        const {tokenUUID, newPassword} = data
+        let dataUser
+        try{
+            dataUser = await redis.get(`recovery-password-${tokenUUID}`)
+        }catch{
+            throw new AppError('Erro ao obter dados da recuperação de senha', 500, ErrorCode.REDIS_GET_ERROR)
+        }
+        if(!dataUser) throw new UnauthorizedError('Token UUID inválido', ErrorCode.INVALID_TOKEN)
+        const dataUserParsed = JSON.parse(dataUser)
+        if(!dataUserParsed.authorized) throw new UnauthorizedError('Usuário não autorizado', ErrorCode.UNAUTHORIZED_USER)
+        const hashedNewPassword = await ArgonHash.argonHash(newPassword)
+        await userRepository.updatePasswordHash(dataUserParsed.id, hashedNewPassword)
     }
 }

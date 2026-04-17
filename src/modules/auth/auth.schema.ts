@@ -20,5 +20,20 @@ export const authSchemas = {
     loginSchema: z.object({
         email: z.email().max(255),
         password: z.string().min(8).max(128)
+    }),
+    sendCodeRecoverySchema: z.object({
+        email: z.email().max(255)
+    }),
+    confirmCodeRecoverySchema: z.object({
+        tokenUUID: z.uuid(),
+        code: z.string().min(6).max(6).regex(/^\d+$/, 'O código precisa ter 6 dígitos') 
+    }),
+    createNewPasswordSchema: z.object({
+        tokenUUID: z.uuid(),
+        newPassword: z.string().min(8).max(128),
+        confirmNewPassword: z.string().min(8).max(128)
+    }).refine((data) => data.newPassword === data.confirmNewPassword, {
+        message: 'As senhas não coincidem',
+        path: ['confirmNewPassword']
     })
 }

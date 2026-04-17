@@ -21,13 +21,13 @@ export class AuthUserRepository {
                 subject: "Código de verificação",
                 html:`
                     <h2>Seu código de verificação</h2>
-                    <p>Use o código abaixo para confirmar seu cadastro:</p>
+                    <p>Use o código abaixo para confirmar seu email:</p>
                     <h1>${data.code}</h1>
                     <p>Esse código expira em 10 minutos.</p>
                 `
             })
         }catch(error){
-            throw new AppError('Erro ao enviar email de verificação', 400, ErrorCode.SEND_EMAIL_CODE_ERROR)
+            throw new AppError('Erro ao enviar email de verificação', 500, ErrorCode.SEND_EMAIL_CODE_ERROR)
         }
     }
 }

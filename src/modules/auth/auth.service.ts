@@ -8,7 +8,6 @@ import jwt from 'jsonwebtoken'
 import { ConflictError } from '@/shared/errors/ConflictError'
 import { ErrorCode } from '@/shared/errors/ErrorCodes'
 import { AppError } from '@/shared/errors/AppError'
-import { NotFoundError } from '@/shared/errors/NotFoundError'
 import { UnauthorizedError } from '@/shared/errors/UnauthorizedError'
 import { verifyKeyExists } from '@/shared/utils/verifyKeyExists'
 import { generateCode } from '@/shared/utils/generateCode'
@@ -25,7 +24,7 @@ export class AuthUserService{
        const hashedPassword = await ArgonHash.argonHash(data.password)
         
         const keyExists = await verifyKeyExists(`verify-email-cooldown-${data.email}`)
-        if(keyExists) throw new ConflictError('Aguarde para realizar esta ação novamente', ErrorCode.SENDING_EMAIL_LIMIT)
+        if(keyExists) throw new ConflictError('Aguarde para realizar esta ação novamente', ErrorCode.LIMIT_ATTEMPTS)
 
         // Save on Redis
         const code = generateCode()
@@ -69,7 +68,7 @@ export class AuthUserService{
         }catch{
             throw new AppError('Erro ao obter dados da recuperação de senha', 500, ErrorCode.REDIS_GET_ERROR)
         }
-        if(!dataUser) throw new UnauthorizedError('Código expirado ou não encontrado.', ErrorCode.INVALID_OR_EXPIRED_CODE)
+        if(!dataUser) throw new UnauthorizedError('Código expirado ou não encontrado.', ErrorCode.EXPIRED_CODE)
 
         const dataParsed = JSON.parse(dataUser)
 
@@ -81,7 +80,7 @@ export class AuthUserService{
             name: dataParsed.name,
             password: dataParsed.password 
         })
-        if(!user) throw new AppError('Houve um erro ao criar o usuário.', 400, ErrorCode.USER_CREATION_FAILED)
+        if(!user) throw new AppError('Houve um erro ao criar o usuário.', 500, ErrorCode.USER_CREATION_FAILED)
 
         return {
             id: user.id,
@@ -96,7 +95,7 @@ export class AuthUserService{
         const keyNewCode = `verify-email-${data.email}`
 
         const keyExists = await verifyKeyExists(keyCooldown)
-        if(keyExists) throw new ConflictError('Aguarde para realizar esta ação novamente', ErrorCode.SENDING_EMAIL_LIMIT)
+        if(keyExists) throw new ConflictError('Aguarde para realizar esta ação novamente', ErrorCode.LIMIT_ATTEMPTS)
 
         const oldKey = await redis.get(keyNewCode)
         if(!oldKey) throw new ConflictError('Tempo esgotado. Registre-se novamente', ErrorCode.TIME_OUT_REGISTER)

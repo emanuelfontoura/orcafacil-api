@@ -3,7 +3,7 @@ import { AuthUserService } from "@/modules/auth/auth.service";
 import { AuthDTOs } from "@/modules/auth/auth.dtos";
 import { ApiResponse } from "@/shared/types/apiResponse";
 import { UnauthorizedError } from "@/shared/errors/UnauthorizedError";
-import { setAuthCookies } from "@/shared/utils/setAuthCookies";
+import { AuthCookies } from "@/shared/utils/AuthCookies";
 
 export class AuthUserController {
 
@@ -65,7 +65,7 @@ export class AuthUserController {
         try {
             const tokens = await AuthUserService.login(data)
 
-            setAuthCookies(res, tokens)
+            AuthCookies.setAuthCookies(res, tokens)
 
             res.status(200).json({
                 success: true,
@@ -83,7 +83,7 @@ export class AuthUserController {
 
             const newTokens = await AuthUserService.refreshToken(refreshToken)
 
-            setAuthCookies(res, newTokens)
+            AuthCookies.setAuthCookies(res, newTokens)
 
             res.status(200).json({
                 success: true,

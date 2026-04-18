@@ -13,7 +13,7 @@ export class AuthCookies{
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "strict",
-        path: "/user/auth/refresh-token"
+        path: "/"
     }
 
     static setAuthCookies(res: Response, tokens: AuthDTOs['TokensDTO']){

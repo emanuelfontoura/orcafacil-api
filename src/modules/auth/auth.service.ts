@@ -4,7 +4,7 @@ import { userRepository } from '@/modules/user/user.repository'
 import { redis } from '@/lib/redis'
 import { ArgonHash } from '@/shared/utils/argonHash'
 import { env } from "@/config/env"
-import jwt from 'jsonwebtoken'
+import jwt, { JsonWebTokenError } from 'jsonwebtoken'
 import { ConflictError } from '@/shared/errors/ConflictError'
 import { ErrorCode } from '@/shared/errors/ErrorCodes'
 import { AppError } from '@/shared/errors/AppError'
@@ -146,7 +146,20 @@ export class AuthUserService{
         const newHashedPassword = await ArgonHash.argonRehash(password, userCredentials.password)
         if(newHashedPassword) await userRepository.updatePasswordHash(userCredentials.id, newHashedPassword)
 
-        const tokens = await generateTokens(userCredentials.id)
+        const jti = randomUUID()
+        const tokens = await generateTokens(userCredentials.id, jti)
+
+        try{
+            await redis.set(
+                `refresh-token-${jti}`,
+                userCredentials.id,
+                "EX",
+                604800
+            )
+        }catch{
+            throw new AppError('Erro ao salvar token', 500, ErrorCode.REDIS_SAVE_ERROR)
+        }
+
         const {accessToken, refreshToken} = tokens
 
         if(!accessToken || !refreshToken) throw new AppError('Token inválido.', 500, ErrorCode.INTERNAL_SERVER_ERROR)
@@ -161,7 +174,21 @@ export class AuthUserService{
             const dataTokens = await redis.exists(`refresh-token-${jti}`)
             if(!dataTokens) throw new UnauthorizedError('Refresh token inválido', ErrorCode.INVALID_TOKEN)
             await redis.del(`refresh-token-${jti}`)
-            const newTokens = await generateTokens(Number(sub))
+
+            const newJti = randomUUID()
+            const newTokens = await generateTokens(Number(sub), newJti)
+
+            try{
+                await redis.set(
+                    `refresh-token-${newJti}`,
+                    Number(sub),
+                    "EX",
+                    604800
+                )
+            }catch{
+                throw new AppError('Erro ao salvar token', 500, ErrorCode.REDIS_SAVE_ERROR)
+            }
+
             return newTokens
         }catch(error){
             if(error instanceof jwt.TokenExpiredError){
@@ -275,5 +302,21 @@ export class AuthUserService{
         if(!dataUserParsed.authorized) throw new UnauthorizedError('Usuário não autorizado', ErrorCode.UNAUTHORIZED_USER)
         const hashedNewPassword = await ArgonHash.argonHash(newPassword)
         await userRepository.updatePasswordHash(dataUserParsed.id, hashedNewPassword)
+    }
+
+    static async logout(refreshToken: string){
+        try{
+            const decodedToken = jwt.verify(refreshToken, env.JWT_REFRESH_SECRET) as jwt.JwtPayload
+            const {jti} = decodedToken
+            try{
+                await redis.del(`refresh-token-${jti}`)
+            }catch{
+                throw new AppError('Erro ao deletar refresh token', 500, ErrorCode.REDIS_DEL_ERROR)
+            }
+        }catch(error){
+            if(error instanceof jwt.JsonWebTokenError) throw new UnauthorizedError('Refresh Token inválido', ErrorCode.INVALID_TOKEN)
+            if(error instanceof jwt.TokenExpiredError) throw new UnauthorizedError('Refresh Token expirado', ErrorCode.TOKEN_EXPIRED)
+            if(error instanceof AppError) throw error
+        }
     }
 }

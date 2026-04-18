@@ -137,4 +137,17 @@ export class AuthUserController {
             next(error)
         }
     }
+
+    static async logout(req: Request, res: Response<ApiResponse<null>>, next: NextFunction){
+        try{
+            await AuthUserService.logout(req.cookies.refreshToken)
+            AuthCookies.clearAuthCookies(res)
+            res.status(200).json({
+                success: true,
+                data: null
+            })
+        }catch(error){
+            next(error)
+        }
+    }
 }

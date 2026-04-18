@@ -29,5 +29,6 @@ authUserRoutes.post(
     validateSchema(authSchemas.createNewPasswordSchema),
     AuthUserController.createNewPassword
 )
+authUserRoutes.post('/logout', rateLimit(1, 60, 'auth/logout'), AuthUserController.logout)
 
 export { authUserRoutes }

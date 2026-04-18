@@ -1,7 +1,7 @@
 import { Response } from "express";
 import { AuthDTOs } from "@/modules/auth/auth.dtos";
 
-export function setAuthCookies(res: Response, tokens: AuthDTOs['RefreshTokensDTO']){
+export function setAuthCookies(res: Response, tokens: AuthDTOs['TokensDTO']){
     res.cookie('accessToken', tokens.accessToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",

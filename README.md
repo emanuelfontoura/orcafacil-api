@@ -32,25 +32,19 @@ O **OrçaFácil** é uma API projetada para agilizar e organizar o processo de c
 - **[JWT](https://jwt.io/) / [Bcrypt](https://www.npmjs.com/package/bcrypt)** - Segurança e autenticação
 - **Entre outros...**
 
-### Arquitetura
+</br>
+
+## 🏠 Arquitetura
 - **Arquitetura em Camadas (Layered Architecture):** Separação clara de responsabilidades (route, controller, service e repository) para garantir que o código seja testável, escalável e de fácil manutenção.
 
 </br>
 
-## 📡 Endpoints
+## 📚 Documentação
+A documentação detalhada da API está disponível via Postman:</br>
 
-### 🔐 Autenticação
-| Método | Rota                     | Descrição                                          | Auth |
-|--------|--------------------------|----------------------------------------------------|------|
-| POST   | /user/auth/email/verify  | Envia um código de validação para o email inserido | X    |
-| POST   | /user/auth/email/confirm | Recebe o código de validação                       | X    |
+https://documenter.getpostman.com/view/53399164/2sBXqDsiVE
 
-### 👤 Usuários
-**(em breve)**
-
-### 📚 Documentação completa
-A documentação detalhada da API está disponível via Swagger:</br>
-**(em breve)**
+Em breve documentação será migrada para Swagger. O objetivo é criar uma API auto-documentável com Express + Zod.
 
 </br>
 

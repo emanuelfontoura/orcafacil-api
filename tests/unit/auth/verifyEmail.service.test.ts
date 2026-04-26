@@ -32,7 +32,7 @@ const defaultData = {
     confirmPassword: 'test123'
 }
 
-describe('AuthUserService - verifyEmail', () => {
+describe('Unit test - AuthUserService - verifyEmail', () => {
     beforeEach(() => {
         vi.clearAllMocks()
 

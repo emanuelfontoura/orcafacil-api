@@ -1,0 +1,17 @@
+services:
+  api_test:
+    build: .
+    env_file:
+      - .env.test
+    depends_on:
+      - postgres_test
+
+  postgres_test:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_DB: ${DATABASE_NAME}
+
+  redis_test:
+    image: redis:7

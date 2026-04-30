@@ -9,8 +9,8 @@ export const env = {
     PEPPER: process.env.PEPPER!,
 
     // Redis access
-    REDIS_HOST: "localhost",
-    REDIS_PORT: 6379,
+    REDIS_HOST: process.env.REDIS_HOST!,
+    REDIS_PORT: process.env.REDIS_PORT!,
 
     // DB Credentials
     USER_PASSWORD: process.env.USER_PASSWORD!,

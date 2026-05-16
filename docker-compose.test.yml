@@ -4,7 +4,10 @@ services:
     env_file:
       - .env.test
     depends_on:
-      - postgres_test
+      postgres_test:
+        condition: service_healthy
+      redis_test:
+        condition: service_started
 
   postgres_test:
     image: postgres:15
@@ -12,6 +15,11 @@ services:
       POSTGRES_USER: ${DATABASE_USER}
       POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
       POSTGRES_DB: ${DATABASE_NAME}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER} -d ${DATABASE_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   redis_test:
     image: redis:7

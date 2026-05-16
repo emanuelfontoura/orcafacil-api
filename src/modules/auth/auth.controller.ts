@@ -15,7 +15,7 @@ export class AuthUserController {
             const dataUser = await AuthUserService.verifyEmail(
                 {email, name, password, confirmPassword}
             )
-            res.status(200).json({
+            return res.status(200).json({
                 success: true,
                 data: dataUser
             })

@@ -25,14 +25,14 @@ vi.mock('@/shared/utils/generateCode', () => {
     }
 })
 
-const defaultData = {
-    name: 'test',
-    email: 'test@gmail.com',
-    password: 'test123',
-    confirmPassword: 'test123'
-}
-
 describe('Unit test - AuthUserService - verifyEmail', () => {
+    const defaultData = {
+        name: 'test',
+        email: 'test@gmail.com',
+        password: 'test1234',
+        confirmPassword: 'test1234'
+    }
+
     beforeEach(() => {
         vi.clearAllMocks()
 
@@ -136,7 +136,7 @@ describe('Unit test - AuthUserService - verifyEmail', () => {
         })
 
         it('deveria lançar AppError se o segundo redis.set (email cooldown) falhar', async () => {
-            vi.mocked(redis.set).mockRejectedValueOnce(new Error('Redis down'))
+            vi.mocked(redis.set).mockRejectedValueOnce('OK').mockRejectedValueOnce(new Error('Redis down'))
 
             await expect(AuthUserService.verifyEmail(defaultData)).rejects.toMatchObject({
                 statusCode: 500,

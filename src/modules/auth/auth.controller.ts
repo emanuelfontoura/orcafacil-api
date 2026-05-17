@@ -67,7 +67,7 @@ export class AuthUserController {
 
             AuthCookies.setAuthCookies(res, tokens)
 
-            res.status(200).json({
+            return res.status(200).json({
                 success: true,
                 data: null
             })

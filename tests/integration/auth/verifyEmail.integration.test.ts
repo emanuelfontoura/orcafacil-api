@@ -1,4 +1,3 @@
-import { AuthUserService } from "@/modules/auth/auth.service";
 import { AuthUserRepository } from "@/modules/auth/auth.repository";
 import { redis } from "@/lib/redis";
 import { prisma } from "@/lib/prisma";
@@ -8,7 +7,6 @@ import express from "express"
 import { describe, it, expect, vi, beforeEach, afterAll } from 'vitest'
 import { authUserRoutes } from "@/modules/auth/auth.route";
 import { handleError } from "@/middlewares/handleError";
-import { AppError } from "@/shared/errors/AppError";
 
 vi.mock('@/modules/auth/auth.repository', () => {
     return {

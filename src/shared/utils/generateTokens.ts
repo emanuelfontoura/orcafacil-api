@@ -1,7 +1,5 @@
 import { AuthDTOs } from "@/modules/auth/auth.dtos";
 import jwt from "jsonwebtoken"
-import { randomUUID } from "crypto";
-import { redis } from "@/lib/redis";
 import { AppError } from "@/shared/errors/AppError";
 import { ErrorCode } from "@/shared/errors/ErrorCodes";
 import { env } from "@/config/env";

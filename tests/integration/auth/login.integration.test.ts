@@ -1,26 +1,32 @@
 import request from "supertest"
-import { describe, it, expect, beforeEach, vi } from "vitest"
-import { prisma } from "@/lib/prisma"
+import { describe, it, expect, beforeEach, vi, beforeAll, afterAll } from "vitest"
 import { ArgonHash } from "@/shared/utils/ArgonHash"
 import * as tokens from "@/shared/utils/generateTokens"
 import express from 'express'
 import { authUserRoutes } from "@/modules/auth/auth.route"
 import { handleError } from "@/middlewares/handleError"
 import { ErrorCode } from "@/shared/errors/ErrorCodes"
+import { prisma } from "@/lib/prisma"
 
 describe("POST /auth/login", () => {
     const route = '/user/auth/login'
     let app: any
 
-    beforeEach(async () => {
-        await prisma.user.deleteMany()
-
-        vi.restoreAllMocks()
-
+    beforeAll(() => {
         app = express()
         app.use(express.json())
         app.use('/user/auth', authUserRoutes)
         app.use(handleError)
+    })
+
+    beforeEach(async () => {
+        await prisma.user.deleteMany()
+
+        vi.restoreAllMocks()
+    })
+
+    afterAll(async () => {
+        await prisma.$disconnect()
     })
 
     it("deveria realizar login com sucesso", async () => {

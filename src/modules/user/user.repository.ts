@@ -74,11 +74,13 @@ export class userRepository {
 
     static async updatePasswordHash(userId: number, newHashedPassword: string){
         try{
+            console.log(await prisma.user.findMany())
             await prisma.user.update(
                 {where: {id: userId},
                 data: {password: newHashedPassword}
             })
-        }catch{
+        }catch(error){ 
+            console.log(error)
             throw new AppError('Erro ao atualizar dados do usuário.', 500, ErrorCode.UPDATE_DATABASE_ERROR)
         }
     }

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
-import { userRepository } from "@/modules/user/user.repository"
+import { UserRepository } from "@/modules/user/user.repository"
 import { ArgonHash } from "@/shared/utils/ArgonHash"
 import { randomUUID } from "crypto"
 import { generateTokens } from "@/shared/utils/generateTokens"
@@ -29,8 +29,8 @@ describe('Unit test - AuthUserService - login', () => {
     beforeEach(() => {
         vi.clearAllMocks()
 
-        vi.mocked(userRepository.returnLoginCredentials).mockResolvedValue({id, email: body.email, password: body.password})
-        vi.mocked(userRepository.updatePasswordHash).mockResolvedValue()
+        vi.mocked(UserRepository.returnLoginCredentials).mockResolvedValue({id, email: body.email, password: body.password})
+        vi.mocked(UserRepository.updatePasswordHash).mockResolvedValue()
         vi.mocked(ArgonHash.argonVerify).mockResolvedValue(true)
         vi.mocked(ArgonHash.argonRehash).mockResolvedValue(body.password)
         vi.mocked(randomUUID).mockReturnValue(jti)
@@ -41,8 +41,8 @@ describe('Unit test - AuthUserService - login', () => {
     it('deveria retornar um objeto com o acessToken e o refreshToken', async () => {
         const data = await AuthUserService.login(body)
 
-        expect(userRepository.returnLoginCredentials).toHaveBeenCalledWith(body.email)
-        expect(userRepository.updatePasswordHash).toHaveBeenCalledWith(1, body.password)
+        expect(UserRepository.returnLoginCredentials).toHaveBeenCalledWith(body.email)
+        expect(UserRepository.updatePasswordHash).toHaveBeenCalledWith(1, body.password)
 
         expect(ArgonHash.argonVerify).toHaveBeenCalledWith(body.password, body.password)
         expect(ArgonHash.argonRehash).toHaveBeenCalledWith(body.password, body.password)
@@ -57,7 +57,7 @@ describe('Unit test - AuthUserService - login', () => {
     })
 
     it('deveria retornar UnauthorizedError caso não encontre as credenciais', async () => {
-        vi.mocked(userRepository.returnLoginCredentials).mockResolvedValue(null)
+        vi.mocked(UserRepository.returnLoginCredentials).mockResolvedValue(null)
 
         await expect(AuthUserService.login(body)).rejects.toMatchObject({
             statusCode: 401,
@@ -81,11 +81,11 @@ describe('Unit test - AuthUserService - login', () => {
         
         expect(ArgonHash.argonRehash).toHaveBeenCalledWith(body.password, body.password)
 
-        expect(userRepository.updatePasswordHash).not.toHaveBeenCalled()
+        expect(UserRepository.updatePasswordHash).not.toHaveBeenCalled()
     })
 
     it('deveria falhar caso o returnLoginCredentials falhe', async () => {
-        vi.mocked(userRepository.returnLoginCredentials).mockRejectedValue(new AppError('Erro', 500, ErrorCode.INTERNAL_SERVER_ERROR))
+        vi.mocked(UserRepository.returnLoginCredentials).mockRejectedValue(new AppError('Erro', 500, ErrorCode.INTERNAL_SERVER_ERROR))
 
         await expect(AuthUserService.login(body)).rejects.toMatchObject({
             statusCode: 500,
@@ -112,7 +112,7 @@ describe('Unit test - AuthUserService - login', () => {
     })
 
     it('deveria falhar caso o updatePasswordHash falhe', async () => {
-        vi.mocked(userRepository.updatePasswordHash).mockRejectedValue(new AppError('Erro', 500, ErrorCode.UPDATE_DATABASE_ERROR))
+        vi.mocked(UserRepository.updatePasswordHash).mockRejectedValue(new AppError('Erro', 500, ErrorCode.UPDATE_DATABASE_ERROR))
 
         await expect(AuthUserService.login(body)).rejects.toMatchObject({
             statusCode: 500,

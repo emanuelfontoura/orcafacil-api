@@ -1,5 +1,7 @@
 import { Router } from "express";
 
-const userRouter = Router()
+const UserRoutes = Router()
 
-export { userRouter }
+UserRoutes.post('')
+
+export { UserRoutes }

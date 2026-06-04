@@ -1,3 +1,3 @@
-export class userService {
+export class UserService {
 
 }

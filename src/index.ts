@@ -5,8 +5,8 @@ import cookieParser from "cookie-parser"
 import { handleError } from '@/middlewares/handleError';
 
 // Import routes
-import { userRouter } from '@/modules/user/user.route'
-import { authUserRoutes } from '@/modules/auth/auth.route'
+import { UserRoutes } from '@/modules/user/user.route'
+import { AuthUserRoutes } from '@/modules/auth/auth.route'
 
 const PORT = process.env.PORT || 3000;
 
@@ -21,8 +21,8 @@ app.use(express.json());
 app.use(cookieParser())
 
 // Apply Routes
-app.use('/user/auth', authUserRoutes)
-app.use('/user', userRouter)
+app.use('/user/auth', AuthUserRoutes)
+app.use('/user', UserRoutes)
 
 // HandleError
 app.use(handleError)

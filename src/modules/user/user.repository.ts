@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma"
 import { AppError } from "@/shared/errors/AppError"
 import { ErrorCode } from "@/shared/errors/ErrorCodes"
 
-export class userRepository {
+export class UserRepository {
 
     static async findByEmail(email: string): Promise<UserTypes['UserResponse'] | null>{
         try{
@@ -74,13 +74,11 @@ export class userRepository {
 
     static async updatePasswordHash(userId: number, newHashedPassword: string){
         try{
-            console.log(await prisma.user.findMany())
             await prisma.user.update(
                 {where: {id: userId},
                 data: {password: newHashedPassword}
             })
         }catch(error){ 
-            console.log(error)
             throw new AppError('Erro ao atualizar dados do usuário.', 500, ErrorCode.UPDATE_DATABASE_ERROR)
         }
     }

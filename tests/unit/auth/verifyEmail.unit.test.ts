@@ -1,4 +1,4 @@
-import { userRepository } from '@/modules/user/user.repository'
+import { UserRepository } from '@/modules/user/user.repository'
 import { ArgonHash } from '@/shared/utils/ArgonHash'
 import { verifyKeyExists } from '@/shared/utils/verifyKeyExists' 
 import { redis } from '@/lib/redis'
@@ -36,7 +36,7 @@ describe('Unit test - AuthUserService - verifyEmail', () => {
     beforeEach(() => {
         vi.clearAllMocks()
 
-        vi.mocked(userRepository.findByEmail).mockResolvedValue(null)
+        vi.mocked(UserRepository.findByEmail).mockResolvedValue(null)
         vi.mocked(ArgonHash.argonHash).mockResolvedValue('hashed')
         vi.mocked(verifyKeyExists).mockResolvedValue(false)
         vi.mocked(AuthUserRepository.sendEmailVerificationCode).mockResolvedValue()
@@ -55,7 +55,7 @@ describe('Unit test - AuthUserService - verifyEmail', () => {
 
     it('deve verificar se o userRepository.findByEmail está sendo chamado com o email de forma correta', async () => {
         await AuthUserService.verifyEmail(defaultData)
-        expect(userRepository.findByEmail).toHaveBeenCalledWith(defaultData.email)
+        expect(UserRepository.findByEmail).toHaveBeenCalledWith(defaultData.email)
     })
 
     it('deveria hashear a senha e o code antes de salvar no Redis', async () => {
@@ -100,7 +100,7 @@ describe('Unit test - AuthUserService - verifyEmail', () => {
 
     describe('erros de negócio', () => {
         it('deveria gerar ConflictError caso o email já esteja cadastrado', async () => {
-            vi.mocked(userRepository.findByEmail).mockResolvedValue({id: 1} as any)
+            vi.mocked(UserRepository.findByEmail).mockResolvedValue({id: 1} as any)
 
             await expect(AuthUserService.verifyEmail(defaultData)).rejects.toMatchObject({
                 statusCode: 409,

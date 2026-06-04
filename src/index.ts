@@ -7,6 +7,7 @@ import { handleError } from '@/middlewares/handleError';
 // Import routes
 import { UserRoutes } from '@/modules/user/user.route'
 import { AuthUserRoutes } from '@/modules/auth/auth.route'
+import { ClientsRoutes } from './modules/clients/clients.route';
 
 const PORT = process.env.PORT || 3000;
 
@@ -23,6 +24,7 @@ app.use(cookieParser())
 // Apply Routes
 app.use('/user/auth', AuthUserRoutes)
 app.use('/user', UserRoutes)
+app.use('/clients', ClientsRoutes)
 
 // HandleError
 app.use(handleError)

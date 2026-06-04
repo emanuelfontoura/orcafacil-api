@@ -11,7 +11,7 @@
     "test:migrate": "docker compose --env-file .env.test -f docker-compose.test.yml exec api_test npx prisma migrate deploy",
     "test:unit:run": "docker compose --env-file .env.test -f docker-compose.test.yml exec api_test npx vitest run ./tests/unit",
     "test:unit": "npm run test:up && npm run test:migrate && npm run test:unit:run",
-    "test:e2e:run": "docker compose --env-file .env.test -f docker-compose.test.yml exec api_test npx vitest run ./tests/e2e/auth/verifyEmail.e2e.test.ts",
+    "test:e2e:run": "docker compose --env-file .env.test -f docker-compose.test.yml exec api_test npx vitest run ./tests/e2e",
     "test:e2e": "npm run test:up && npm run test:migrate && npm run test:e2e:run", 
     "test:down": "docker compose -f docker-compose.test.yml down",
 

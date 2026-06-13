@@ -16,3 +16,58 @@ model User {
 
   @@map("users")
 }
+
+model Seller {
+  id            Int     @id @default(autoincrement())
+  name          String  @db.VarChar(100)
+  email         String  @unique @db.VarChar(255)
+  tellphone     String  @db.VarChar(50)
+  cpf           String  @db.VarChar(11)
+  comissionRate Decimal @db.Decimal(5, 2)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  clients Client[]
+
+  @@map("sellers")
+}
+
+model Client {
+  id        Int    @id @default(autoincrement())
+  name      String @db.VarChar(100)
+  email     String @unique @db.VarChar(255)
+  tellphone String @db.VarChar(50)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sellerId Int
+  seller   Seller @relation(fields: [sellerId], references: [id])
+
+  @@map("clients")
+}
+
+model Product {
+  id          Int     @id @default(autoincrement())
+  name        String  @db.VarChar(100)
+  description String  @db.VarChar(255)
+  price       Decimal @db.Decimal(5, 2)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("products")
+}
+
+model Service {
+  id          Int     @id @default(autoincrement())
+  name        String  @db.VarChar(100)
+  description String  @db.VarChar(255)
+  price       Decimal @db.Decimal(5, 2)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("services")
+}

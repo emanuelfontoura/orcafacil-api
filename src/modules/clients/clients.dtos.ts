@@ -1,16 +1,16 @@
 export interface ClientsDTOs{
     CreateRequestDTO: {
-        name: String,
-        email: String,
-        tellphone: String,
+        name: string,
+        email: string,
+        tellphone: string,
         sellerId: Number
     }
     CreateResponseDTO: {
         id: number,
-        name: String,
-        email: String,
-        tellphone: String,
-        sellerId: Number
+        name: string,
+        email: string,
+        tellphone: string,
+        sellerId: number
         createdAt: Date,
         updatedAt: Date
     }

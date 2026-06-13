@@ -19,7 +19,7 @@ describe("E2E test - AuthUserService - login - POST /user/auth/login", () => {
     let app: ReturnType<typeof express>
     const route = '/user/auth/login'
     const defaultPassword = '12345678'
-    const defaultEmail = 'emanuel@gmail.com'
+    const defaultEmail = 'login-test@gmail.com'
 
     async function createTestUser(overrides?: { email?: string; password?: string; name?: string }) {
         const password = overrides?.password ?? defaultPassword
@@ -40,7 +40,7 @@ describe("E2E test - AuthUserService - login - POST /user/auth/login", () => {
         app.use('/user/auth', AuthUserRoutes)
         app.use(handleError)
 
-        await prisma.user.deleteMany()
+        await prisma.user.deleteMany({ where: { email: defaultEmail } })
 
         const refreshKeys = await redis.keys("refresh-token-*")
         if (refreshKeys.length > 0) await redis.del(...refreshKeys)

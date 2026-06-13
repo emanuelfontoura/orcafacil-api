@@ -4,16 +4,17 @@
   "description": "API do OrçaFácil - Sistema para gestão de orçamentos, clientes e vendas.",
   "main": "index.js",
   "scripts": {
-    "dev:up": "docker compose --env-file .env -f docker-compose.dev.yml up --build",
-    "dev:down": "docker compose -f docker-compose.dev.yml down",
+    "dev:up": "docker compose -p orcafacil-dev --env-file .env -f docker-compose.dev.yml up --build",
+    "dev:down": "docker compose -p orcafacil-dev -f docker-compose.dev.yml down",
+    "dev:migrate": "docker compose -p orcafacil-dev exec api_dev npx prisma migrate dev",
 
-    "test:up": "docker compose --env-file .env.test -f docker-compose.test.yml up -d --build",
-    "test:migrate": "docker compose --env-file .env.test -f docker-compose.test.yml exec api_test npx prisma migrate deploy",
-    "test:unit:run": "docker compose --env-file .env.test -f docker-compose.test.yml exec api_test npx vitest run ./tests/unit",
+    "test:up": "docker compose -p orcafacil-test --env-file .env.test -f docker-compose.test.yml up -d --build",
+    "test:migrate": "docker compose -p orcafacil-test --env-file .env.test -f docker-compose.test.yml exec api_test npx prisma migrate deploy",
+    "test:unit:run": "docker compose -p orcafacil-test --env-file .env.test -f docker-compose.test.yml exec api_test npx vitest run ./tests/unit",
     "test:unit": "npm run test:up && npm run test:migrate && npm run test:unit:run",
-    "test:e2e:run": "docker compose --env-file .env.test -f docker-compose.test.yml exec api_test npx vitest run ./tests/e2e",
+    "test:e2e:run": "docker compose -p orcafacil-test --env-file .env.test -f docker-compose.test.yml exec api_test npx vitest run ./tests/e2e",
     "test:e2e": "npm run test:up && npm run test:migrate && npm run test:e2e:run", 
-    "test:down": "docker compose -f docker-compose.test.yml down",
+    "test:down": "docker compose -p orcafacil-test -f docker-compose.test.yml down",
 
     "dev": "ts-node-dev --respawn --transpile-only -r tsconfig-paths/register src/index.ts",
     "build": "tsc && tsc-alias"

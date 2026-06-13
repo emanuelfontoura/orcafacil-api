@@ -40,7 +40,7 @@ describe('E2E test - AuthUserService - verifyEmail - POST user/auth/email/verify
         app.use('/user/auth', AuthUserRoutes)
         app.use(handleError)
 
-        await prisma.user.deleteMany()
+        await prisma.user.deleteMany({ where: { email: defaultBody.email } })
 
         const verifyKeys = await redis.keys('verify-email*')
         if (verifyKeys.length > 0) await redis.del(...verifyKeys)

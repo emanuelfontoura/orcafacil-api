@@ -28,7 +28,7 @@ describe("E2E test - AuthUserService - createNewPassword - POST /user/auth/passw
         return prisma.user.create({
             data: {
                 name: "Emanuel",
-                email: "emanuel@gmail.com",
+                email: "newpassword-test@gmail.com",
                 password: hashedPassword
             }
         })
@@ -86,7 +86,7 @@ describe("E2E test - AuthUserService - createNewPassword - POST /user/auth/passw
         app.use("/user/auth", AuthUserRoutes)
         app.use(handleError)
 
-        await prisma.user.deleteMany()
+        await prisma.user.deleteMany({ where: { email: "newpassword-test@gmail.com" } })
 
         const recoveryKeys = await redis.keys("recovery-password-*")
         if (recoveryKeys.length > 0) await redis.del(...recoveryKeys)

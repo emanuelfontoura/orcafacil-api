@@ -1,6 +1,7 @@
 services:
   api_test:
     build: .
+    container_name: orcafacil-api-test
     env_file:
       - .env.test
     depends_on:
@@ -11,6 +12,7 @@ services:
 
   postgres_test:
     image: postgres:15
+    container_name: orcafacil-postgres-test
     environment:
       POSTGRES_USER: ${DATABASE_USER}
       POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
@@ -23,3 +25,4 @@ services:
 
   redis_test:
     image: redis:7
+    container_name: orcafacil-redis-test

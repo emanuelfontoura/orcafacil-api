@@ -4,18 +4,25 @@
   "description": "API do OrçaFácil - Sistema para gestão de orçamentos, clientes e vendas.",
   "main": "index.js",
   "scripts": {
-    "dev:up": "docker compose -p orcafacil-dev --env-file .env -f docker-compose.dev.yml up --build",
-    "dev:down": "docker compose -p orcafacil-dev -f docker-compose.dev.yml down",
-    "dev:migrate": "docker compose -p orcafacil-dev exec api_dev npx prisma migrate dev",
-    "dev:generate": "docker compose -p orcafacil-dev exec api_dev npx prisma generate",
+    "test:unit:run": "vitest run ./tests/unit",
+    "test:e2e:run": "vitest run ./tests/e2e",
 
-    "test:up": "docker compose -p orcafacil-test --env-file .env.test -f docker-compose.test.yml up -d --build",
-    "test:migrate": "docker compose -p orcafacil-test --env-file .env.test -f docker-compose.test.yml exec api_test npx prisma migrate deploy",
-    "test:unit:run": "docker compose -p orcafacil-test --env-file .env.test -f docker-compose.test.yml exec api_test npx vitest run ./tests/unit",
-    "test:unit": "npm run test:up && npm run test:migrate && npm run test:unit:run",
-    "test:e2e:run": "docker compose -p orcafacil-test --env-file .env.test -f docker-compose.test.yml exec api_test npx vitest run ./tests/e2e",
-    "test:e2e": "npm run test:up && npm run test:migrate && npm run test:e2e:run", 
-    "test:down": "docker compose -p orcafacil-test -f docker-compose.test.yml down",
+    "dev:docker:up": "docker compose -p orcafacil-dev --env-file .env -f docker-compose.dev.yml up --build",
+    "dev:docker:down": "docker compose -p orcafacil-dev -f docker-compose.dev.yml down",
+    "dev:docker:migrate": "docker compose -p orcafacil-dev exec api_dev npx prisma migrate dev",
+    "dev:docker:generate": "docker compose -p orcafacil-dev exec api_dev npx prisma generate",
+
+
+    "test:docker:up": "docker compose -p orcafacil-test --env-file .env.test -f docker-compose.test.yml up -d --build",
+    "test:docker:migrate": "docker compose -p orcafacil-test --env-file .env.test -f docker-compose.test.yml exec api_test npx prisma migrate deploy",
+    "test:docker:down": "docker compose -p orcafacil-test -f docker-compose.test.yml down",
+
+    "test:docker:unit:run": "docker compose -p orcafacil-test --env-file .env.test -f docker-compose.test.yml exec api_test npx vitest run ./tests/unit",
+    "test:docker:e2e:run": "docker compose -p orcafacil-test --env-file .env.test -f docker-compose.test.yml exec api_test npx vitest run ./tests/e2e",
+    
+    "test:docker:unit": "npm run test:docker:up && npm run test:docker:migrate && npm run test:docker:unit:run && npm run test:docker:down",
+    "test:docker:e2e": "npm run test:docker:up && npm run test:docker:migrate && npm run test:docker:e2e:run && npm run test:docker:down", 
+
 
     "dev": "ts-node-dev --respawn --transpile-only -r tsconfig-paths/register src/index.ts",
     "build": "tsc && tsc-alias"

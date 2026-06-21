@@ -7,7 +7,7 @@ export class ClientsRepository{
 
     static async create(){
         try{
-            
+            const t: string = 'teste'
         }catch{
             throw new AppError('Erro ao criar cliente no banco de dados', 500, ErrorCode.INTERNAL_SERVER_ERROR)
         }

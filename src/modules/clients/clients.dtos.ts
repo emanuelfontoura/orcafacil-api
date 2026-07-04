@@ -3,7 +3,7 @@ export interface ClientsDTOs{
         name: string,
         email: string,
         tellphone: string,
-        sellerId: Number
+        sellerId: number
     }
     CreateResponseDTO: {
         id: number,

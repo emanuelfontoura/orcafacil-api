@@ -59,7 +59,7 @@ describe("E2E test - AuthUserService - login - POST /user/auth/login", () => {
     // ──────────────────────────────────────────────
 
     it("deveria realizar login com sucesso e retornar cookies de autenticação", async () => {
-        //const user = await createTestUser()
+        await createTestUser()
 
         const response = await request(app).post(route).send({
             email: defaultEmail,
@@ -72,7 +72,7 @@ describe("E2E test - AuthUserService - login - POST /user/auth/login", () => {
     })
 
     it("deve retornar accessToken e refreshToken nos cookies", async () => {
-       // const user = await createTestUser()
+        await createTestUser()
 
         const response = await request(app).post(route).send({
             email: defaultEmail,

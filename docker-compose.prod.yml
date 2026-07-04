@@ -3,7 +3,7 @@ services:
     image: ghcr.io/SEU_USUARIO/orcafacil-api:latest
     container_name: orcafacil-api
     
-    restart: unless-stopepd
+    restart: unless-stopped
 
     env_file:
       - .env.prod
@@ -16,6 +16,9 @@ services:
         condition: service-healthy
       redis:
         condition: service_started
+
+    networks:
+      - orcafacil
 
   postgres:
     image: postgres:17
@@ -35,15 +38,26 @@ services:
       timeout: 5s
       retries: 10
 
+    networks:
+      - orcafacil
+
   redis:
     image: redis:8-alpine
     container_name: orcafacil-redis
 
     restart: unless-stopped
 
+    command: redis-server --appendonly yes
+
     volumes:
-      - redis_data:/data
+      - redis-data:/data
+
+    networks:
+      - orcafacil
 
 volumes:
   postgres-data:
   redis-data:
+
+networks:
+  orcafacil:

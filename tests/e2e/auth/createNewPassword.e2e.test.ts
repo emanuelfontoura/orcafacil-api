@@ -1,9 +1,3 @@
-// -------------------------
-
-// TESTE E2E GERADO PELA I.A Claude Opus 4.6
-
-// -------------------------
-
 import request from "supertest"
 import { describe, it, expect, beforeEach, afterAll } from "vitest"
 import { prisma } from "@/lib/prisma"

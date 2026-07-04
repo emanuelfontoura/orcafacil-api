@@ -1,9 +1,3 @@
-// -------------------------
-
-// TESTE E2E GERADO PELA I.A Claude Opus 4.6
-
-// -------------------------
-
 import { AuthUserRoutes } from "@/modules/auth/auth.route";
 import request from 'supertest'
 import express from 'express'

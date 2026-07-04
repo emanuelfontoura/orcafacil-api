@@ -7,7 +7,7 @@ export async function verifyKeyExists(key: string): Promise<boolean>{
         const exists = await redis.exists(key)
         if(exists) return true
         return false
-    }catch(error){
+    }catch{
         throw new AppError('Erro ao verificar existência da chave do email', 500, ErrorCode.REDIS_SAVE_ERROR)
     }
 }

@@ -17,7 +17,7 @@ export async function generateTokens(userId: number, jti: string): Promise<AuthD
             env.JWT_REFRESH_SECRET,
             {expiresIn: "7d"}
         )
-    }catch(error){
+    }catch{
         throw new AppError('Erro ao gerar tokens.', 500, ErrorCode.INTERNAL_SERVER_ERROR)
     }
 

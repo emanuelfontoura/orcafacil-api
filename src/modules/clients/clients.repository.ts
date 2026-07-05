@@ -1,4 +1,3 @@
-import { ClientsTypes } from "@/modules/clients/clients.types"
 import { prisma } from "@/lib/prisma"
 import { AppError } from "@/shared/errors/AppError"
 import { ErrorCode } from "@/shared/errors/ErrorCodes"
@@ -6,11 +5,11 @@ import { ErrorCode } from "@/shared/errors/ErrorCodes"
 export class ClientsRepository{
 
     static async create(){
-        try{
-            
-        }catch{
-            throw new AppError('Erro ao criar cliente no banco de dados', 500, ErrorCode.INTERNAL_SERVER_ERROR)
-        }
+        console.log('teste')
+        // try{
+        // }catch{
+        //     throw new AppError('Erro ao criar cliente no banco de dados', 500, ErrorCode.INTERNAL_SERVER_ERROR)
+        // }
     }
 
     static async searchClientByEmail(email: string){

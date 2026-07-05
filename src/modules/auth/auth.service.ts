@@ -42,7 +42,7 @@ export class AuthUserService{
                 "EX",
                 600
             )
-        }catch(error){
+        }catch{
             throw new AppError('Erro ao salvar código de verificação.', 500, ErrorCode.REDIS_SAVE_ERROR)
         }
         
@@ -55,7 +55,7 @@ export class AuthUserService{
                 "EX",
                 60
             )
-        }catch(error){
+        }catch{
             throw new AppError('Erro ao salvar email na fila de cooldown.', 500, ErrorCode.REDIS_SAVE_ERROR)
         }
 
@@ -127,7 +127,7 @@ export class AuthUserService{
                 "EX",
                 60
             )
-        }catch(error){
+        }catch{
             throw new AppError('Erro ao salvar email na fila de cooldown.', 500, ErrorCode.REDIS_SAVE_ERROR)
         }
 

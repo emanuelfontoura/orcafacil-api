@@ -1,7 +1,5 @@
 <div align="center">
-  <h1>💰 OrçaFácil API</br>
-    (em desenvolvimento)
-  </h1>
+  <h1>💰 OrçaFácil API</h1>
   
   <p><em>Sistema inteligente para gestão de orçamentos</em></p>
   
@@ -12,11 +10,9 @@
   [![Redis](https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white)]()
 </div>
 
-<p align="center"><strong>Desenvolvido sem uso de de vibecoding ou nocoding</strong></p> 
-
 ## 📖 Sobre o Projeto
 
-O **OrçaFácil** é uma API projetada para agilizar e organizar o processo de criação de orçamentos, facilitando o gerenciamento contínuo de clientes e o acompanhamento de vendas. Com uma arquitetura moderna, garante segurança, escalabilidade e performance no controle das operações comerciais.
+O **OrçaFácil** é uma API projetada para agilizar e organizar o processo de criação de orçamentos, facilitando o gerenciamento contínuo de clientes e o acompanhamento de vendas.
 
 </br>
 
@@ -25,11 +21,13 @@ O **OrçaFácil** é uma API projetada para agilizar e organizar o processo de c
 ### Stack Principal
 - **[Node.js](https://nodejs.org/)** & **[TypeScript](https://www.typescriptlang.org/)**
 - **[Express](https://expressjs.com/)** - Framework web rápido e minimalista
-- **[Prisma ORM](https://www.prisma.io/)** - ORM para interações seguras e tipadas com o banco de dados
-- **[Zod](https://zod.dev/)** - Declaração e validação de esquemas integradas ao TypeScript
+- **[Prisma ORM](https://www.prisma.io/)** - ORM para interações com o banco de dados
+- **[Zod](https://zod.dev/)** - Validação de esquemas integradas ao TypeScript
 - **[Redis](https://redis.io/)** & **[ioredis](https://github.com/redis/ioredis)** - Armazenamento de cache em memória
-- **[Nodemailer](https://nodemailer.com/)** - Envio de emails e transações
-- **[JWT](https://jwt.io/) / [Bcrypt](https://www.npmjs.com/package/bcrypt)** - Segurança e autenticação
+- **[Docker](https://www.docker.com/)** - Gerenciamento de ambientes
+- **[Vitest](https://vitest.dev/)** - Testes automatizados
+- **[Nodemailer](https://nodemailer.com/)** - Envio de emails
+- **[JWT](https://jwt.io/) / [Argon2](https://www.npmjs.com/package/argon2)** - Segurança e autenticação
 - **Entre outros...**
 
 </br>
@@ -39,12 +37,15 @@ O **OrçaFácil** é uma API projetada para agilizar e organizar o processo de c
 
 </br>
 
+## 📋 Testes unitários
+- O projeto possui uma suíte de testes unitários para validar as principais regras de negócio. Testes de integração e E2E não foram incluídos nesta versão para manter o ambiente de desenvolvimento e a pipeline mais simples.
+
+</br>
+
 ## 📚 Documentação
-A documentação detalhada da API está disponível via Postman:</br>
+A documentação completa e detalhada da API está disponível via Postman:</br>
 
 https://documenter.getpostman.com/view/53399164/2sBXqDsiVE
-
-Em breve documentação será migrada para Swagger. O objetivo é criar uma API auto-documentável com Express + Zod.
 
 </br>
 
@@ -53,10 +54,10 @@ Em breve documentação será migrada para Swagger. O objetivo é criar uma API 
 ### Pré-requisitos
 
 Certifique-se de ter instalado em sua máquina:
-- [Node.js](https://nodejs.org/) (v16 ou superior)
-- [npm](https://www.npmjs.com/) ou [yarn](https://yarnpkg.com/) ou [pnpm](https://pnpm.io/)
-- Um banco de dados relacional (ex: PostgreSQL ou MySQL)
-- Servidor [Redis](https://redis.io/) rodando localmente ou em nuvem
+- Node.js [Node.js](https://nodejs.org/) (v16 ou superior)
+- PostgreSQL [PostgreSQL](https://www.postgresql.org/)
+- Redis [Redis](https://redis.io/) rodando localmente ou em nuvem
+- [Opcional] Docker [Docker](https://www.docker.com/) caso deseje executar o código via Docker
 
 ### Configuração do Ambiente
 
@@ -76,25 +77,67 @@ npm install
 ```
 
 4. Configure as Variáveis de Ambiente:
-Crie um arquivo `.env` na raiz do projeto contendo as seguintes chaves básicas:
+4.1. Crie um arquivo `.env.dev` na raiz do projeto contendo as seguintes chaves básicas:
 
 ```env
+# Banco de dados
 DATABASE_URL="postgresql://user:password@localhost:5432/orcafacil"
-# ou mysql://user:password@localhost:3306/orcafacil
+DATABASE_USER="user"
+DATABASE_PASSWORD=password
+DATABASE_NAME="orcafacil"
 
-REDIS_URL="redis://localhost:6379"
-JWT_SECRET="sua_chave_secreta"
+# Redis
+REDIS_HOST=localhost
+REDIS_PORT=6379
+
+# Email (para o Nodemailer)
+USER_EMAIL="email@gmail.com"
+USER_PASSWORD="senha_de_app"
+
+# PEPPER para o Argon2
+PEPPER=gere_um_valor_aleatorio
+
+# JWT Secret Key
+JWT_ACCESS_SECRET=gere_uma_chave_secreta_para_access_token
+JWT_REFRESH_SECRET=gere_uma_chave_secreta_para_refresh_token
 ```
 
-5. Execute as migrações do banco de dados para criar as tabelas:
+4.2. (Opcional) Crie um arquivo `.env.test` na raiz do projeto contendo as seguintes chaves básicas:
+
+```env
+# Banco de dados
+DATABASE_URL="postgresql://user:password@localhost:5432/orcafacil"
+DATABASE_USER="user"
+DATABASE_PASSWORD=password
+DATABASE_NAME="orcafacil"
+
+# Redis access
+REDIS_HOST=localhost
+REDIS_PORT=6379
+```
+
+5. Execute as migrações do banco de dados para criar as tabelas (Obs: é necessário que o Redis e o PostgreSQL estejam em execução):
 ```bash
 npx prisma migrate dev
 ```
 
-6. Inicie a aplicação em modo de desenvolvimento:
+6. Inicie a aplicação em modo de desenvolvimento (ambiente local):
 ```bash
 npm run dev
 ```
+
+</br>
+
+## 📜 Scripts
+
+| Comando | Descrição |
+|---------|-----------|
+| npm run dev | Inicia a API em modo de desenvolvimento |
+| npm run test:unit:run | Executa apenas os testes unitários sem Docker |
+| npm run lint | Executa o ESLint |
+| npm run build | Compila a aplicação |
+| npm dev:docker:run | Cria o ambiente de dev no Docker e inicia a API |
+| npm test:docker:unit | Cria o ambiente de teste no Docker e executa os testes unitários |
 
 <br/>
 
@@ -108,5 +151,5 @@ Distribuído sob a licença **ISC**.
 ---
 
 <div align="center">
-  Desenvolvido com ❤️ por <a href="https://github.com/emanuelfontoura">Emanuel Fontoura</a>
+  Desenvolvido por <a href="https://github.com/emanuelfontoura">Emanuel Fontoura</a>
 </div>

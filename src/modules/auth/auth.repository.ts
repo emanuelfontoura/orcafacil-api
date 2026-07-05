@@ -26,8 +26,9 @@ export class AuthUserRepository {
                     <p>Esse código expira em 10 minutos.</p>
                 `
             })
-        }catch(error){
+        }catch{
             throw new AppError('Erro ao enviar email de verificação.', 500, ErrorCode.SEND_EMAIL_CODE_ERROR)
         }
     }
+    
 }

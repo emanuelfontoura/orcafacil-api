@@ -9,7 +9,7 @@ export class ClientsService{
         const client = await ClientsRepository.searchClientByEmail(data.email)
         if (client) throw new ConflictError('Cliente já cadastrado.', ErrorCode.CLIENT_ALREADY_EXISTS)
         
-        return {}
+        return {id: 1, createdAt: new Date, updatedAt: new Date, email: '', name: '', sellerId: 1, tellphone: ''}
     }
 
 }

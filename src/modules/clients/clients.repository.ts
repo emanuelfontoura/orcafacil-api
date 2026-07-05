@@ -1,15 +1,24 @@
 import { prisma } from "@/lib/prisma"
 import { AppError } from "@/shared/errors/AppError"
 import { ErrorCode } from "@/shared/errors/ErrorCodes"
+import { ClientsDTOs } from "./clients.dtos"
 
 export class ClientsRepository{
 
-    static async create(){
-        console.log('teste')
-        // try{
-        // }catch{
-        //     throw new AppError('Erro ao criar cliente no banco de dados', 500, ErrorCode.INTERNAL_SERVER_ERROR)
-        // }
+    static async create(data: ClientsDTOs['CreateRequestDTO']): Promise<ClientsDTOs['CreateResponseDTO']>{
+        try{
+            const newClient = await prisma.client.create({
+                data: {
+                    name: data.name,
+                    email: data.email,
+                    tellphone: data.tellphone,
+                    sellerId: data.sellerId
+                }
+            })
+            return newClient
+        }catch{
+            throw new AppError('Erro ao cadastrar o cliente', 500, ErrorCode.INTERNAL_SERVER_ERROR)
+        }
     }
 
     static async searchClientByEmail(email: string){

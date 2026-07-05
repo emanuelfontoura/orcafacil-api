@@ -2,14 +2,23 @@ import { ConflictError } from "@/shared/errors/ConflictError";
 import { ClientsDTOs } from "./clients.dtos";
 import { ClientsRepository } from "./clients.repository";
 import { ErrorCode } from "@/shared/errors/ErrorCodes";
+import { SellersRepository } from "../sellers/sellers.repository";
 
 export class ClientsService{
 
     static async create(data: ClientsDTOs['CreateRequestDTO']): Promise<ClientsDTOs['CreateResponseDTO']>{
-        const client = await ClientsRepository.searchClientByEmail(data.email)
-        if (client) throw new ConflictError('Cliente já cadastrado.', ErrorCode.CLIENT_ALREADY_EXISTS)
+        const oldClient = await ClientsRepository.searchClientByEmail(data.email)
+        if (oldClient) throw new ConflictError('Cliente já cadastrado.', ErrorCode.CLIENT_ALREADY_EXISTS)
         
-        return {id: 1, createdAt: new Date, updatedAt: new Date, email: '', name: '', sellerId: 1, tellphone: ''}
+        if(data.sellerId){
+            if(! await SellersRepository.searchSellerById(data.sellerId)){
+                throw new ConflictError('Vendedor não encontrado', ErrorCode.SELLER_NOT_EXISTS)
+            }
+        }
+
+        const newClient = await ClientsRepository.create(data)
+
+        return newClient
     }
 
 }

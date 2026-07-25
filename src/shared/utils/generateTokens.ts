@@ -2,19 +2,18 @@ import { AuthDTOs } from "@/modules/auth/auth.dtos";
 import jwt from "jsonwebtoken"
 import { AppError } from "@/shared/errors/AppError";
 import { ErrorCode } from "@/shared/errors/ErrorCodes";
-import { env } from "@/config/env";
 
 export async function generateTokens(userId: number, jti: string): Promise<AuthDTOs['TokensDTO']> {
     let accessToken, refreshToken: string
     try{
         accessToken = jwt.sign(
             {sub: userId},
-            env.JWT_ACCESS_SECRET,
+            process.env.JWT_ACCESS_SECRET!,
             {expiresIn: "15m"}
         )
         refreshToken = jwt.sign(
             {sub: userId, jti},
-            env.JWT_REFRESH_SECRET,
+            process.env.JWT_REFRESH_SECRET!,
             {expiresIn: "7d"}
         )
     }catch{

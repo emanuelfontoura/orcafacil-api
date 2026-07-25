@@ -54,10 +54,10 @@ https://documenter.getpostman.com/view/53399164/2sBXqDsiVE
 ### Pré-requisitos
 
 Certifique-se de ter instalado em sua máquina:
-- Node.js [Node.js](https://nodejs.org/) (v16 ou superior)
-- PostgreSQL [PostgreSQL](https://www.postgresql.org/)
-- Redis [Redis](https://redis.io/) rodando localmente ou em nuvem
-- [Opcional] Docker [Docker](https://www.docker.com/) caso deseje executar o código via Docker
+- [Node.js](https://nodejs.org/) (v16 ou superior)
+- [PostgreSQL](https://www.postgresql.org/)
+- [Redis](https://redis.io/) rodando localmente ou em nuvem
+- **OPCIONAL** [Docker](https://www.docker.com/) caso deseje executar o código via Docker
 
 ### Configuração do Ambiente
 

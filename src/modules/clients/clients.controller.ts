@@ -18,4 +18,7 @@ export class ClientsController{
         }
     }
 
+    static async edit(req: Request, res: Response<ApiResponse<ClientsDTOs['']>>, next: NextFunction){
+
+    }
 }

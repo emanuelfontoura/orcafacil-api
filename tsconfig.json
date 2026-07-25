@@ -18,6 +18,6 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src", "tests"],
+  "include": ["src", "tests", "prisma.config.ts"],
   "exclude": ["node_modules"]
 }

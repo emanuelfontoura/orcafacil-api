@@ -1,43 +1,29 @@
 services:
-  api_dev:
-    build: 
-      context: .
-      dockerfile: Dockerfile.dev
-    container_name: orcafacil-api-dev
-    ports:
-      - "3000:3000"
-    env_file:
-      - .env.dev
-    depends_on:
-      postgres_dev:
-        condition: service_healthy
-      redis_dev:
-        condition: service_started
-    volumes:
-      - .:/app
-      - /app/node_modules
-    command: npm run dev
-
-  postgres_dev:
+  postgres:
     image: postgres:15
     container_name: orcafacil-postgres-dev
-    ports: 
+
+    ports:
       - "5432:5432"
+
     environment:
       POSTGRES_USER: ${DATABASE_USER}
       POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
       POSTGRES_DB: ${DATABASE_NAME}
+
     volumes:
       - postgres_dev_data:/var/lib/postgresql/data
+
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER} -d ${DATABASE_NAME}"]
       interval: 5s
       timeout: 5s
       retries: 5
 
-  redis_dev:
+  redis:
     image: redis:7
     container_name: orcafacil-redis-dev
+
     ports:
       - "6379:6379"
 

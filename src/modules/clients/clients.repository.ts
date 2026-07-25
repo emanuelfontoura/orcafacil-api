@@ -10,15 +10,21 @@ export class ClientsRepository{
             const newClient = await prisma.client.create({
                 data: {
                     name: data.name,
+                    cnpjCpf: data.cnpjCpf,
                     email: data.email,
                     tellphone: data.tellphone,
-                    sellerId: data.sellerId
+                    sellerId: data.sellerId,
+                    userId: data.userId                
                 }
             })
             return newClient
         }catch{
             throw new AppError('Erro ao cadastrar o cliente', 500, ErrorCode.INTERNAL_SERVER_ERROR)
         }
+    }
+
+    static async edit(){
+
     }
 
     static async searchClientByEmail(email: string){

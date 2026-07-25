@@ -1,57 +1,72 @@
-name: CI
+image: node:24
 
-on:
-  pull_request:
-    branches: ["develop", "main"]
-  push:
-    branches: 
-      - develop
+definitions:
+  services:
+    postgres:
+      image: postgres:15
+      variables:
+        POSTGRES_USER: test
+        POSTGRES_PASSWORD: test
+        POSTGRES_DB: test
 
-jobs:
-  test:
-    runs-on: ubuntu-latest
+    redis:
+      image: redis:7
 
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_USER: test
-          POSTGRES_PASSWORD: test
-          POSTGRES_DB: test
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd="pg_isready -U test -d test"
-          --health-interval=5s
-          --health-timeout=5s
-          --health-retries=10
+pipelines:
+  branches:
+    develop:
+      - step:
+          name: Lint, Test and Build
 
-      redis:
-        image: redis:7
-        ports:
-          - 6379:6379
+          services:
+            - postgres
+            - redis
 
-    env:
-      DATABASE_URL: postgresql://test:test@localhost:5432/test
-      REDIS_URL: redis://localhost:6379
-      REDIS_HOST: localhost
-      REDIS_PORT: 6379
-      NODE_ENV: test
-      JWT_ACCESS_SECRET: test-access-secret
-      JWT_REFRESH_SECRET: test-refresh-secret
-      PEPPER: test-pepper
+          caches:
+            - node
 
-    steps:
-      - uses: actions/checkout@v4
+          script:
+            - export DATABASE_URL="postgresql://test:test@localhost:5432/test"
+            - export REDIS_URL="redis://localhost:6379"
+            - export REDIS_HOST="localhost"
+            - export REDIS_PORT="6379"
+            - export NODE_ENV="test"
+            - export JWT_ACCESS_SECRET="test-access-secret"
+            - export JWT_REFRESH_SECRET="test-refresh-secret"
+            - export PEPPER="test-pepper"
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: npm
+            - npm ci
+            - npm run lint
+            - npx prisma generate
+            - npx prisma migrate deploy
+            - npm run test:unit:run
+            - npm run build
 
-      - run: npm ci
-      - run: npm run lint
-      - run: npx prisma generate
-      - run: npx prisma migrate deploy
-      - run: npm run test:unit:run
-      - run: npm run build
+  pull-requests:
+    "**":
+      - step:
+          name: Validate Pull Request
+
+          services:
+            - postgres
+            - redis
+
+          caches:
+            - node
+
+          script:
+            - export DATABASE_URL="postgresql://test:test@localhost:5432/test"
+            - export REDIS_URL="redis://localhost:6379"
+            - export REDIS_HOST="localhost"
+            - export REDIS_PORT="6379"
+            - export NODE_ENV="test"
+            - export JWT_ACCESS_SECRET="test-access-secret"
+            - export JWT_REFRESH_SECRET="test-refresh-secret"
+            - export PEPPER="test-pepper"
+
+            - npm ci
+            - npm run lint
+            - npx prisma generate
+            - npx prisma migrate deploy
+            - npm run test:unit:run
+            - npm run build

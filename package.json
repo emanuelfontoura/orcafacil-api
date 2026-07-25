@@ -14,14 +14,8 @@
 
     "test:unit:run": "vitest run ./tests/unit",
 
-    "test:docker:up": "docker compose -p orcafacil-test --env-file .env.test -f docker-compose.test.yml up -d --build",
-    "test:docker:migrate": "docker compose -p orcafacil-test --env-file .env.test -f docker-compose.test.yml exec api_test npx prisma migrate deploy",
-    "test:docker:down": "docker compose -p orcafacil-test -f docker-compose.test.yml down",
-    "test:docker:unit:run": "docker compose -p orcafacil-test --env-file .env.test -f docker-compose.test.yml exec api_test npx vitest run ./tests/unit",
-    "test:docker:unit": "npm run test:docker:up && npm run test:docker:migrate && npm run test:docker:unit:run && npm run test:docker:down",
-
     "dev": "ts-node-dev --respawn --transpile-only -r tsconfig-paths/register src/index.ts",
-    "build": "tsc && tsc-alias"
+    "build": "tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json"
   },
   "repository": {
     "type": "git",

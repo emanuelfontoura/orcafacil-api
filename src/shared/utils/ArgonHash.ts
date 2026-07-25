@@ -1,6 +1,4 @@
 import argon2 from "argon2"
-import "dotenv/config"
-import { env } from "@/config/env"
 
 export class ArgonHash{
 
@@ -11,7 +9,7 @@ export class ArgonHash{
         parallelism: 1
     }
 
-    private static PEPPER: string = env.PEPPER
+    private static PEPPER: string = process.env.PEPPER!
 
     static async argonHash(valueToHash: string): Promise<string>{
         const hashedValue = await argon2.hash(valueToHash + this.PEPPER, this.argonConfigHash)

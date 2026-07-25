@@ -3,7 +3,6 @@ import { AuthUserRepository } from '@/modules/auth/auth.repository'
 import { UserRepository } from '@/modules/user/user.repository'
 import { redis } from '@/lib/redis'
 import { ArgonHash } from '@/shared/utils/ArgonHash'
-import { env } from "@/config/env"
 import jwt from 'jsonwebtoken'
 import { ConflictError } from '@/shared/errors/ConflictError'
 import { ErrorCode } from '@/shared/errors/ErrorCodes'
@@ -169,7 +168,7 @@ export class AuthUserService{
 
     static async refreshToken(refreshToken: string): Promise<AuthDTOs['TokensDTO']>{
         try{
-            const decodedRefreshToken = jwt.verify(refreshToken, env.JWT_REFRESH_SECRET) as jwt.JwtPayload
+            const decodedRefreshToken = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET!) as jwt.JwtPayload
             const {jti, sub} = decodedRefreshToken
             const dataTokens = await redis.exists(`refresh-token-${jti}`)
             if(!dataTokens) throw new UnauthorizedError('Refresh token inválido', ErrorCode.INVALID_TOKEN)
@@ -306,7 +305,7 @@ export class AuthUserService{
 
     static async logout(refreshToken: string){
         try{
-            const decodedToken = jwt.verify(refreshToken, env.JWT_REFRESH_SECRET) as jwt.JwtPayload
+            const decodedToken = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET!) as jwt.JwtPayload
             const {jti} = decodedToken
             try{
                 await redis.del(`refresh-token-${jti}`)

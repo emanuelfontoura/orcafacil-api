@@ -4,7 +4,7 @@ import { ErrorCode } from "@/shared/errors/ErrorCodes";
 
 export class SellersRepository{
 
-    static async searchSellerById(id: number){
+    static async searchSellerById(id: number,){
         try{
             const seller = await prisma.seller.findUnique({where:{id}})
             return seller

@@ -11,6 +11,7 @@ export class UserRepository {
                 where: {email},
                 select: {
                     id: true,
+                    cnpjCpf: true,
                     email: true,
                     name: true,
                     createdAt: true,
@@ -20,11 +21,40 @@ export class UserRepository {
             if(!data) return null
             return {
                 id: data.id,
+                cnpjCpf: data.cnpjCpf,
                 email: data.email,
                 name: data.name,
                 createdAt: data.createdAt,
                 updatedAt: data.updatedAt
             } 
+        }catch{
+            throw new AppError('Erro ao buscar dados do usuário.', 500, ErrorCode.QUERY_DATABASE_ERROR)
+        }
+    }
+
+    static async findById(id: number): Promise<UserTypes['UserResponse'] | null>{
+        try{
+            const data = await prisma.user.findUnique({
+                where: {id}, 
+                select: {
+                    id: true, 
+                    cnpjCpf: true,
+                    email: true, 
+                    name: true, 
+                    createdAt: true, 
+                    updatedAt: true
+                }
+            })
+            if(!data) return null
+            return {
+                id: data.id,
+                cnpjCpf: data.cnpjCpf,
+                email: data.email,
+                name: data.name,
+                createdAt: data.createdAt,
+                updatedAt: data.updatedAt
+
+            }
         }catch{
             throw new AppError('Erro ao buscar dados do usuário.', 500, ErrorCode.QUERY_DATABASE_ERROR)
         }

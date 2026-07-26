@@ -23,13 +23,20 @@ export class ClientsRepository{
         }
     }
 
-    static async edit(){
+    static async edit(id: number, data: ClientsDTOs['EditRequestDTO']): Promise<ClientsDTOs['EditResponseDTO']>{
 
     }
 
-    static async searchClientByEmail(email: string){
+    static async searchClientByCnpjCpf(cnpjCpf: string, userId: number){
         try{
-            const data = await prisma.client.findUnique({where: {email}})
+            const data = await prisma.client.findUnique({
+                where: {
+                    userId_cnpjCpf: {
+                        cnpjCpf,
+                        userId
+                    }
+                }
+            })
             return data
         }catch{
             throw new AppError('Erro ao realizar busca de cliente pelo email', 500, ErrorCode.INTERNAL_SERVER_ERROR)

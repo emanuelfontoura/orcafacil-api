@@ -14,6 +14,7 @@ export const ClientsSchema = {
         sellerId: z.number(),
         userId: z.number().min(1)
     }),
+
     edit: z.object({
         name: z.string().min(1).max(255).optional(),
         cnpjCpf: z.string().refine(
@@ -23,6 +24,7 @@ export const ClientsSchema = {
         ).optional(),
         tellphone: z.string().nullable().optional(),
         email: z.string().nullable().optional(),
-        sellerId: z.number().nullable().optional()
-    })
+        sellerId: z.number().nullable().optional(),
+        userId: z.number().min(1)
+    }).refine((data) => Object.keys(data).length > 0, {message: 'Informe pelo menos um capo para atualizar'})
 }

@@ -1,12 +1,8 @@
+import { z } from "zod"
+import { ClientsSchema } from "./clients.schema"
+
 export interface ClientsDTOs{
-    CreateRequestDTO: {
-        name: string,
-        cnpjCpf: string,
-        email: string,
-        tellphone: string,
-        sellerId: number | null,
-        userId: number
-    },
+    CreateRequestDTO: z.infer<typeof ClientsSchema.create>,
     CreateResponseDTO: {
         name: string,
         cnpjCpf: string,
@@ -16,5 +12,8 @@ export interface ClientsDTOs{
         createdAt: Date,
         updatedAt: Date,
         userId: number
-    }
+    },
+
+    EditRequestDTO: z.infer<typeof ClientsSchema.edit>,
+    EditResponseDTO: ClientsDTOs['CreateResponseDTO']
 }

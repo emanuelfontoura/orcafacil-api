@@ -7,7 +7,7 @@ import { SellersRepository } from "../sellers/sellers.repository";
 export class ClientsService{
 
     static async create(data: ClientsDTOs['CreateRequestDTO']): Promise<ClientsDTOs['CreateResponseDTO']>{
-        const oldClient = await ClientsRepository.searchClientByEmail(data.email)
+        const oldClient = await ClientsRepository.searchClientByCnpjCpf(data.cnpjCpf, data.userId)
         if (oldClient) throw new ConflictError('Cliente já cadastrado.', ErrorCode.CLIENT_ALREADY_EXISTS)
         
         if(data.sellerId){
@@ -21,8 +21,20 @@ export class ClientsService{
         return newClient
     }
 
-    static async edit(){
-        
+    static async edit(id: number, data: ClientsDTOs['EditRequestDTO']): Promise<ClientsDTOs['EditResponseDTO']>{
+        if (data.cnpjCpf){
+            const oldClient = await ClientsRepository.searchClientByCnpjCpf(data.cnpjCpf, data.userId)
+            if (oldClient){
+                throw new ConflictError('Cliente já cadastrado', ErrorCode.CLIENT_ALREADY_EXISTS)
+            }
+        }
+
+        if(data.sellerId){
+            if(! await SellersRepository.searchSellerById(data.sellerId)){
+                throw new ConflictError('Vendedor não encontrado', ErrorCode.SELLER_NOT_EXISTS)
+            }
+        }
+
     }
 
 }

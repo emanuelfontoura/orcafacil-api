@@ -7,6 +7,7 @@ export type UserTypes = {
 
     UserResponse: {
         id: number
+        cnpjCpf: string
         email: string
         name: string
         createdAt: Date

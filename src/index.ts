@@ -11,6 +11,8 @@ import { ClientsRoutes } from './modules/clients/clients.route';
 
 const PORT = process.env.PORT || 3000;
 
+// teste
+
 const app = express();
 
 // Essentials middlewares

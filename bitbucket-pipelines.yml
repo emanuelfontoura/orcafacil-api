@@ -35,8 +35,6 @@ pipelines:
             - export JWT_REFRESH_SECRET="test-refresh-secret"
             - export PEPPER="test-pepper"
 
-            - npm ci
-            - npm run lint
             - npx prisma generate
             - npx prisma migrate deploy
             - npm run test:unit:run

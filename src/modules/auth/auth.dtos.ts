@@ -5,6 +5,7 @@ export interface AuthDTOs{
     }
     ConfirmEmailResponseDTO: {
         id: number
+        cnpjCpf: string
         email: string
         name: string
         createdAt: Date
@@ -12,6 +13,7 @@ export interface AuthDTOs{
 
     VerifyEmailRequestDTO: {
         name: string
+        cnpjCpf: string
         email: string
         password: string
         confirmPassword: string
@@ -19,6 +21,7 @@ export interface AuthDTOs{
     VerifyEmailResponseDTO: {
         email: string
         name: string
+        cnpjCpf: string
     }
 
     TokensDTO: {

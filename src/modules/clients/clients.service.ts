@@ -3,6 +3,7 @@ import { ClientsDTOs } from "./clients.dtos";
 import { ClientsRepository } from "./clients.repository";
 import { ErrorCode } from "@/shared/errors/ErrorCodes";
 import { SellersRepository } from "../sellers/sellers.repository";
+import { UserRepository } from "../user/user.repository";
 
 export class ClientsService{
 
@@ -22,6 +23,12 @@ export class ClientsService{
     }
 
     static async edit(id: number, data: ClientsDTOs['EditRequestDTO']): Promise<ClientsDTOs['EditResponseDTO']>{
+
+        const user = await UserRepository.findById(data.userId)
+        if(!user){
+            throw new ConflictError('Usuário inválido.', ErrorCode.INVALID_USER)
+        }
+
         if (data.cnpjCpf){
             const oldClient = await ClientsRepository.searchClientByCnpjCpf(data.cnpjCpf, data.userId)
             if (oldClient){
@@ -35,6 +42,9 @@ export class ClientsService{
             }
         }
 
+        const editedClient = await ClientsRepository.edit(id, data)
+
+        return editedClient
     }
 
 }

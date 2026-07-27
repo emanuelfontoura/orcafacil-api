@@ -1,11 +1,11 @@
 import { prisma } from "@/lib/prisma"
 import { AppError } from "@/shared/errors/AppError"
 import { ErrorCode } from "@/shared/errors/ErrorCodes"
-import { ClientsDTOs } from "./clients.dtos"
+import { ClientsTypes } from "./clients.types"
 
 export class ClientsRepository{
 
-    static async create(data: ClientsDTOs['CreateRequestDTO']): Promise<ClientsDTOs['CreateResponseDTO']>{
+    static async create(data: ClientsTypes['CreateType']): Promise<ClientsTypes['CreateResponseType']>{
         try{
             const newClient = await prisma.client.create({
                 data: {
@@ -23,8 +23,16 @@ export class ClientsRepository{
         }
     }
 
-    static async edit(id: number, data: ClientsDTOs['EditRequestDTO']): Promise<ClientsDTOs['EditResponseDTO']>{
-
+    static async edit(id: number, data: ClientsTypes['EditType']): Promise<ClientsTypes['EditResponseType']>{
+        try{
+            const editedClient = await prisma.client.update({
+                data,
+                where: {id}
+            })
+            return editedClient
+        }catch{
+            throw new AppError('Erro interno do servidor.', 500, ErrorCode.INTERNAL_SERVER_ERROR)
+        }
     }
 
     static async searchClientByCnpjCpf(cnpjCpf: string, userId: number){

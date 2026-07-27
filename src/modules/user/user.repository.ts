@@ -64,6 +64,7 @@ export class UserRepository {
         try{
             const dataUser = await prisma.user.create({
                 data: {
+                    cnpjCpf: data.cnpjCpf,
                     email: data.email,
                     name: data.name,
                     password: data.password
@@ -71,6 +72,7 @@ export class UserRepository {
             })
             return {
                 id: dataUser.id,
+                cnpjCpf: dataUser.cnpjCpf,
                 email: dataUser.email,
                 name: dataUser.name,
                 createdAt: dataUser.createdAt,
@@ -87,6 +89,7 @@ export class UserRepository {
                 where: {email},
                 select: {
                     id: true,
+                    cnpjCpf: true,
                     email: true,
                     password: true
                 }
@@ -94,6 +97,7 @@ export class UserRepository {
             if(!userCredentials) return null
             return {
                 id: userCredentials.id,
+                cnpjCpf: userCredentials.cnpjCpf,
                 email: userCredentials.email,
                 password: userCredentials.password
             }

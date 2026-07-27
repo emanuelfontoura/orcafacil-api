@@ -9,9 +9,9 @@ export const ClientsSchema = {
                 message: 'CPF ou CNPJ inválido'
             }
         ),
-        tellphone: z.string(),
-        email: z.email().max(255),
-        sellerId: z.number(),
+        tellphone: z.string().nullable().optional(),
+        email: z.email().max(255).nullable().optional(),
+        sellerId: z.number().nullable().optional(),
         userId: z.number().min(1)
     }),
 

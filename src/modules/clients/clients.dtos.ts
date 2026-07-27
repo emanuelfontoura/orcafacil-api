@@ -6,9 +6,9 @@ export interface ClientsDTOs{
     CreateResponseDTO: {
         name: string,
         cnpjCpf: string,
-        email: string,
-        tellphone: string,
-        sellerId: number | null,
+        email?: string | null,
+        tellphone?: string | null,
+        sellerId?: number | null,
         createdAt: Date,
         updatedAt: Date,
         userId: number

@@ -36,6 +36,7 @@ export class AuthUserService{
                 JSON.stringify({
                     code: hashedCode,
                     name: data.name,
+                    cnpjCpf: data.cnpjCpf,
                     password: hashedPassword
                 }),
                 "EX",
@@ -58,7 +59,7 @@ export class AuthUserService{
             throw new AppError('Erro ao salvar email na fila de cooldown.', 500, ErrorCode.REDIS_SAVE_ERROR)
         }
 
-        return {email: data.email, name: data.name}
+        return {email: data.email, name: data.name, cnpjCpf: data.cnpjCpf}
     }
 
     static async confirmEmail(data: AuthDTOs['ConfirmEmailRequestDTO']): Promise<AuthDTOs['ConfirmEmailResponseDTO']>{
@@ -77,15 +78,17 @@ export class AuthUserService{
 
         const user = await UserRepository.createUser({
             email: data.email,
+            cnpjCpf: dataParsed.cnpjCpf,
             name: dataParsed.name,
             password: dataParsed.password 
         })
 
         return {
             id: user.id,
+            cnpjCpf: user.cnpjCpf,
             email: user.email,
             name: user.name,
-            createdAt: user.createdAt,
+            createdAt: user.createdAt
         }
     }
 

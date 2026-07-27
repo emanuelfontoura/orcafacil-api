@@ -5,12 +5,9 @@
   "main": "index.js",
   "scripts": {
     "lint": "eslint .",
-
-    "dev:docker:up": "docker compose -p orcafacil-dev --env-file .env.dev -f docker-compose.dev.yml up --build",
-    "dev:docker:down": "docker compose -p orcafacil-dev -f docker-compose.dev.yml down",
-    "dev:docker:migrate": "docker compose -p orcafacil-dev exec api_dev npx prisma migrate deploy",
-    "dev:docker:generate": "docker compose -p orcafacil-dev exec api_dev npx prisma generate",
-    "dev:docker:run": "npm run dev:docker:up && npm run dev:docker:migrate",
+    
+    "dev:docker:up": "docker compose --env-file .env -f docker-compose.dev.yml up -d",
+    "dev:docker:down": "docker compose -f docker-compose.dev.yml down",
 
     "test:unit:run": "vitest run ./tests/unit",
 
@@ -19,16 +16,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/emanuelfontoura/orcafacil-api.git"
+    "url": "git+https://fontouraemanuel03@bitbucket.org/orcafacil-api/orcafacil-api.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
-  "bugs": {
-    "url": "https://github.com/emanuelfontoura/orcafacil-api/issues"
-  },
-  "homepage": "https://github.com/emanuelfontoura/orcafacil-api#readme",
   "dependencies": {
     "@prisma/adapter-pg": "^7.5.0",
     "@prisma/client": "^7.5.0",
@@ -54,6 +47,7 @@
     "@types/node": "^25.5.0",
     "@types/nodemailer": "^7.0.11",
     "@types/supertest": "^7.2.0",
+    "cpf-cnpj-validator": "^2.1.2",
     "dotenv-cli": "^11.0.0",
     "eslint": "^10.5.0",
     "globals": "^17.7.0",

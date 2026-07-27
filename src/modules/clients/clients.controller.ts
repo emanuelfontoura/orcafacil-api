@@ -9,7 +9,7 @@ export class ClientsController{
         const data: ClientsDTOs['CreateRequestDTO'] = req.body
         try{
             const dataClient = await ClientsService.create(data)
-            res.status(200).json({
+            return res.status(200).json({
                 success: true,
                 data: dataClient
             })
@@ -18,4 +18,17 @@ export class ClientsController{
         }
     }
 
+    static async edit(req: Request, res: Response<ApiResponse<ClientsDTOs['EditResponseDTO']>>, next: NextFunction){
+        const data: ClientsDTOs['EditRequestDTO'] = req.body
+        const { id } = req.params
+        try{
+            const dataClientEdited = await ClientsService.edit(Number(id), data)
+            return res.status(200).json({
+                success: true,
+                data: dataClientEdited
+            })
+        }catch(error){
+            next(error)
+        }
+    }
 }

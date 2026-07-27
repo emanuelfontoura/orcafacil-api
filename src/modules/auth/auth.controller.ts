@@ -9,11 +9,11 @@ export class AuthUserController {
 
     static async verifyEmail(req: Request, res: Response<ApiResponse<AuthDTOs['VerifyEmailResponseDTO']>>, next: NextFunction){
         const data: AuthDTOs['VerifyEmailRequestDTO'] = req.body
-        const {email, name, password, confirmPassword} = data
+        const {cnpjCpf, email, name, password, confirmPassword} = data
 
         try{
             const dataUser = await AuthUserService.verifyEmail(
-                {email, name, password, confirmPassword}
+                {cnpjCpf, email, name, password, confirmPassword}
             )
             return res.status(200).json({
                 success: true,
@@ -34,6 +34,7 @@ export class AuthUserController {
                 success: true,
                 data: {
                     id: user.id,
+                    cnpjCpf: user.cnpjCpf,
                     email: user.email,
                     name: user.name,
                     createdAt: user.createdAt

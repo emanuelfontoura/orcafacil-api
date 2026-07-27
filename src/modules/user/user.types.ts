@@ -1,5 +1,6 @@
 export type UserTypes = {
     UserComplete: {
+        cnpjCpf: string
         email: string
         name: string
         password: string
@@ -7,6 +8,7 @@ export type UserTypes = {
 
     UserResponse: {
         id: number
+        cnpjCpf: string
         email: string
         name: string
         createdAt: Date
@@ -15,6 +17,7 @@ export type UserTypes = {
 
     UserCredentials: {
         id: number,
+        cnpjCpf: string
         email: string,
         password: string
     }

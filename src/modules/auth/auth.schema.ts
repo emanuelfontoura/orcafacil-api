@@ -1,8 +1,12 @@
 import { z } from "zod"
+import { isValidCnpjCpf } from "@/shared/utils/IsValidCnpjCpf"
 
 export const authSchemas = {
     verifyEmailSchema: z.object({
         name: z.string().min(1).max(100),
+        cnpjCpf: z.string().refine(isValidCnpjCpf, {
+            message: 'CPF ou CNPJ inválido'
+        }),
         email: z.email().max(255),
         password: z.string().min(8).max(128),
         confirmPassword: z.string().min(8).max(128)

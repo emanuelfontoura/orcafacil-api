@@ -11,6 +11,7 @@ export class UserRepository {
                 where: {email},
                 select: {
                     id: true,
+                    cnpjCpf: true,
                     email: true,
                     name: true,
                     createdAt: true,
@@ -20,6 +21,7 @@ export class UserRepository {
             if(!data) return null
             return {
                 id: data.id,
+                cnpjCpf: data.cnpjCpf,
                 email: data.email,
                 name: data.name,
                 createdAt: data.createdAt,
@@ -30,10 +32,39 @@ export class UserRepository {
         }
     }
 
+    static async findById(id: number): Promise<UserTypes['UserResponse'] | null>{
+        try{
+            const data = await prisma.user.findUnique({
+                where: {id}, 
+                select: {
+                    id: true, 
+                    cnpjCpf: true,
+                    email: true, 
+                    name: true, 
+                    createdAt: true, 
+                    updatedAt: true
+                }
+            })
+            if(!data) return null
+            return {
+                id: data.id,
+                cnpjCpf: data.cnpjCpf,
+                email: data.email,
+                name: data.name,
+                createdAt: data.createdAt,
+                updatedAt: data.updatedAt
+
+            }
+        }catch{
+            throw new AppError('Erro ao buscar dados do usuário.', 500, ErrorCode.QUERY_DATABASE_ERROR)
+        }
+    }
+
     static async createUser(data: UserTypes['UserComplete']): Promise<UserTypes['UserResponse']>{
         try{
             const dataUser = await prisma.user.create({
                 data: {
+                    cnpjCpf: data.cnpjCpf,
                     email: data.email,
                     name: data.name,
                     password: data.password
@@ -41,6 +72,7 @@ export class UserRepository {
             })
             return {
                 id: dataUser.id,
+                cnpjCpf: dataUser.cnpjCpf,
                 email: dataUser.email,
                 name: dataUser.name,
                 createdAt: dataUser.createdAt,
@@ -57,6 +89,7 @@ export class UserRepository {
                 where: {email},
                 select: {
                     id: true,
+                    cnpjCpf: true,
                     email: true,
                     password: true
                 }
@@ -64,6 +97,7 @@ export class UserRepository {
             if(!userCredentials) return null
             return {
                 id: userCredentials.id,
+                cnpjCpf: userCredentials.cnpjCpf,
                 email: userCredentials.email,
                 password: userCredentials.password
             }
@@ -78,7 +112,7 @@ export class UserRepository {
                 {where: {id: userId},
                 data: {password: newHashedPassword}
             })
-        }catch(error){ 
+        }catch{ 
             throw new AppError('Erro ao atualizar dados do usuário.', 500, ErrorCode.UPDATE_DATABASE_ERROR)
         }
     }

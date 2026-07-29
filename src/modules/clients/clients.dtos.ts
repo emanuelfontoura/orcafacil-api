@@ -15,5 +15,11 @@ export interface ClientsDTOs{
     },
 
     EditRequestDTO: z.infer<typeof ClientsSchema.edit>,
-    EditResponseDTO: ClientsDTOs['CreateResponseDTO']
+    EditResponseDTO: ClientsDTOs['CreateResponseDTO'],
+
+    DeleteResponseDTO: ClientsDTOs['CreateResponseDTO'],
+
+    GetAllQueryDTO: z.infer<typeof ClientsSchema.getAllQuery>,
+    GetAllResponseDTO: ClientsDTOs['CreateResponseDTO'],
+    GetByIdResponseDTO: ClientsDTOs['CreateResponseDTO']
 }

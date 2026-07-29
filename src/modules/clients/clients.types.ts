@@ -16,12 +16,17 @@ export type ClientsTypes = {
         cnpjCpf: string
         tellphone?: string | null
         email?: string | null
-        selledId?: number | null
+        sellerId?: number | null
         userId: number
         createdAt: Date
         updatedAt: Date
     },
 
     EditType: z.infer<typeof ClientsSchema.edit>
-    EditResponseType: ClientsTypes['CreateResponseType']
+    EditResponseType: ClientsTypes['CreateResponseType'],
+
+    DeleteType: ClientsTypes['CreateResponseType'],
+
+    GetAllType: z.infer<typeof ClientsSchema.getAllQuery>,
+    GetAllResponseType: ClientsTypes['CreateResponseType'] 
 }

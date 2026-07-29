@@ -35,6 +35,15 @@ export class ClientsRepository{
         }
     }
 
+    static async delete(id: number): Promise<ClientsTypes['DeleteType']>{
+        try{
+            const deletedClient = await prisma.client.delete({where: {id}})
+            return deletedClient
+        }catch{
+            throw new AppError('Erro ao deletar usuário.', 500, ErrorCode.INTERNAL_SERVER_ERROR)
+        }
+    }
+
     static async searchClientByCnpjCpf(cnpjCpf: string, userId: number){
         try{
             const data = await prisma.client.findUnique({
@@ -57,6 +66,15 @@ export class ClientsRepository{
             return data
         }catch{
             throw new AppError('Erro ao realizar busca de cliente pelo ID', 500, ErrorCode.INTERNAL_SERVER_ERROR)
+        }
+    }
+
+    static async getAll(userId: number, filters?: ClientsTypes['GetAllType']): Promise<ClientsTypes['GetAllResponseType'][]>{
+        try{
+            const filteredClients = await prisma.client.findMany({where: {userId, ...filters}})
+            return filteredClients
+        }catch{
+            throw new AppError('Erro ao filtrar usuários.', 500, ErrorCode.INTERNAL_SERVER_ERROR)
         }
     }
 

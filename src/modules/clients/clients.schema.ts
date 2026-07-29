@@ -23,8 +23,20 @@ export const ClientsSchema = {
             }
         ).optional(),
         tellphone: z.string().nullable().optional(),
-        email: z.string().nullable().optional(),
+        email: z.email().nullable().optional(),
         sellerId: z.number().nullable().optional(),
         userId: z.number().min(1)
-    }).refine((data) => Object.keys(data).length > 0, {message: 'Informe pelo menos um capo para atualizar'})
+    }).refine((data) => Object.keys(data).length > 0, {message: 'Informe pelo menos um capo para atualizar'}),
+
+    getAllQuery: z.object({
+        name: z.string().min(1).max(255).optional(),
+        cnpjCpf: z.string().min(1).refine(
+            isValidCnpjCpf, {
+                message: 'CPF ou CNPJ inválido'
+            }
+        ).optional(),
+        tellphone: z.string().min(1).optional(),
+        email: z.email().optional(),
+        sellerId: z.coerce.number().int().positive().min(1).optional()
+    })
 }

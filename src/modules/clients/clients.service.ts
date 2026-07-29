@@ -47,4 +47,22 @@ export class ClientsService{
         return editedClient
     }
 
+    static async delete(id: number): Promise<ClientsDTOs['DeleteResponseDTO']>{
+        const client = await ClientsRepository.searchClientById(id)
+        if (!client) throw new ConflictError('Cliente inválido.', ErrorCode.INVALID_CLIENT)
+        const deletedClient = await ClientsRepository.delete(id)
+        return deletedClient
+    }
+
+    static async getAll(userId: number, filters?: ClientsDTOs['GetAllQueryDTO']): Promise<ClientsDTOs['GetAllResponseDTO'][]>{
+        const filteredClients = await ClientsRepository.getAll(userId, filters)
+        return filteredClients
+    }
+
+    static async getById(id: number): Promise<ClientsDTOs['GetByIdResponseDTO']>{
+        const client = await ClientsRepository.searchClientById(id)
+        if(!client) throw new ConflictError('Cliente inválido', ErrorCode.INVALID_CLIENT)
+        return client
+    }
+
 }

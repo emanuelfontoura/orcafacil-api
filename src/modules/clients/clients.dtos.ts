@@ -8,7 +8,6 @@ export interface ClientsDTOs{
         cnpjCpf: string,
         email?: string | null,
         tellphone?: string | null,
-        sellerId?: number | null,
         createdAt: Date,
         updatedAt: Date,
         userId: number

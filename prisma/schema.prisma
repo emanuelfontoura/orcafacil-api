@@ -15,33 +15,13 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  sellers  Seller[]
   clients  Client[]
   products Product[]
-  services Service[]
 
   @@unique([cnpjCpf])
   @@map("users")
 }
 
-model Seller {
-  id            Int      @id @default(autoincrement())
-  cnpjCpf       String   @db.VarChar(14)
-  name          String   @db.VarChar(100)
-  email         String?  @unique @db.VarChar(255)
-  tellphone     String?  @db.VarChar(50)
-  comissionRate Decimal? @db.Decimal(5, 2)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  clients Client[]
-
-  user   User @relation(fields: [userId], references: [id])
-  userId Int
-
-  @@unique([userId, cnpjCpf])
-  @@map("sellers")
-}
 
 model Client {
   id        Int      @id @default(autoincrement())
@@ -51,9 +31,6 @@ model Client {
   tellphone String?  @db.VarChar(50)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  sellerId Int?
-  seller   Seller? @relation(fields: [sellerId], references: [id])
 
   user   User @relation(fields: [userId], references: [id])
   userId Int
@@ -74,18 +51,4 @@ model Product {
   userId Int
 
   @@map("products")
-}
-
-model Service {
-  id          Int      @id @default(autoincrement())
-  name        String   @db.VarChar(100)
-  description String?  @db.VarChar(255)
-  price       Decimal  @db.Decimal(5, 2)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  user   User @relation(fields: [userId], references: [id])
-  userId Int
-
-  @@map("services")
 }

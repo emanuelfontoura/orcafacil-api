@@ -11,7 +11,6 @@ export const ClientsSchema = {
         ),
         tellphone: z.string().nullable().optional(),
         email: z.email().max(255).nullable().optional(),
-        sellerId: z.number().nullable().optional(),
         userId: z.number().min(1)
     }),
 
@@ -24,7 +23,6 @@ export const ClientsSchema = {
         ).optional(),
         tellphone: z.string().nullable().optional(),
         email: z.email().nullable().optional(),
-        sellerId: z.number().nullable().optional(),
         userId: z.number().min(1)
     }).refine((data) => Object.keys(data).length > 0, {message: 'Informe pelo menos um capo para atualizar'}),
 
@@ -36,7 +34,6 @@ export const ClientsSchema = {
             }
         ).optional(),
         tellphone: z.string().min(1).optional(),
-        email: z.email().optional(),
-        sellerId: z.coerce.number().int().positive().min(1).optional()
+        email: z.email().optional()
     })
 }

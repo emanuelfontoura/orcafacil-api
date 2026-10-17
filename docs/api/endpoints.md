@@ -19,7 +19,7 @@ related:
   - "api/authentication.md"
   - "api/validation.md"
   - "api/error-handling.md"
-last_reviewed: 2026-10-15
+last_reviewed: 2026-10-16
 ---
 
 # API — Endpoints
@@ -28,7 +28,7 @@ last_reviewed: 2026-10-15
 > **Documentos relacionados:** [`authentication.md`](./authentication.md) · [`validation.md`](./validation.md) · [`error-handling.md`](./error-handling.md) · [`../modules/auth.md`](../modules/auth.md) · [`../modules/clients.md`](../modules/clients.md) · [`../modules/user.md`](../modules/user.md)
 > **Fonte da verdade:** `src/index.ts` e `src/modules/*/*.route.ts` no repositório `orcafacil-api`.
 > **Documentação externa (Postman):** https://documenter.getpostman.com/view/53399164/2sBXqDsiVE
-> **Última revisão:** 2026-10-15.
+> **Última revisão:** 2026-10-16.
 
 ---
 
@@ -285,11 +285,10 @@ Todas as rotas exigem o cookie `accessToken`. Objeto cliente retornado:
   "name": "Empresa Exemplo LTDA",
   "cnpjCpf": "12345678000195",
   "email": "contato@exemplo.com",
-  "tellphone": "11999999999",
-  "userId": 1
+  "tellphone": "11999999999"
 }
 ```
-`email` e `tellphone` são opcionais (podem ser omitidos ou `null`).
+`email` e `tellphone` são opcionais (podem ser omitidos ou `null`). O cliente é criado na conta do usuário autenticado (`req.user`); um `userId` enviado no body é descartado pela validação.
 
 **200** → `{ "success": true, "data": <cliente> }`
 
@@ -301,14 +300,15 @@ Todas as rotas exigem o cookie `accessToken`. Objeto cliente retornado:
 
 **Params:** `id` — id do cliente.
 
-**Body** (todos os campos opcionais, exceto `userId`)
+**Body** (todos os campos opcionais; ao menos um é obrigatório)
 ```json
-{ "name": "Empresa Exemplo S.A.", "tellphone": "11888888888", "userId": 1 }
+{ "name": "Empresa Exemplo S.A.", "tellphone": "11888888888" }
 ```
+Só edita clientes do usuário autenticado; o dono do cliente não pode ser alterado.
 
 **200** → `{ "success": true, "data": <cliente atualizado> }`
 
-**Erros:** 409 `INVALID_USER` (`userId` inexistente) · 409 `CLIENT_ALREADY_EXISTS` (novo CPF/CNPJ já usado) · 500 `QUERY_DATABASE_ERROR` / `INTERNAL_SERVER_ERROR`.
+**Erros:** 400 (body vazio ou inválido) · 404 `INVALID_ID_CLIENT` (cliente não encontrado ou de outro usuário) · 409 `CLIENT_ALREADY_EXISTS` (CPF/CNPJ já usado por outro cliente) · 500 `INTERNAL_SERVER_ERROR`.
 
 ---
 
@@ -318,7 +318,7 @@ Todas as rotas exigem o cookie `accessToken`. Objeto cliente retornado:
 
 **200** → `{ "success": true, "data": <cliente excluído> }`
 
-**Erros:** 409 `INVALID_ID_CLIENT` (cliente não encontrado) · 500 `INTERNAL_SERVER_ERROR`.
+**Erros:** 404 `INVALID_ID_CLIENT` (cliente não encontrado ou de outro usuário) · 500 `INTERNAL_SERVER_ERROR`.
 
 ---
 
@@ -347,7 +347,7 @@ Exemplo: `GET /clients?name=Empresa%20Exemplo%20LTDA`
 
 **200** → `{ "success": true, "data": <cliente> }`
 
-**Erros:** 409 `INVALID_ID_CLIENT` (cliente não encontrado) · 500 `INTERNAL_SERVER_ERROR`.
+**Erros:** 404 `INVALID_ID_CLIENT` (cliente não encontrado ou de outro usuário) · 500 `INTERNAL_SERVER_ERROR`.
 
 ---
 

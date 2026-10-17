@@ -11,11 +11,12 @@ modules:
   - "clients"
 sources:
   - "src/modules/clients/"
+  - "tests/unit/clients/"
 related:
   - "database/schema.md"
   - "database/relationships.md"
   - "api/endpoints.md"
-last_reviewed: 2026-10-15
+last_reviewed: 2026-10-16
 ---
 
 # Módulo `clients`
@@ -23,7 +24,7 @@ last_reviewed: 2026-10-15
 > **Escopo:** responsabilidades, arquivos, endpoints, regras de negócio, acesso a dados e erros do módulo de clientes.
 > **Documentos relacionados:** [`auth.md`](./auth.md) (emissão do token usado nas rotas) · [`user.md`](./user.md) · [`../database/schema.md`](../database/schema.md#32-clients-model-client) · [`../database/relationships.md`](../database/relationships.md#21-users-1--n-clients) · [`../architecture/request-lifecycle.md`](../architecture/request-lifecycle.md#4-exemplo-completo--post-clientscreate) · [`../architecture/conventions.md`](../architecture/conventions.md)
 > **Fonte da verdade:** `src/modules/clients/` no repositório `orcafacil-api`.
-> **Última revisão:** 2026-10-15.
+> **Última revisão:** 2026-10-16.
 
 ---
 
@@ -102,8 +103,8 @@ Todas respondem **200** com `{ success: true, data }`.
 
 | Schema | Campos |
 |---|---|
-| `create` | `name` (1–255, obrigatório), `cnpjCpf` (obrigatório, `isValidCnpjCpf`), `tellphone` (string, opcional/nulo), `email` (e-mail ≤255, opcional/nulo), `userId` (número ≥ 1, obrigatório) |
-| `edit` | `name`, `cnpjCpf`, `tellphone`, `email` — todos opcionais; `userId` (número ≥ 1, obrigatório). `.refine` exige ao menos um campo. |
+| `create` | `name` (1–255, obrigatório), `cnpjCpf` (obrigatório, `isValidCnpjCpf`), `tellphone` (string, opcional/nulo), `email` (e-mail ≤255, opcional/nulo). **Não** aceita `userId`: o dono é o usuário autenticado. |
+| `edit` | `name`, `cnpjCpf`, `tellphone`, `email` — todos opcionais. **Não** aceita `userId`. `.refine` exige ao menos um campo. |
 | `getAllQuery` | `name`, `cnpjCpf` (`isValidCnpjCpf`), `tellphone`, `email` — todos opcionais |
 
 Exemplo de body do `POST /create`:
@@ -113,8 +114,7 @@ Exemplo de body do `POST /create`:
   "name": "Empresa Exemplo LTDA",
   "cnpjCpf": "12345678000195",
   "email": "contato@exemplo.com",
-  "tellphone": "11999999999",
-  "userId": 1
+  "tellphone": "11999999999"
 }
 ```
 
@@ -124,7 +124,7 @@ Exemplo de body do `POST /create`:
 
 ### 4.1 Criar — `POST /clients/create`
 
-**Controller:** lê o body validado e chama `ClientsService.create(data)`.
+**Controller:** lê o body validado e chama `ClientsService.create({ ...data, userId: Number(req.user) })` — o `userId` vem sempre do access token (`req.user`), nunca do body.
 
 **Service:**
 1. `ClientsRepository.searchClientByCnpjCpf(cnpjCpf, userId)` → se existir: `ConflictError` 409 `CLIENT_ALREADY_EXISTS` (`'Cliente já cadastrado.'`).
@@ -133,21 +133,21 @@ Exemplo de body do `POST /create`:
 
 ### 4.2 Editar — `PATCH /clients/edit/:id`
 
-**Controller:** lê o body validado e `Number(req.params.id)`; chama `ClientsService.edit(id, data)`.
+**Controller:** lê o body validado, `Number(req.params.id)` e `Number(req.user)`; chama `ClientsService.edit(id, userId, data)`.
 
 **Service:**
-1. `UserRepository.findById(data.userId)` → se não existir: `ConflictError` 409 `INVALID_USER` (`'Usuário inválido.'`).
-2. Se `cnpjCpf` foi enviado: `searchClientByCnpjCpf(cnpjCpf, userId)` → se existir: 409 `CLIENT_ALREADY_EXISTS`.
-3. `ClientsRepository.edit(id, data)` → `prisma.client.update({ where: { id }, data })` com o objeto validado.
+1. `ClientsRepository.searchClientById(id, userId)` → se não existir **ou pertencer a outro usuário**: `NotFoundError` 404 `INVALID_ID_CLIENT` (`'Cliente não encontrado.'`).
+2. Se `cnpjCpf` foi enviado: `searchClientByCnpjCpf(cnpjCpf, userId)` → se existir em **outro** cliente (`oldClient.id !== id`): 409 `CLIENT_ALREADY_EXISTS`. Reenviar o CPF/CNPJ atual do próprio cliente é permitido.
+3. `ClientsRepository.edit(id, userId, data)` → `prisma.client.update({ where: { id, userId }, data })` com o objeto validado (sem `userId`, então o dono não muda).
 4. Retorna o cliente atualizado.
 
 ### 4.3 Excluir — `DELETE /clients/delete/:id`
 
-**Controller:** `Number(req.params.id)` → `ClientsService.delete(id)`.
+**Controller:** `Number(req.params.id)` e `Number(req.user)` → `ClientsService.delete(id, userId)`.
 
 **Service:**
-1. `ClientsRepository.searchClientById(id)` → se não existir: `ConflictError` 409 `INVALID_ID_CLIENT` (`'Cliente inválido.'`).
-2. `ClientsRepository.delete(id)` → exclusão física (`prisma.client.delete`). Não há soft delete.
+1. `ClientsRepository.searchClientById(id, userId)` → se não existir ou pertencer a outro usuário: `NotFoundError` 404 `INVALID_ID_CLIENT` (`'Cliente não encontrado.'`).
+2. `ClientsRepository.delete(id, userId)` → exclusão física (`prisma.client.delete({ where: { id, userId } })`). Não há soft delete.
 3. Retorna o cliente excluído.
 
 ### 4.4 Listar — `GET /clients`
@@ -167,10 +167,10 @@ Exemplo: `GET /clients?name=Empresa%20Exemplo%20LTDA&email=contato@exemplo.com`
 
 ### 4.5 Buscar por id — `GET /clients/:id`
 
-**Controller:** `Number(req.params.id)` → `ClientsService.getById(id)`.
+**Controller:** `Number(req.params.id)` e `Number(req.user)` → `ClientsService.getById(id, userId)`.
 
 **Service:**
-1. `ClientsRepository.searchClientById(id)` → se não existir: `ConflictError` 409 `INVALID_ID_CLIENT` (`'Cliente inválido'`).
+1. `ClientsRepository.searchClientById(id, userId)` → se não existir ou pertencer a outro usuário: `NotFoundError` 404 `INVALID_ID_CLIENT` (`'Cliente não encontrado.'`).
 2. Retorna o cliente.
 
 ---
@@ -180,10 +180,10 @@ Exemplo: `GET /clients?name=Empresa%20Exemplo%20LTDA&email=contato@exemplo.com`
 | Método | Operação Prisma | Erro em falha (500) |
 |---|---|---|
 | `create(data)` | `prisma.client.create({ data })` | `'Erro ao cadastrar o cliente'` · `INTERNAL_SERVER_ERROR` |
-| `edit(id, data)` | `prisma.client.update({ data, where: { id } })` | `'Erro interno do servidor.'` · `INTERNAL_SERVER_ERROR` |
-| `delete(id)` | `prisma.client.delete({ where: { id } })` | `INTERNAL_SERVER_ERROR` |
+| `edit(id, userId, data)` | `prisma.client.update({ data, where: { id, userId } })` | `'Erro interno do servidor.'` · `INTERNAL_SERVER_ERROR` |
+| `delete(id, userId)` | `prisma.client.delete({ where: { id, userId } })` | `INTERNAL_SERVER_ERROR` |
 | `searchClientByCnpjCpf(cnpjCpf, userId)` | `findUnique({ where: { userId_cnpjCpf: { cnpjCpf, userId } } })` — usa a unique composta `(userId, cnpjCpf)` | `INTERNAL_SERVER_ERROR` |
-| `searchClientById(id)` | `findUnique({ where: { id } })` | `INTERNAL_SERVER_ERROR` |
+| `searchClientById(id, userId)` | `findFirst({ where: { id, userId } })` — só encontra clientes do usuário | `INTERNAL_SERVER_ERROR` |
 | `getAll(userId, filters?)` | `findMany({ where: { userId, ...filters } })` | `INTERNAL_SERVER_ERROR` |
 
 Buscas retornam `null` quando não encontram; quem transforma isso em erro é o service.
@@ -201,6 +201,8 @@ Buscas retornam `null` quando não encontram; quem transforma isso em erro é o 
 | `email` de cliente é único na tabela | Banco (`clients_email_key`) |
 | Edição exige pelo menos um campo | Zod (`.refine` no `edit`) |
 | Listagem retorna apenas clientes do usuário autenticado | Controller (`req.user`) + repositório (`where: { userId }`) |
+| Buscar, editar e excluir só agem sobre clientes do usuário autenticado; cliente de outro usuário responde como inexistente (404) | Controller (`req.user`) + service (`searchClientById(id, userId)`) + repositório (`where: { id, userId }`) |
+| O dono de um cliente nunca muda | Schemas sem `userId` + `update` sem `userId` em `data` |
 
 ---
 
@@ -209,8 +211,7 @@ Buscas retornam `null` quando não encontram; quem transforma isso em erro é o 
 | Código | Status | Quando |
 |---|---|---|
 | `CLIENT_ALREADY_EXISTS` | 409 | CPF/CNPJ já cadastrado para o usuário (criar/editar). |
-| `INVALID_USER` | 409 | `userId` informado na edição não existe. |
-| `INVALID_ID_CLIENT` (`ErrorCode.INVALID_CLIENT`) | 409 | Cliente não encontrado (excluir/buscar por id). |
+| `INVALID_ID_CLIENT` (`ErrorCode.INVALID_CLIENT`) | 404 | Cliente não encontrado ou de outro usuário (editar/excluir/buscar por id). |
 | `UNAUTHORIZED_USER` | 401 | Cookie `accessToken` ausente, inválido ou expirado (middleware `authenticate`). |
 | `RATE_LIMIT_EXCEEDED` | 429 | Mais de 100 requisições/min na mesma rota e IP. |
 | — (validação) | 400 | Body ou query fora do schema (`details` com campo e mensagem). |
@@ -220,4 +221,13 @@ Buscas retornam `null` quando não encontram; quem transforma isso em erro é o 
 
 ## 8. Testes
 
-O módulo ainda não possui testes unitários. Ao criá-los, seguir o padrão de `tests/unit/auth/` em `tests/unit/clients/{metodo}.unit.test.ts`, mockando `@/modules/clients/clients.repository` e `@/modules/user/user.repository` (ver [`../architecture/conventions.md`](../architecture/conventions.md#10-testes)).
+Local: `tests/unit/clients/` (Vitest, dependências mockadas), um arquivo por método em `tests/unit/clients/{metodo}.unit.test.ts`, mockando `@/modules/clients/clients.repository` e `@/modules/user/user.repository` (ver [`../architecture/conventions.md`](../architecture/conventions.md#10-testes)).
+
+| Arquivo | Método | Cobertura |
+|---|---|---|
+| `edit.unit.test.ts` | `edit` | Retorno; busca por `(id, userId)`; duplicidade por `(cnpjCpf, userId)` só quando há `cnpjCpf`; reenvio do próprio CPF/CNPJ permitido; `edit(id, userId, data)`; cliente inexistente/de outro usuário → 404; CPF/CNPJ de outro cliente → 409; falhas do repositório. |
+| `delete.unit.test.ts` | `delete` | Retorno; busca e exclusão por `(id, userId)`; cliente inexistente/de outro usuário → 404; falhas do repositório. |
+| `getById.unit.test.ts` | `getById` | Retorno; busca por `(id, userId)`; cliente inexistente/de outro usuário → 404; falha do repositório. |
+| `create.unit.test.ts` | `create` | Retorno do cliente criado; duplicidade verificada com `(cnpjCpf, userId)`; `create` chamado com o `userId` recebido; CPF/CNPJ duplicado → 409 `CLIENT_ALREADY_EXISTS`; falha do repositório propagada. |
+
+Métodos ainda sem testes: `getAll`.

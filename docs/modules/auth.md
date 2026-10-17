@@ -18,7 +18,7 @@ related:
   - "modules/user.md"
   - "api/authentication.md"
   - "infrastructure/redis.md"
-last_reviewed: 2026-10-15
+last_reviewed: 2026-10-16
 ---
 
 # Módulo `auth`
@@ -26,7 +26,7 @@ last_reviewed: 2026-10-15
 > **Escopo:** responsabilidades, arquivos, endpoints, regras de negócio, uso do Redis, tokens/cookies e testes do módulo de autenticação.
 > **Documentos relacionados:** [`user.md`](./user.md) (repositório da tabela `users`) · [`clients.md`](./clients.md) · [`../architecture/request-lifecycle.md`](../architecture/request-lifecycle.md#5-fluxos-de-autenticação) (diagramas dos fluxos) · [`../architecture/conventions.md`](../architecture/conventions.md) · [`../database/schema.md`](../database/schema.md#31-users-model-user)
 > **Fonte da verdade:** `src/modules/auth/` no repositório `orcafacil-api`.
-> **Última revisão:** 2026-10-15.
+> **Última revisão:** 2026-10-16.
 
 ---
 
@@ -129,8 +129,8 @@ Prefixo: `/user/auth`. Todos respondem **200** com `ApiResponse` em caso de suce
 ### 4.3 `resendEmailCode({ email })` — reenvio do código
 
 1. Cooldown `verify-email-cooldown-{email}` ativo → `ConflictError` 409 `LIMIT_ATTEMPTS`.
-2. Lê `verify-email-{email}` → ausente: `ConflictError` 409 `TIME_OUT_REGISTER` (o cadastro pendente expirou; é preciso chamar `/email/verify` de novo).
-3. Gera um novo código e regrava `verify-email-{email}` com os mesmos dados e o novo código, renovando o TTL para 600 s.
+2. Lê `verify-email-{email}` (falha do Redis → 500 `REDIS_GET_ERROR`) → ausente: `ConflictError` 409 `TIME_OUT_REGISTER` (o cadastro pendente expirou; é preciso chamar `/email/verify` de novo).
+3. Gera um novo código, calcula o hash Argon2 (`ArgonHash.argonHash`) e regrava `verify-email-{email}` com os mesmos dados e o **hash** do novo código, renovando o TTL para 600 s. O código só existe em texto puro no e-mail enviado.
 4. Envia o novo código por e-mail e regrava o cooldown (60 s).
 5. Retorna `{ email }`.
 
@@ -241,6 +241,7 @@ Local: `tests/unit/auth/` (Vitest, dependências mockadas).
 |---|---|---|
 | `verifyEmail.unit.test.ts` | `verifyEmail` | Envio do código; chamadas a `findByEmail` e `verifyKeyExists`; hash de senha e código; chaves e TTLs do Redis; erros de negócio (e-mail existente, cooldown); falhas dos dois `redis.set`. |
 | `login.unit.test.ts` | `login` | Retorno dos tokens; gravação do `jti` no Redis; credenciais inexistentes ou incorretas; rehash condicional; falha de cada dependência. |
+| `resendEmailCode.unit.test.ts` | `resendEmailCode` | Retorno; chaves de cooldown e cadastro; hash do novo código; regravação com o hash (nunca o código em texto puro) e TTLs; envio do código; erros de negócio (cooldown, cadastro expirado); falhas do `redis.get` e dos dois `redis.set`. |
 | `createNewPassword.unit.test.ts` | `createNewPassword` | Sucesso; erro do Redis; `tokenUUID` inexistente; `authorized: false`; falha do hash; falha do `updatePasswordHash`. |
 
-Métodos ainda sem testes: `confirmEmail`, `resendEmailCode`, `refreshToken`, `sendCodeRecovery`, `confirmCodeRecovery`, `logout`.
+Métodos ainda sem testes: `confirmEmail`, `refreshToken`, `sendCodeRecovery`, `confirmCodeRecovery`, `logout`.

@@ -99,19 +99,25 @@ export class AuthUserService{
         const keyExists = await verifyKeyExists(keyCooldown)
         if(keyExists) throw new ConflictError('Aguarde para realizar esta ação novamente.', ErrorCode.LIMIT_ATTEMPTS)
 
-        const oldKey = await redis.get(keyNewCode)
+        let oldKey
+        try{
+            oldKey = await redis.get(keyNewCode)
+        }catch{
+            throw new AppError('Erro ao obter dados do cadastro.', 500, ErrorCode.REDIS_GET_ERROR)
+        }
         if(!oldKey) throw new ConflictError('Tempo esgotado. Registre-se novamente.', ErrorCode.TIME_OUT_REGISTER)
 
         const parsedOldKey = JSON.parse(oldKey)
 
         const newCode = generateCode()
+        const hashedNewCode = await ArgonHash.argonHash(newCode)
 
         try{
             await redis.set(
                 keyNewCode,
                 JSON.stringify({
                     ...parsedOldKey,
-                    code: newCode,
+                    code: hashedNewCode,
                 }),
                 "EX",
                 600

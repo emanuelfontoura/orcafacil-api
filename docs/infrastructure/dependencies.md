@@ -17,7 +17,7 @@ sources:
 related:
   - "infrastructure/environment.md"
   - "architecture/overview.md"
-last_reviewed: 2026-10-15
+last_reviewed: 2026-10-16
 ---
 
 # Infraestrutura — Dependências
@@ -25,7 +25,7 @@ last_reviewed: 2026-10-15
 > **Escopo:** dependências do `orcafacil-api`: runtime, serviços externos, pacotes npm de produção e de desenvolvimento (com versão declarada e versão instalada), onde cada um é usado, scripts npm e regras para adicionar dependências.
 > **Documentos relacionados:** [`environment.md`](./environment.md) · [`redis.md`](./redis.md) · [`security.md`](./security.md) · [`../architecture/overview.md`](../architecture/overview.md#2-stack)
 > **Fonte da verdade:** `package.json` e `package-lock.json` (lockfile v3) no repositório `orcafacil-api`.
-> **Última revisão:** 2026-10-15.
+> **Última revisão:** 2026-10-16.
 
 ---
 
@@ -57,11 +57,12 @@ last_reviewed: 2026-10-15
 | `jsonwebtoken` | ^9.0.3 | 9.0.3 | Emissão e verificação de JWT | `generateTokens.ts`, `authenticate.ts`, `auth.service.ts` |
 | `argon2` | ^0.44.0 | 0.44.0 | Hash Argon2id (módulo nativo) | `src/shared/utils/ArgonHash.ts` |
 | `nodemailer` | ^8.0.3 | 8.0.11 | Envio de e-mails | `src/modules/auth/auth.repository.ts` |
+| `cpf-cnpj-validator` | ^2.1.2 | 2.1.2 | Validação de CPF/CNPJ | `src/shared/utils/IsValidCnpjCpf.ts` (schemas de `auth` e `clients`) |
 | `tsconfig-paths` | ^4.2.0 | 4.2.0 | Resolve o alias `@/` em desenvolvimento (`-r tsconfig-paths/register`) | script `dev` |
 | `tsc-alias` | ^1.8.16 | 1.9.0 | Reescreve o alias `@/` no build | script `build` |
 | `nodemon` | ^3.1.14 | 3.1.14 | Watcher (não usado pelos scripts atuais; o `dev` usa `ts-node-dev`) | — |
 
-> `cpf-cnpj-validator` é importado em código de produção (`src/shared/utils/IsValidCnpjCpf.ts`), mas está declarado em `devDependencies`. A imagem de produção instala com `npm ci --omit=dev`; ao mexer em dependências, considere esse ponto.
+> A imagem de produção instala com `npm ci --omit=dev`: todo pacote importado por código em `src/` deve estar em `dependencies`, nunca em `devDependencies`.
 
 ---
 
@@ -80,7 +81,6 @@ last_reviewed: 2026-10-15
 | `typescript-eslint` | ^8.62.1 | 8.62.1 | Regras e parser TS para o ESLint |
 | `globals` | ^17.7.0 | 17.7.0 | Globais do Node para o ESLint |
 | `dotenv-cli` | ^11.0.0 | 11.0.0 | Executar comandos com um `.env` específico |
-| `cpf-cnpj-validator` | ^2.1.2 | 2.1.2 | Validação de CPF/CNPJ (ver nota acima) |
 | `@types/node` | ^25.5.0 | 25.9.4 | Tipos do Node |
 | `@types/express` | ^5.0.6 | 5.0.6 | Tipos do Express |
 | `@types/cookie-parser` | ^1.4.10 | 1.4.10 | Tipos |

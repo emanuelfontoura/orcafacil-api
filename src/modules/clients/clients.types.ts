@@ -7,7 +7,6 @@ export type ClientsTypes = {
         cnpjCpf: string
         tellphone?: string | null
         email?: string | null
-        sellerId?: number | null
         userId: number
     },
     CreateResponseType: {
@@ -16,7 +15,6 @@ export type ClientsTypes = {
         cnpjCpf: string
         tellphone?: string | null
         email?: string | null
-        sellerId?: number | null
         userId: number
         createdAt: Date
         updatedAt: Date

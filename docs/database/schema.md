@@ -19,7 +19,7 @@ sources:
 related:
   - "database/relationships.md"
   - "infrastructure/redis.md"
-last_reviewed: 2026-10-15
+last_reviewed: 2026-10-16
 ---
 
 # Banco de Dados — Schema
@@ -27,7 +27,7 @@ last_reviewed: 2026-10-15
 > **Escopo:** estrutura do banco de dados relacional do `orcafacil-api`: tecnologia, convenções, tabelas, colunas, restrições e regras de negócio ligadas a cada tabela.
 > **Relações entre tabelas:** ver [`relationships.md`](./relationships.md).
 > **Fonte da verdade:** `prisma/schema.prisma` e `prisma/migrations/` no repositório `orcafacil-api`. Se este documento divergir do código, o código prevalece — e este documento deve ser atualizado.
-> **Última revisão:** 2026-10-15 (migration mais recente: `20260907203920_removido_sellers_e_services`).
+> **Última revisão:** 2026-10-16 (migration mais recente: `20260907203920_removido_sellers_e_services`).
 
 ---
 
@@ -237,6 +237,5 @@ Divergências conhecidas entre o schema e o código/regras de negócio. Consider
 1. **`clients.email` é único globalmente.** Com o modelo multi-tenant, dois usuários diferentes não conseguem cadastrar um cliente com o mesmo e-mail. O provável comportamento desejado é `@@unique([userId, email])`.
 2. **`cnpjCpf` não é normalizado antes de salvar.** `isValidCnpjCpf` remove a pontuação apenas para validar; o valor original é persistido. Um CNPJ formatado (`12.345.678/0001-90`, 18 caracteres) estoura o `VARCHAR(14)`, e o mesmo documento com/sem máscara burla a constraint de unicidade. Recomenda-se transformar para apenas dígitos no schema Zod (`.transform(v => v.replace(/\D/g, ''))`).
 3. **Limites do Zod maiores que os do banco.** `clients.schema.ts` aceita `name` até 255, mas a coluna é `VARCHAR(100)`.
-4. **Resíduo de `sellerId`.** `ClientsRepository.create` e `ClientsTypes` ainda referenciam `sellerId`, coluna removida na última migration.
-5. **`products.price DECIMAL(5,2)`** limita o preço a 999.99 — provavelmente insuficiente para produtos reais.
-6. **Sem índice dedicado em `products.userId`.** O PostgreSQL não cria índice automaticamente para FKs. Em `clients`, a unique composta `(userId, cnpjCpf)` já serve como índice para buscas por `userId`.
+4. **`products.price DECIMAL(5,2)`** limita o preço a 999.99 — provavelmente insuficiente para produtos reais.
+5. **Sem índice dedicado em `products.userId`.** O PostgreSQL não cria índice automaticamente para FKs. Em `clients`, a unique composta `(userId, cnpjCpf)` já serve como índice para buscas por `userId`.

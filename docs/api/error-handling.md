@@ -19,7 +19,7 @@ related:
   - "api/endpoints.md"
   - "api/validation.md"
   - "architecture/conventions.md"
-last_reviewed: 2026-10-15
+last_reviewed: 2026-10-16
 ---
 
 # API — Tratamento de Erros
@@ -27,7 +27,7 @@ last_reviewed: 2026-10-15
 > **Escopo:** como os erros são criados, propagados e transformados em respostas HTTP no `orcafacil-api`: hierarquia de classes, enum `ErrorCode`, middleware `handleError`, formato das respostas, mapa de status, responsabilidades por camada e como criar novos erros.
 > **Documentos relacionados:** [`endpoints.md`](./endpoints.md) (erros por rota) · [`validation.md`](./validation.md) · [`authentication.md`](./authentication.md) · [`../architecture/request-lifecycle.md`](../architecture/request-lifecycle.md#27-tratamento-de-erros--handleerror) · [`../architecture/conventions.md`](../architecture/conventions.md#5-erros)
 > **Fonte da verdade:** `src/shared/errors/`, `src/middlewares/handleError.ts`, `src/shared/types/apiResponse.ts`.
-> **Última revisão:** 2026-10-15.
+> **Última revisão:** 2026-10-16.
 
 ---
 
@@ -84,7 +84,7 @@ export class ConflictError extends AppError{
 | `AppError` | informado (padrão 400) | — | Falhas de infraestrutura (500), rate limit (429) ou qualquer status sem subclasse. |
 | `ConflictError` | 409 | `'Recurso já existe ou está em conflito'` | Duplicidade, cooldown, estado inválido, referência inexistente para a operação. |
 | `UnauthorizedError` | 401 | `'Não autorizado'` | Credenciais, tokens, códigos e autorizações inválidos/expirados. |
-| `NotFoundError` | 404 | `'Recurso não encontrado'` | Recurso inexistente. (Disponível, mas os módulos atuais usam `ConflictError` para "não encontrado".) |
+| `NotFoundError` | 404 | `'Recurso não encontrado'` | Recurso inexistente (ex.: cliente não encontrado ou de outro usuário). |
 
 ---
 
@@ -108,9 +108,9 @@ Enum de strings enviado no campo `code` da resposta. **O cliente recebe o valor*
 | DATABASE | `UPDATE_DATABASE_ERROR` | `UPDATE_DATABASE_ERROR` | 500 | Falha em update (`users`) |
 | DATABASE | `QUERY_DATABASE_ERROR` | `QUERY_DATABASE_ERROR` | 500 | Falha em consulta (`users`) |
 | DATABASE | `DELETE_DATABASE_ERROR` | `DELETE_DATABASE_ERROR` | 500 | Reservado (não utilizado) |
-| USER | `INVALID_USER` | `INVALID_USER` | 409 | Usuário inexistente (edição de cliente) |
+| USER | `INVALID_USER` | `INVALID_USER` | — | Reservado (não utilizado) |
 | CLIENTS | `CLIENT_ALREADY_EXISTS` | `CLIENT_ALREADY_EXISTS` | 409 | CPF/CNPJ já cadastrado para o usuário |
-| CLIENTS | **`INVALID_CLIENT`** | **`INVALID_ID_CLIENT`** | 409 | Cliente não encontrado |
+| CLIENTS | **`INVALID_CLIENT`** | **`INVALID_ID_CLIENT`** | 404 | Cliente não encontrado ou de outro usuário (`NotFoundError`) |
 | SELLERS | `SELLER_NOT_EXISTS` | `SELLER_NOT_EXISTS` | — | Legado (módulo de vendedores removido) |
 | SYSTEM | `USER_CREATION_FAILED` | `USER_CREATION_FAILED` | 500 | Falha ao inserir usuário |
 | SYSTEM | `INTERNAL_SERVER_ERROR` | `INTERNAL_SERVER_ERROR` | 500 | Falha genérica (repositório de clientes, tokens) |

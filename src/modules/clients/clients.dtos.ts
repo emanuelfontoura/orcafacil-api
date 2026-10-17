@@ -2,7 +2,7 @@ import { z } from "zod"
 import { ClientsSchema } from "./clients.schema"
 
 export interface ClientsDTOs{
-    CreateRequestDTO: z.infer<typeof ClientsSchema.create>,
+    CreateRequestDTO: z.infer<typeof ClientsSchema.create> & { userId: number },
     CreateResponseDTO: {
         name: string,
         cnpjCpf: string,

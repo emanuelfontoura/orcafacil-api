@@ -23,7 +23,7 @@ related:
   - "api/authentication.md"
   - "infrastructure/redis.md"
   - "database/relationships.md"
-last_reviewed: 2026-10-15
+last_reviewed: 2026-10-16
 ---
 
 # Infraestrutura — Segurança
@@ -31,7 +31,7 @@ last_reviewed: 2026-10-15
 > **Escopo:** medidas de segurança adotadas no `orcafacil-api`, organizadas por camada: autenticação e sessões, senhas e segredos, cookies e CORS, proteção contra abuso, validação de entrada, exposição de dados, isolamento entre usuários, tratamento de erros, segredos de ambiente e infraestrutura. Inclui as diretrizes para código novo.
 > **Documentos relacionados:** [`../api/authentication.md`](../api/authentication.md) · [`redis.md`](./redis.md) · [`environment.md`](./environment.md) · [`../api/validation.md`](../api/validation.md) · [`../api/error-handling.md`](../api/error-handling.md) · [`../database/relationships.md`](../database/relationships.md#4-isolamento-por-usuário-multi-tenant)
 > **Fonte da verdade:** `src/middlewares/`, `src/shared/utils/`, `src/modules/auth/`, `src/index.ts`, arquivos Docker.
-> **Última revisão:** 2026-10-15.
+> **Última revisão:** 2026-10-16.
 
 ---
 
@@ -166,7 +166,9 @@ O IP do rate limit é lido primeiro de `X-Forwarded-For`. Em produção, a API d
 O sistema é multi-tenant por usuário: cada registro de negócio tem `userId`. O banco não aplica Row Level Security; o isolamento é responsabilidade da aplicação:
 
 - A identidade confiável é **`Number(req.user)`**, extraída do access token pelo `authenticate`.
+- A criação de registros preenche `userId` a partir de `req.user`, nunca do body (ex.: `POST /clients/create`).
 - Consultas de listagem filtram por `userId` (ex.: `GET /clients`).
+- Buscar, editar e excluir por `id` filtram também por `userId` (`findFirst`/`update`/`delete` com `{ id, userId }`); registro de outro usuário responde 404, como se não existisse.
 - Unicidade de dados de negócio é por usuário (`@@unique([userId, cnpjCpf])`).
 
 Regras completas em [`../database/relationships.md`](../database/relationships.md#4-isolamento-por-usuário-multi-tenant).

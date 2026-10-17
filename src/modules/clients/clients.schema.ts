@@ -10,8 +10,7 @@ export const ClientsSchema = {
             }
         ),
         tellphone: z.string().nullable().optional(),
-        email: z.email().max(255).nullable().optional(),
-        userId: z.number().min(1)
+        email: z.email().max(255).nullable().optional()
     }),
 
     edit: z.object({
@@ -22,9 +21,8 @@ export const ClientsSchema = {
             }
         ).optional(),
         tellphone: z.string().nullable().optional(),
-        email: z.email().nullable().optional(),
-        userId: z.number().min(1)
-    }).refine((data) => Object.keys(data).length > 0, {message: 'Informe pelo menos um capo para atualizar'}),
+        email: z.email().nullable().optional()
+    }).refine((data) => Object.keys(data).length > 0, {message: 'Informe pelo menos um campo para atualizar'}),
 
     getAllQuery: z.object({
         name: z.string().min(1).max(255).optional(),

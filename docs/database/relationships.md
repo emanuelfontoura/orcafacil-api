@@ -18,7 +18,7 @@ sources:
 related:
   - "database/schema.md"
   - "infrastructure/security.md"
-last_reviewed: 2026-10-15
+last_reviewed: 2026-10-16
 ---
 
 # Banco de Dados — Relacionamentos
@@ -26,7 +26,7 @@ last_reviewed: 2026-10-15
 > **Escopo:** relações entre as tabelas do `orcafacil-api`: cardinalidade, chaves estrangeiras, comportamento em delete/update, regras de isolamento por usuário (multi-tenant) e como consultar dados relacionados com o Prisma.
 > **Estrutura das tabelas e colunas:** ver [`schema.md`](./schema.md).
 > **Fonte da verdade:** `prisma/schema.prisma` e `prisma/migrations/` no repositório `orcafacil-api`.
-> **Última revisão:** 2026-10-15 (migration mais recente: `20260907203920_removido_sellers_e_services`).
+> **Última revisão:** 2026-10-16 (migration mais recente: `20260907203920_removido_sellers_e_services`).
 
 ---
 
@@ -143,9 +143,9 @@ A relação com `users` é o que garante que um usuário só veja os próprios d
 
 ### Regras para código novo
 
-1. **Criar:** preencher `userId` a partir de `req.user`.
+1. **Criar:** preencher `userId` a partir de `req.user` (ex.: `ClientsController.create` chama `ClientsService.create({ ...data, userId: Number(req.user) })`; o schema de criação não aceita `userId`).
 2. **Listar:** `where: { userId, ...filtros }`.
-3. **Buscar/editar/excluir por `id`:** filtrar por `id` **e** `userId` (ex.: `findFirst({ where: { id, userId } })`, `updateMany`/`deleteMany` com `{ id, userId }`, ou buscar e comparar `registro.userId` antes de agir). Se não pertencer ao usuário, responder como "não encontrado".
+3. **Buscar/editar/excluir por `id`:** filtrar por `id` **e** `userId` (ex.: `findFirst({ where: { id, userId } })`, `updateMany`/`deleteMany` com `{ id, userId }`, ou buscar e comparar `registro.userId` antes de agir). Se não pertencer ao usuário, responder como "não encontrado". Referência: `ClientsRepository.searchClientById(id, userId)` + `NotFoundError` em `ClientsService`.
 4. **Unicidade por usuário:** usar chaves compostas `(userId, campo)` em vez de `@unique` global.
 
 ### Estado atual do módulo `clients`
@@ -208,7 +208,7 @@ Já existiram relações que **não fazem mais parte do modelo** (removidas em `
 | `sellers` 1 : N `clients` | `clients.sellerId` opcional, `ON DELETE SET NULL` (cliente atendido por um vendedor). |
 | `users` 1 : N `services` | Serviços com preço (`services.userId`, `ON DELETE RESTRICT`). |
 
-Não reintroduza essas tabelas ou a coluna `clients.sellerId` sem uma decisão explícita. Ainda há resíduos de `sellerId` em `ClientsRepository.create` e `ClientsTypes` que devem ser removidos.
+Não reintroduza essas tabelas ou a coluna `clients.sellerId` sem uma decisão explícita.
 
 ---
 

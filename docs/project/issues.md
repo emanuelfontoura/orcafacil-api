@@ -25,7 +25,7 @@ related:
   - "database/schema.md"
   - "modules/auth.md"
   - "modules/clients.md"
-last_reviewed: 2026-10-15
+last_reviewed: 2026-10-16
 ---
 
 # Projeto — Problemas Conhecidos (Issues)
@@ -33,7 +33,7 @@ last_reviewed: 2026-10-15
 > **Escopo:** erros, falhas de segurança, inconsistências e débitos técnicos encontrados no `orcafacil-api`. Cada item informa módulo, arquivo e local, explicação, impacto e solução proposta.
 > **Documentos relacionados:** [`overview.md`](./overview.md) · [`../infrastructure/security.md`](../infrastructure/security.md) · [`../database/schema.md`](../database/schema.md) · [`../modules/auth.md`](../modules/auth.md) · [`../modules/clients.md`](../modules/clients.md)
 > **Origem:** revisão do código, execução de `tsc --noEmit`, `eslint`, `vitest` e `docker compose config` em 2026-10-15 (branch `main`, commit `cf9f1b6`).
-> **Última revisão:** 2026-10-15.
+> **Última revisão:** 2026-10-16.
 
 As linhas citadas se referem ao commit acima e podem mudar. Ao corrigir um item, **remova-o deste arquivo** (ou marque como resolvido) e atualize os documentos afetados.
 
@@ -54,11 +54,6 @@ As linhas citadas se referem ao commit acima e podem mudar. Ao corrigir um item,
 
 | ID | Sev. | Módulo | Título |
 |---|---|---|---|
-| [ISS-01](#iss-01--build-quebrado-por-campo-sellerid-removido) | 🔴 | clients | Build quebrado por campo `sellerId` removido |
-| [ISS-02](#iss-02--cpf-cnpj-validator-em-devdependencies) | 🔴 | infra / shared | `cpf-cnpj-validator` em `devDependencies` |
-| [ISS-03](#iss-03--reenvio-de-código-grava-o-código-sem-hash) | 🔴 | auth | Reenvio de código grava o código sem hash |
-| [ISS-04](#iss-04--criação-de-cliente-usa-userid-enviado-no-body) | 🔴 | clients | Criação de cliente usa `userId` enviado no body |
-| [ISS-05](#iss-05--editar-excluir-e-buscar-cliente-sem-verificar-o-dono-idor) | 🔴 | clients | Editar, excluir e buscar cliente sem verificar o dono (IDOR) |
 | [ISS-06](#iss-06--docker-composeprodyml-inválido) | 🟠 | infra | `docker-compose.prod.yml` inválido |
 | [ISS-07](#iss-07--envprod-sem-as-variáveis-do-container-postgresql) | 🟠 | infra | `.env.prod` sem as variáveis do container PostgreSQL |
 | [ISS-08](#iss-08--rate-limit-confia-no-header-x-forwarded-for) | 🟠 | middlewares | Rate limit confia no header `X-Forwarded-For` |
@@ -68,11 +63,9 @@ As linhas citadas se referem ao commit acima e podem mudar. Ao corrigir um item,
 | [ISS-12](#iss-12--cpfcnpj-de-usuário-duplicado-só-é-detectado-no-insert) | 🟠 | auth | CPF/CNPJ de usuário duplicado só é detectado no INSERT |
 | [ISS-13](#iss-13--cpfcnpj-não-é-normalizado-antes-de-salvar) | 🟡 | clients / auth | CPF/CNPJ não é normalizado antes de salvar |
 | [ISS-14](#iss-14--e-mail-de-cliente-único-em-toda-a-tabela) | 🟡 | database / clients | E-mail de cliente único em toda a tabela |
-| [ISS-15](#iss-15--editar-cliente-com-o-próprio-cpfcnpj-retorna-409) | 🟡 | clients | Editar cliente com o próprio CPF/CNPJ retorna 409 |
 | [ISS-16](#iss-16--e-mails-não-são-normalizados-maiúsculasminúsculas) | 🟡 | auth / clients | E-mails não são normalizados (maiúsculas/minúsculas) |
 | [ISS-17](#iss-17--parâmetro-id-das-rotas-não-é-validado) | 🟡 | clients | Parâmetro `:id` das rotas não é validado |
 | [ISS-18](#iss-18--erros-conhecidos-do-prisma-viram-500) | 🟡 | clients / shared | Erros conhecidos do Prisma viram 500 |
-| [ISS-19](#iss-19--não-encontrado-retorna-409-em-vez-de-404) | 🟡 | clients | "Não encontrado" retorna 409 em vez de 404 |
 | [ISS-20](#iss-20--limite-do-nome-no-zod-maior-que-a-coluna) | 🟡 | clients | Limite do nome no Zod maior que a coluna |
 | [ISS-21](#iss-21--preço-de-produto-limitado-a-99999) | 🟡 | database | Preço de produto limitado a 999.99 |
 | [ISS-22](#iss-22--recuperação-de-senha-revela-se-o-e-mail-existe) | 🟡 | auth | Recuperação de senha revela se o e-mail existe |
@@ -80,7 +73,6 @@ As linhas citadas se referem ao commit acima e podem mudar. Ao corrigir um item,
 | [ISS-24](#iss-24--json-malformado-retorna-500-e-erros-inesperados-não-são-logados) | 🟡 | middlewares | JSON malformado retorna 500 e erros inesperados não são logados |
 | [ISS-25](#iss-25--rate-limit-não-atômico-e-sem-tratamento-de-falha-do-redis) | 🟡 | middlewares | Rate limit não atômico e sem tratamento de falha do Redis |
 | [ISS-26](#iss-26--imagem-de-produção-não-consegue-rodar-migrations) | 🟡 | infra | Imagem de produção não consegue rodar migrations |
-| [ISS-27](#iss-27--refine-do-schema-de-edição-é-inócuo) | 🟡 | clients | `refine` do schema de edição é inócuo |
 | [ISS-28](#iss-28--logout-sem-cookie-falha-e-não-limpa-os-cookies) | 🟡 | auth | Logout sem cookie falha e não limpa os cookies |
 | [ISS-29](#iss-29--hash-da-senha-calculado-antes-das-verificações) | 🟡 | auth | Hash da senha calculado antes das verificações |
 | [ISS-30](#iss-30--testes-com-erros-de-tipo-e-fixtures-incompletas) | 🟢 | tests | Testes com erros de tipo e fixtures incompletas |
@@ -99,109 +91,7 @@ As linhas citadas se referem ao commit acima e podem mudar. Ao corrigir um item,
 
 ## 🔴 Críticas
 
-### ISS-01 — Build quebrado por campo `sellerId` removido
-
-| | |
-|---|---|
-| **Módulo** | `clients` |
-| **Local** | `src/modules/clients/clients.repository.ts:16` (`create`) · `src/modules/clients/clients.types.ts:10` e `:19` |
-
-**Problema:** a migration `20260907203920_removido_sellers_e_services` removeu a coluna `clients.sellerId`, mas o repositório ainda envia `sellerId: data.sellerId` no `prisma.client.create`, e os tipos ainda declaram o campo. O `tsc` falha:
-
-```
-src/modules/clients/clients.repository.ts(16,21): error TS2353: Object literal may only specify known
-properties, and 'sellerId' does not exist in type '... ClientUncheckedCreateInput'.
-```
-
-Em desenvolvimento o erro passa despercebido porque `npm run dev` usa `ts-node-dev --transpile-only` (sem type-check).
-
-**Impacto:** `npm run build` falha → **o CI reprova todos os pull requests** (o pipeline roda o build) e **a imagem Docker não é gerada** (o `Dockerfile` executa `npm run build`).
-
-**Solução:** remover a linha `sellerId: data.sellerId` do `create` e a propriedade `sellerId` de `CreateType` e `CreateResponseType` em `clients.types.ts`. Rodar `npm run build` para confirmar.
-
----
-
-### ISS-02 — `cpf-cnpj-validator` em `devDependencies`
-
-| | |
-|---|---|
-| **Módulo** | infraestrutura / `shared` |
-| **Local** | `package.json` (`devDependencies`) · usado em `src/shared/utils/IsValidCnpjCpf.ts:1` |
-
-**Problema:** o pacote é importado por código de produção (`isValidCnpjCpf`, usado pelos schemas de `auth` e `clients`, carregados pelas rotas no start da aplicação), mas está em `devDependencies`. O estágio final do `Dockerfile` instala com `npm ci --omit=dev`.
-
-**Impacto:** no container de produção, a API **não inicia** (`Error: Cannot find module 'cpf-cnpj-validator'`) assim que `src/index.ts` importa as rotas.
-
-**Solução:**
-```bash
-npm uninstall cpf-cnpj-validator
-npm install cpf-cnpj-validator
-```
-(move para `dependencies`) e versionar o `package-lock.json`.
-
----
-
-### ISS-03 — Reenvio de código grava o código sem hash
-
-| | |
-|---|---|
-| **Módulo** | `auth` |
-| **Local** | `src/modules/auth/auth.service.ts:114` (`resendEmailCode`) · efeito em `confirmEmail` (`:65`) |
-
-**Problema:** `verifyEmail` grava o **hash** do código no Redis, e `confirmEmail` faz `ArgonHash.argonVerify(dataParsed.code, data.code)`. Já `resendEmailCode` regrava a chave com `code: newCode` em **texto puro**. O `argon2.verify` recebe uma string que não é hash e lança exceção (verificado: `pchstr must contain a $ as first char`).
-
-**Impacto:** depois de usar "reenviar código", **o usuário nunca consegue concluir o cadastro**: toda tentativa de `POST /user/auth/email/confirm` retorna 500 (`'Erro interno do servidor'`) até a chave expirar.
-
-**Solução:**
-```ts
-const newCode = generateCode()
-const hashedNewCode = await ArgonHash.argonHash(newCode)
-await redis.set(keyNewCode, JSON.stringify({ ...parsedOldKey, code: hashedNewCode }), "EX", 600)
-await AuthUserRepository.sendEmailVerificationCode({ email: data.email, code: newCode })
-```
-Adicionar teste unitário para `resendEmailCode` cobrindo o hash.
-
----
-
-### ISS-04 — Criação de cliente usa `userId` enviado no body
-
-| | |
-|---|---|
-| **Módulo** | `clients` |
-| **Local** | `src/modules/clients/clients.schema.ts:14` · `src/modules/clients/clients.controller.ts:10` · `src/modules/clients/clients.service.ts:9` |
-
-**Problema:** o schema `create` exige `userId` no body, e o controller repassa `req.body` ao service sem usar `req.user` (o id do usuário autenticado).
-
-**Impacto:** qualquer usuário autenticado pode **criar clientes na conta de outro usuário** informando outro `userId`. Viola o isolamento multi-tenant.
-
-**Solução:** remover `userId` do schema `create` e preencher no controller:
-```ts
-const data = { ...req.body, userId: Number(req.user) }
-```
-
----
-
-### ISS-05 — Editar, excluir e buscar cliente sem verificar o dono (IDOR)
-
-| | |
-|---|---|
-| **Módulo** | `clients` |
-| **Local** | `src/modules/clients/clients.service.ts:19` (`edit`), `:37` (`delete`), `:49` (`getById`) · `src/modules/clients/clients.repository.ts:30`, `:40`, `:65` · `src/modules/clients/clients.schema.ts:26` |
-
-**Problema:**
-- `getById` e `delete` buscam/excluem apenas por `id`.
-- `edit` usa `userId` do body e faz `update({ where: { id } })`; como o body validado (com `userId`) é passado inteiro como `data`, também **altera o dono** do cliente.
-
-**Impacto:** qualquer usuário autenticado pode **ler, editar, excluir ou transferir clientes de qualquer outro usuário** apenas variando o `:id` (IDOR — Insecure Direct Object Reference). Exposição de dados pessoais (CPF/CNPJ, e-mail, telefone).
-
-**Solução:**
-1. Remover `userId` do schema `edit`; obter `userId = Number(req.user)` no controller e passar ao service em todas as operações.
-2. Filtrar sempre por `id` **e** `userId`:
-   ```ts
-   const client = await prisma.client.findFirst({ where: { id, userId } })
-   if (!client) throw new NotFoundError('Cliente não encontrado.', ErrorCode.INVALID_CLIENT)
-   ```
-3. No `update`, não incluir `userId` em `data`.
+Nenhuma em aberto.
 
 ---
 
@@ -368,21 +258,6 @@ e, se houver dados existentes com máscara, uma migration de limpeza.
 
 ---
 
-### ISS-15 — Editar cliente com o próprio CPF/CNPJ retorna 409
-
-| | |
-|---|---|
-| **Módulo** | `clients` |
-| **Local** | `src/modules/clients/clients.service.ts:25`–`29` |
-
-**Problema:** se o body da edição contém `cnpjCpf` igual ao atual do próprio cliente, `searchClientByCnpjCpf` encontra o próprio registro e lança `CLIENT_ALREADY_EXISTS`.
-
-**Impacto:** formulários que enviam todos os campos (comportamento comum no frontend) **não conseguem salvar** a edição.
-
-**Solução:** `if (oldClient && oldClient.id !== id) throw new ConflictError(...)`.
-
----
-
 ### ISS-16 — E-mails não são normalizados (maiúsculas/minúsculas)
 
 | | |
@@ -428,21 +303,6 @@ email: z.string().trim().toLowerCase().pipe(z.email().max(255))
 **Impacto:** situações de cliente (duplicidade, id inexistente na edição) aparecem como erro interno, dificultando o tratamento no frontend e mascarando a causa real.
 
 **Solução:** nos repositórios (ou no `handleError`), tratar `Prisma.PrismaClientKnownRequestError`: `P2002` → `ConflictError`, `P2025` → `NotFoundError`. Na edição, verificar a existência antes do `update`.
-
----
-
-### ISS-19 — "Não encontrado" retorna 409 em vez de 404
-
-| | |
-|---|---|
-| **Módulo** | `clients` |
-| **Local** | `src/modules/clients/clients.service.ts:39`, `:51` |
-
-**Problema:** cliente inexistente lança `ConflictError` (409) com código `INVALID_ID_CLIENT`. Existe `NotFoundError` (404) sem uso.
-
-**Impacto:** semântica HTTP incorreta; clientes da API e ferramentas tratam 409 como conflito.
-
-**Solução:** usar `NotFoundError('Cliente não encontrado.', ErrorCode.INVALID_CLIENT)` (considerar renomear o código para `CLIENT_NOT_FOUND`).
 
 ---
 
@@ -551,21 +411,6 @@ return res.status(500).json({ success: false, error: 'Erro interno do servidor' 
 **Impacto:** não há caminho automatizado para aplicar migrations em produção; uma versão com mudança de schema sobe com o banco desatualizado.
 
 **Solução:** um passo de migração no deploy (job/step do CI com `npx prisma migrate deploy` apontando para o banco de produção) ou um serviço `migrate` no compose usando a imagem do estágio `builder`.
-
----
-
-### ISS-27 — `refine` do schema de edição é inócuo
-
-| | |
-|---|---|
-| **Módulo** | `clients` |
-| **Local** | `src/modules/clients/clients.schema.ts:17`–`27` |
-
-**Problema:** o `refine` exige pelo menos um campo, mas `userId` é obrigatório no mesmo schema, então a condição é sempre verdadeira.
-
-**Impacto:** um body só com `userId` passa na validação e executa um `update` sem alterações reais. (A mensagem também tem erro de digitação: "capo".)
-
-**Solução:** com a correção do ISS-05 (remover `userId` do schema), o `refine` volta a funcionar; corrigir a mensagem para "campo".
 
 ---
 
@@ -766,13 +611,27 @@ return res.status(500).json({ success: false, error: 'Erro interno do servidor' 
 
 ---
 
+## Resolvidos
+
+| ID | Sev. | Módulo | Título | Resolvido em | Correção |
+|---|---|---|---|---|---|
+| ISS-01 | 🔴 | clients | Build quebrado por campo `sellerId` removido | 2026-10-16 | `sellerId` removido de `ClientsRepository.create` e de `ClientsTypes`; `npm run build` passa. |
+| ISS-02 | 🔴 | infra / shared | `cpf-cnpj-validator` em `devDependencies` | 2026-10-16 | Pacote movido para `dependencies` (`package.json` e `package-lock.json`). |
+| ISS-03 | 🔴 | auth | Reenvio de código grava o código sem hash | 2026-10-16 | `resendEmailCode` grava o hash Argon2 do novo código (e trata falha do `redis.get` com `REDIS_GET_ERROR`); testes em `tests/unit/auth/resendEmailCode.unit.test.ts`. |
+| ISS-04 | 🔴 | clients | Criação de cliente usa `userId` enviado no body | 2026-10-16 | `userId` removido de `ClientsSchema.create`; o controller usa `Number(req.user)`; testes em `tests/unit/clients/create.unit.test.ts`. |
+| ISS-05 | 🔴 | clients | Editar, excluir e buscar cliente sem verificar o dono (IDOR) | 2026-10-16 | `userId` removido de `ClientsSchema.edit`; o controller passa `Number(req.user)` a `edit`, `delete` e `getById`; `searchClientById(id, userId)` usa `findFirst({ where: { id, userId } })`; `update`/`delete` filtram por `{ id, userId }`; testes em `tests/unit/clients/{edit,delete,getById}.unit.test.ts`. |
+| ISS-15 | 🟡 | clients | Editar cliente com o próprio CPF/CNPJ retorna 409 | 2026-10-16 | `ClientsService.edit` só lança `CLIENT_ALREADY_EXISTS` quando o CPF/CNPJ pertence a **outro** cliente (`oldClient.id !== id`). |
+| ISS-19 | 🟡 | clients | "Não encontrado" retorna 409 em vez de 404 | 2026-10-16 | `edit`, `delete` e `getById` lançam `NotFoundError` (404) com `INVALID_ID_CLIENT` e mensagem `'Cliente não encontrado.'`. |
+| ISS-27 | 🟡 | clients | `refine` do schema de edição é inócuo | 2026-10-16 | Sem `userId` no schema, o `refine` volta a exigir ao menos um campo; mensagem corrigida para "campo". |
+
+---
+
 ## Ordem sugerida de correção
 
-1. **Destravar build e deploy:** ISS-01, ISS-02, ISS-06, ISS-07.
-2. **Isolamento entre usuários:** ISS-04, ISS-05.
-3. **Fluxos de autenticação quebrados ou inseguros:** ISS-03, ISS-08, ISS-09, ISS-10, ISS-11, ISS-12.
-4. **Integridade de dados:** ISS-13, ISS-14, ISS-16, ISS-20, ISS-21 (antes de `products`).
-5. **Respostas e robustez:** ISS-15, ISS-17, ISS-18, ISS-19, ISS-22 a ISS-29.
-6. **Qualidade e manutenção:** ISS-30 a ISS-40.
+1. **Destravar deploy:** ISS-06, ISS-07.
+2. **Fluxos de autenticação quebrados ou inseguros:** ISS-08, ISS-09, ISS-10, ISS-11, ISS-12.
+3. **Integridade de dados:** ISS-13, ISS-14, ISS-16, ISS-20, ISS-21 (antes de `products`).
+4. **Respostas e robustez:** ISS-17, ISS-18, ISS-22 a ISS-26, ISS-28, ISS-29.
+5. **Qualidade e manutenção:** ISS-30 a ISS-40.
 
 Após corrigir itens que mudam comportamento, atualizar também: [`../database/schema.md`](../database/schema.md#5-pontos-de-atenção-estado-atual), [`../database/relationships.md`](../database/relationships.md#4-isolamento-por-usuário-multi-tenant), [`../modules/clients.md`](../modules/clients.md), [`../modules/auth.md`](../modules/auth.md) e [`../testing/test-coverage.md`](../testing/test-coverage.md).

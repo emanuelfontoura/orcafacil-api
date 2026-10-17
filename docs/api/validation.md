@@ -18,7 +18,7 @@ sources:
 related:
   - "api/error-handling.md"
   - "architecture/conventions.md"
-last_reviewed: 2026-10-15
+last_reviewed: 2026-10-16
 ---
 
 # API — Validação
@@ -26,7 +26,7 @@ last_reviewed: 2026-10-15
 > **Escopo:** como a API valida dados de entrada: biblioteca, middleware `validateSchema`, validação de query string, schemas de cada rota, regras reutilizáveis (CPF/CNPJ, e-mail, senha, código, UUID), formato do erro de validação e camadas de validação além do Zod.
 > **Documentos relacionados:** [`endpoints.md`](./endpoints.md) · [`error-handling.md`](./error-handling.md#5-formato-das-respostas-de-erro) · [`../architecture/conventions.md`](../architecture/conventions.md#45-schema-zod) · [`../database/schema.md`](../database/schema.md)
 > **Fonte da verdade:** `src/middlewares/validate.ts`, `src/modules/*/*.schema.ts`, `src/shared/utils/IsValidCnpjCpf.ts`.
-> **Última revisão:** 2026-10-15.
+> **Última revisão:** 2026-10-16.
 
 ---
 
@@ -156,8 +156,8 @@ export function isValidCnpjCpf(cnpjcpf: string): boolean{
 
 | Rota | Schema | Campos e regras |
 |---|---|---|
-| `POST /clients/create` | `create` (body) | `name` 1–255 obrigatório · `cnpjCpf` válido obrigatório · `tellphone` string opcional/nulo · `email` ≤255 opcional/nulo · `userId` número ≥1 obrigatório |
-| `PATCH /clients/edit/:id` | `edit` (body) | `name` 1–255 · `cnpjCpf` válido · `tellphone` · `email` (todos opcionais) · `userId` número ≥1 obrigatório · ao menos um campo |
+| `POST /clients/create` | `create` (body) | `name` 1–255 obrigatório · `cnpjCpf` válido obrigatório · `tellphone` string opcional/nulo · `email` ≤255 opcional/nulo · sem `userId` (vem de `req.user`) |
+| `PATCH /clients/edit/:id` | `edit` (body) | `name` 1–255 · `cnpjCpf` válido · `tellphone` · `email` (todos opcionais) · sem `userId` · ao menos um campo |
 | `GET /clients` | `getAllQuery` (query) | `name` 1–255 · `cnpjCpf` válido · `tellphone` min 1 · `email` (todos opcionais) |
 | `DELETE /clients/delete/:id` | — | apenas `:id` |
 | `GET /clients/:id` | — | apenas `:id` |
@@ -204,9 +204,8 @@ GetAllQueryDTO:   z.infer<typeof ClientsSchema.getAllQuery>
 | Validação | Onde | Resposta |
 |---|---|---|
 | E-mail já cadastrado | `AuthUserService.verifyEmail` | 409 `USER_ALREADY_EXISTS` |
-| CPF/CNPJ de cliente já existe para o usuário | `ClientsService.create` / `edit` | 409 `CLIENT_ALREADY_EXISTS` |
-| Usuário existe | `ClientsService.edit` | 409 `INVALID_USER` |
-| Cliente existe | `ClientsService.delete` / `getById` | 409 `INVALID_ID_CLIENT` |
+| CPF/CNPJ de cliente já existe para o usuário (em outro cliente, na edição) | `ClientsService.create` / `edit` | 409 `CLIENT_ALREADY_EXISTS` |
+| Cliente existe e pertence ao usuário | `ClientsService.edit` / `delete` / `getById` | 404 `INVALID_ID_CLIENT` |
 | Código de verificação confere | `AuthUserService` (Argon2) | 401 `INVALID_CODE` |
 | Unicidade, NOT NULL, tamanho e FKs | PostgreSQL (constraints) | 500 (erro do Prisma convertido no repositório) |
 

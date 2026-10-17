@@ -53,11 +53,9 @@ Regras:
 
 ✅ **RN-G01 — Conta individual.** Cada conta (usuário) representa **uma** empresa ou profissional. Não há equipe, vendedores nem vários logins por empresa (ver decisão D1).
 
-⚠️ **RN-G02 — Isolamento por usuário.** Todo dado de negócio (cliente, produto, serviço, orçamento) pertence a exatamente um usuário, e um usuário **só pode ver, criar, alterar ou excluir os próprios dados**.
-*Divergência:* clientes podem ser criados, lidos, alterados e excluídos em nome de outro usuário ([ISS-04](../project/issues.md#iss-04--criação-de-cliente-usa-userid-enviado-no-body), [ISS-05](../project/issues.md#iss-05--editar-excluir-e-buscar-cliente-sem-verificar-o-dono-idor)).
+✅ **RN-G02 — Isolamento por usuário.** Todo dado de negócio (cliente, produto, serviço, orçamento) pertence a exatamente um usuário, e um usuário **só pode ver, criar, alterar ou excluir os próprios dados**.
 
-⚠️ **RN-G03 — Identidade vem da sessão.** O usuário que executa uma ação é sempre o da sessão autenticada; nunca um id informado pelo cliente da API.
-*Divergência:* criação e edição de clientes usam `userId` do body ([ISS-04](../project/issues.md#iss-04--criação-de-cliente-usa-userid-enviado-no-body)).
+✅ **RN-G03 — Identidade vem da sessão.** O usuário que executa uma ação é sempre o da sessão autenticada; nunca um id informado pelo cliente da API.
 
 ✅ **RN-G04 — Documento válido.** Todo CPF ou CNPJ informado (de usuário ou cliente) deve ser válido, incluindo os dígitos verificadores.
 
@@ -100,8 +98,7 @@ Regras:
 ⚠️ **RN-U04 — Documento único.** Um CPF/CNPJ só pode estar associado a uma conta.
 *Divergência:* a duplicidade só é detectada no fim do fluxo, com erro genérico ([ISS-12](../project/issues.md#iss-12--cpfcnpj-de-usuário-duplicado-só-é-detectado-no-insert)).
 
-⚠️ **RN-U05 — Reenvio de código.** O usuário pode pedir um novo código, respeitando um intervalo mínimo de **60 segundos** entre envios.
-*Divergência:* após o reenvio, a confirmação falha ([ISS-03](../project/issues.md#iss-03--reenvio-de-código-grava-o-código-sem-hash)).
+✅ **RN-U05 — Reenvio de código.** O usuário pode pedir um novo código, respeitando um intervalo mínimo de **60 segundos** entre envios.
 
 🔵 **RN-U06 — Limite de tentativas na confirmação.** Após **5 códigos errados**, o cadastro pendente é descartado e precisa ser reiniciado. *(Resolve [ISS-09](../project/issues.md#iss-09--confirmação-de-e-mail-sem-limite-de-tentativas).)*
 
@@ -141,8 +138,7 @@ Regras:
 
 ✅ **RN-C04 — Clientes independentes entre contas.** O mesmo CPF/CNPJ pode estar cadastrado como cliente em contas diferentes; cada cadastro é independente.
 
-⚠️ **RN-C05 — Edição parcial.** O usuário pode alterar qualquer dado do cliente, inclusive o CPF/CNPJ, desde que não duplique outro cliente da mesma conta.
-*Divergência:* reenviar o CPF/CNPJ atual do próprio cliente gera conflito ([ISS-15](../project/issues.md#iss-15--editar-cliente-com-o-próprio-cpfcnpj-retorna-409)).
+✅ **RN-C05 — Edição parcial.** O usuário pode alterar qualquer dado do cliente, inclusive o CPF/CNPJ, desde que não duplique outro cliente da mesma conta.
 
 ⚠️ **RN-C06 — Exclusão.** Hoje o cliente é sempre excluído definitivamente. *Divergência:* a regra definida é a RN-C09.
 

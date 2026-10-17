@@ -19,7 +19,7 @@ related:
   - "architecture/overview.md"
   - "api/error-handling.md"
   - "api/authentication.md"
-last_reviewed: 2026-10-15
+last_reviewed: 2026-10-16
 ---
 
 # Arquitetura — Ciclo de Vida das Requisições
@@ -27,7 +27,7 @@ last_reviewed: 2026-10-15
 > **Escopo:** o caminho de uma requisição HTTP no `orcafacil-api`, da entrada no Express até a resposta: middlewares globais, cadeia de middlewares por rota, camadas do módulo, formato da resposta e tratamento de erros. Inclui os fluxos de autenticação.
 > **Documentos relacionados:** [`overview.md`](./overview.md) · [`folder-structure.md`](./folder-structure.md) · [`conventions.md`](./conventions.md)
 > **Fonte da verdade:** `src/index.ts`, `src/middlewares/`, `src/modules/*/`.
-> **Última revisão:** 2026-10-15.
+> **Última revisão:** 2026-10-16.
 
 ---
 
@@ -197,7 +197,7 @@ sequenceDiagram
     AU->>V: next()
     V->>V: ClientsSchema.create.parse(req.body)
     V->>CT: next()
-    CT->>S: ClientsService.create(body)
+    CT->>S: ClientsService.create({ ...body, userId: req.user })
     S->>RP: searchClientByCnpjCpf(cnpjCpf, userId)
     RP->>DB: findUnique userId_cnpjCpf
     DB-->>RP: null

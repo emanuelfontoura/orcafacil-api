@@ -19,7 +19,7 @@ sources:
 related:
   - "project/issues.md"
   - "architecture/overview.md"
-last_reviewed: 2026-10-15
+last_reviewed: 2026-10-16
 ---
 
 # Projeto — Visão Geral
@@ -27,7 +27,7 @@ last_reviewed: 2026-10-15
 > **Escopo:** objetivo do OrçaFácil, problema que resolve, público-alvo, domínio, escopo atual e planejado, estado do projeto e índice desta documentação (RAG). **Comece por aqui.**
 > **Documentos relacionados:** [`issues.md`](./issues.md) · [`../architecture/overview.md`](../architecture/overview.md)
 > **Fonte da verdade:** repositório `orcafacil-api` (Bitbucket: `bitbucket.org/orcafacil-api/orcafacil-api`).
-> **Última revisão:** 2026-10-15.
+> **Última revisão:** 2026-10-16.
 
 ---
 
@@ -98,8 +98,8 @@ As correções do que já existe são tratadas à parte, em [`issues.md`](./issu
 |---|---|
 | Módulos | `auth` (completo), `clients` (completo), `user` (somente repositório) |
 | Banco | 3 tabelas: `users`, `clients`, `products` |
-| Testes | 26 testes unitários, todos passando (módulo `auth`) |
-| Build | **Quebrado** — ver [ISS-01](./issues.md#iss-01--build-quebrado-por-campo-sellerid-removido) |
+| Testes | 62 testes unitários, todos passando (módulos `auth` e `clients`) |
+| Build | Passando (`npm run build`) |
 | Produção | Arquivos Docker prontos, com problemas de configuração — ver [`issues.md`](./issues.md) |
 | CD | Não automatizado |
 

@@ -2,7 +2,7 @@ import { ConflictError } from "@/shared/errors/ConflictError";
 import { ClientsDTOs } from "./clients.dtos";
 import { ClientsRepository } from "./clients.repository";
 import { ErrorCode } from "@/shared/errors/ErrorCodes";
-import { UserRepository } from "../user/user.repository";
+import { NotFoundError } from "@/shared/errors/NotFoundError";
 
 export class ClientsService{
 
@@ -15,29 +15,26 @@ export class ClientsService{
         return newClient
     }
 
-    static async edit(id: number, data: ClientsDTOs['EditRequestDTO']): Promise<ClientsDTOs['EditResponseDTO']>{
-
-        const user = await UserRepository.findById(data.userId)
-        if(!user){
-            throw new ConflictError('Usuário inválido.', ErrorCode.INVALID_USER)
-        }
+    static async edit(id: number, userId: number, data: ClientsDTOs['EditRequestDTO']): Promise<ClientsDTOs['EditResponseDTO']>{
+        const client = await ClientsRepository.searchClientById(id, userId)
+        if (!client) throw new NotFoundError('Cliente não encontrado.', ErrorCode.INVALID_CLIENT)
 
         if (data.cnpjCpf){
-            const oldClient = await ClientsRepository.searchClientByCnpjCpf(data.cnpjCpf, data.userId)
-            if (oldClient){
-                throw new ConflictError('Cliente já cadastrado', ErrorCode.CLIENT_ALREADY_EXISTS)
+            const oldClient = await ClientsRepository.searchClientByCnpjCpf(data.cnpjCpf, userId)
+            if (oldClient && oldClient.id !== id){
+                throw new ConflictError('Cliente já cadastrado.', ErrorCode.CLIENT_ALREADY_EXISTS)
             }
         }
 
-        const editedClient = await ClientsRepository.edit(id, data)
+        const editedClient = await ClientsRepository.edit(id, userId, data)
 
         return editedClient
     }
 
-    static async delete(id: number): Promise<ClientsDTOs['DeleteResponseDTO']>{
-        const client = await ClientsRepository.searchClientById(id)
-        if (!client) throw new ConflictError('Cliente inválido.', ErrorCode.INVALID_CLIENT)
-        const deletedClient = await ClientsRepository.delete(id)
+    static async delete(id: number, userId: number): Promise<ClientsDTOs['DeleteResponseDTO']>{
+        const client = await ClientsRepository.searchClientById(id, userId)
+        if (!client) throw new NotFoundError('Cliente não encontrado.', ErrorCode.INVALID_CLIENT)
+        const deletedClient = await ClientsRepository.delete(id, userId)
         return deletedClient
     }
 
@@ -46,9 +43,9 @@ export class ClientsService{
         return filteredClients
     }
 
-    static async getById(id: number): Promise<ClientsDTOs['GetByIdResponseDTO']>{
-        const client = await ClientsRepository.searchClientById(id)
-        if(!client) throw new ConflictError('Cliente inválido', ErrorCode.INVALID_CLIENT)
+    static async getById(id: number, userId: number): Promise<ClientsDTOs['GetByIdResponseDTO']>{
+        const client = await ClientsRepository.searchClientById(id, userId)
+        if(!client) throw new NotFoundError('Cliente não encontrado.', ErrorCode.INVALID_CLIENT)
         return client
     }
 

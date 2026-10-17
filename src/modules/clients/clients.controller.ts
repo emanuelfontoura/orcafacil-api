@@ -23,7 +23,7 @@ export class ClientsController{
         const data: ClientsDTOs['EditRequestDTO'] = req.body
         const { id } = req.params
         try{
-            const dataClientEdited = await ClientsService.edit(Number(id), data)
+            const dataClientEdited = await ClientsService.edit(Number(id), Number(req.user), data)
             return res.status(200).json({
                 success: true,
                 data: dataClientEdited
@@ -36,7 +36,7 @@ export class ClientsController{
     static async delete(req: Request, res: Response<ApiResponse<ClientsDTOs['DeleteResponseDTO']>>, next: NextFunction){
         try{
             const { id } = req.params
-            const deletedClient = await ClientsService.delete(Number(id))
+            const deletedClient = await ClientsService.delete(Number(id), Number(req.user))
             return res.status(200).json({
                 success: true,
                 data: deletedClient
@@ -63,7 +63,7 @@ export class ClientsController{
     static async getById(req: Request, res: Response<ApiResponse<ClientsDTOs['GetByIdResponseDTO']>>, next: NextFunction){
         try{
             const { id } = req.params
-            const filteredClient = await ClientsService.getById(Number(id))
+            const filteredClient = await ClientsService.getById(Number(id), Number(req.user))
             return res.status(200).json({
                 success: true,
                 data: filteredClient

@@ -13,7 +13,6 @@ export class ClientsRepository{
                     cnpjCpf: data.cnpjCpf,
                     email: data.email,
                     tellphone: data.tellphone,
-                    sellerId: data.sellerId,
                     userId: data.userId                
                 }
             })
@@ -23,11 +22,11 @@ export class ClientsRepository{
         }
     }
 
-    static async edit(id: number, data: ClientsTypes['EditType']): Promise<ClientsTypes['EditResponseType']>{
+    static async edit(id: number, userId: number, data: ClientsTypes['EditType']): Promise<ClientsTypes['EditResponseType']>{
         try{
             const editedClient = await prisma.client.update({
                 data,
-                where: {id}
+                where: {id, userId}
             })
             return editedClient
         }catch{
@@ -35,9 +34,9 @@ export class ClientsRepository{
         }
     }
 
-    static async delete(id: number): Promise<ClientsTypes['DeleteType']>{
+    static async delete(id: number, userId: number): Promise<ClientsTypes['DeleteType']>{
         try{
-            const deletedClient = await prisma.client.delete({where: {id}})
+            const deletedClient = await prisma.client.delete({where: {id, userId}})
             return deletedClient
         }catch{
             throw new AppError('Erro ao deletar usuário.', 500, ErrorCode.INTERNAL_SERVER_ERROR)
@@ -60,9 +59,9 @@ export class ClientsRepository{
         }
     }
 
-    static async searchClientById(id: number){
+    static async searchClientById(id: number, userId: number){
         try{
-            const data = await prisma.client.findUnique({where: {id}})
+            const data = await prisma.client.findFirst({where: {id, userId}})
             return data
         }catch{
             throw new AppError('Erro ao realizar busca de cliente pelo ID', 500, ErrorCode.INTERNAL_SERVER_ERROR)

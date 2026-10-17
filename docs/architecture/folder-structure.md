@@ -17,10 +17,13 @@ sources:
   - "tests/"
   - "tsconfig.json"
   - "vite.config.ts"
+  - "CLAUDE.md"
+  - "AGENTS.md"
+  - ".claude/rules/"
 related:
   - "architecture/overview.md"
   - "architecture/conventions.md"
-last_reviewed: 2026-10-15
+last_reviewed: 2026-10-17
 ---
 
 # Arquitetura — Estrutura de Pastas
@@ -28,7 +31,7 @@ last_reviewed: 2026-10-15
 > **Escopo:** organização de pastas e arquivos do `orcafacil-api`, o papel de cada diretório e onde colocar código novo.
 > **Documentos relacionados:** [`overview.md`](./overview.md) · [`request-lifecycle.md`](./request-lifecycle.md) · [`conventions.md`](./conventions.md)
 > **Fonte da verdade:** árvore de arquivos do repositório `orcafacil-api`.
-> **Última revisão:** 2026-10-15.
+> **Última revisão:** 2026-10-17.
 
 ---
 
@@ -36,6 +39,8 @@ last_reviewed: 2026-10-15
 
 ```
 orcafacil-api/
+├── .claude/
+│   └── rules/                          # Regras do Claude Code por camada, carregadas por glob (paths:); resumem docs/README.md §2
 ├── docs/                               # RAG: documentação do projeto para IAs e pessoas (ver docs/README.md)
 │
 ├── prisma/
@@ -111,7 +116,7 @@ orcafacil-api/
 │
 ├── .gitattributes
 ├── AGENTS.md                           # Instruções para ferramentas de IA (aponta para docs/README.md)
-├── CLAUDE.md                           # Instruções carregadas pelo Claude Code (importa docs/README.md)
+├── CLAUDE.md                           # Instruções curtas carregadas pelo Claude Code (aponta para docs/README.md)
 ├── .gitignore
 ├── bitbucket-pipelines.yml             # CI dos pull requests
 ├── docker-compose.dev.yml              # PostgreSQL + Redis para desenvolvimento

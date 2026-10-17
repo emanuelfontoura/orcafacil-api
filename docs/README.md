@@ -15,18 +15,19 @@ modules:
 sources:
   - "CLAUDE.md"
   - "AGENTS.md"
+  - ".claude/rules/"
 related:
   - "project/overview.md"
   - "architecture/conventions.md"
   - "testing/strategy.md"
-last_reviewed: 2026-10-15
+last_reviewed: 2026-10-17
 ---
 
 # RAG — orcafacil-api
 
 > **Leia este arquivo primeiro.** Ele explica como usar esta documentação e define as **regras obrigatórias** para qualquer IA (ou pessoa) que for escrever código no `orcafacil-api`.
 > **Repositório do projeto:** `orcafacil-api` (Bitbucket: `bitbucket.org/orcafacil-api/orcafacil-api`).
-> **Última revisão:** 2026-10-15.
+> **Última revisão:** 2026-10-17.
 
 ---
 
@@ -35,7 +36,8 @@ last_reviewed: 2026-10-15
 Documentação do backend do **OrçaFácil**, um sistema de gestão de orçamentos e clientes (API REST em Node.js, TypeScript, Express 5, Prisma, PostgreSQL e Redis). Ela foi escrita para que uma IA entenda o projeto e trabalhe nele **seguindo os padrões já existentes**.
 
 - O RAG fica em `docs/` no próprio repositório e é **versionado junto com o código**: mudanças de código e de documentação vão no mesmo PR.
-- Ele é carregado automaticamente pelas ferramentas de IA através do `CLAUDE.md` (Claude Code) e do `AGENTS.md` (outras ferramentas), na raiz do repositório.
+- Ele é indicado às ferramentas de IA pelo `CLAUDE.md` (Claude Code) e pelo `AGENTS.md` (outras ferramentas), na raiz do repositório. Os dois são curtos e apontam para este README.
+- No Claude Code, as regras da seção 2 também existem resumidas em `.claude/rules/`, uma por camada (`routes.md`, `layers.md`, `database.md`, `tests.md`, `rag-docs.md`). Cada rule tem um frontmatter `paths:` e só entra no contexto quando a IA lê ou edita um arquivo que casa com esses globs. **Este README continua sendo a fonte da verdade**; as rules são resumos com links para cá.
 - Se este RAG divergir do código, **o código prevalece**, e o RAG deve ser corrigido.
 - Cada documento começa com **metadados em YAML** (frontmatter, ver a seção 5.1), seguidos de um cabeçalho de **Escopo**, **Documentos relacionados** e **Fonte da verdade**.
 - Visão geral do produto: [`project/overview.md`](./project/overview.md).
@@ -217,7 +219,9 @@ Ao alterar o código, atualize os documentos correspondentes:
 | Mudança de autenticação ou segurança | `api/authentication.md`, `infrastructure/security.md`, `modules/auth.md` |
 | Novos testes | `testing/test-coverage.md` |
 | Novo padrão de código | `architecture/conventions.md` |
-| Problema corrigido ou encontrado | `project/issues.md` |
+| Problema corrigido ou encontrado | `project/issues.md` (e remova a linha do problema em `.claude/rules/database.md`, se houver) |
+| Regra obrigatória (seção 2 ou 3) criada ou alterada | Este README e a rule correspondente em `.claude/rules/` |
+| Novo módulo ou camada com padrão próprio | Uma rule nova em `.claude/rules/` com `paths:` restrito aos arquivos dela, se o padrão não couber nas existentes |
 
 Ao editar um documento, atualize a data de **Última revisão** no cabeçalho e o campo `last_reviewed` do frontmatter.
 

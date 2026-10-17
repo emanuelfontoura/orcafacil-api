@@ -1,3 +1,27 @@
+---
+title: "RAG orcafacil-api: regras e índice"
+description: "Ponto de entrada do RAG: regras obrigatórias para IAs, critérios de rate limit, guia de leitura, manutenção e checklist de entrega."
+type: index
+tags:
+  - "regras"
+  - "indice"
+  - "rate-limit"
+  - "checklist"
+  - "manutencao"
+modules:
+  - "auth"
+  - "clients"
+  - "user"
+sources:
+  - "CLAUDE.md"
+  - "AGENTS.md"
+related:
+  - "project/overview.md"
+  - "architecture/conventions.md"
+  - "testing/strategy.md"
+last_reviewed: 2026-10-15
+---
+
 # RAG — orcafacil-api
 
 > **Leia este arquivo primeiro.** Ele explica como usar esta documentação e define as **regras obrigatórias** para qualquer IA (ou pessoa) que for escrever código no `orcafacil-api`.
@@ -8,12 +32,12 @@
 
 ## 1. O que é este RAG
 
-Documentação do backend do **OrçaFácil**, um sistema de gestão de orçamentos, clientes e vendas (API REST em Node.js, TypeScript, Express 5, Prisma, PostgreSQL e Redis). Ela foi escrita para que uma IA entenda o projeto e trabalhe nele **seguindo os padrões já existentes**.
+Documentação do backend do **OrçaFácil**, um sistema de gestão de orçamentos e clientes (API REST em Node.js, TypeScript, Express 5, Prisma, PostgreSQL e Redis). Ela foi escrita para que uma IA entenda o projeto e trabalhe nele **seguindo os padrões já existentes**.
 
 - O RAG fica em `docs/` no próprio repositório e é **versionado junto com o código**: mudanças de código e de documentação vão no mesmo PR.
 - Ele é carregado automaticamente pelas ferramentas de IA através do `CLAUDE.md` (Claude Code) e do `AGENTS.md` (outras ferramentas), na raiz do repositório.
 - Se este RAG divergir do código, **o código prevalece**, e o RAG deve ser corrigido.
-- Cada documento começa com um cabeçalho de **Escopo**, **Documentos relacionados** e **Fonte da verdade**.
+- Cada documento começa com **metadados em YAML** (frontmatter, ver a seção 5.1), seguidos de um cabeçalho de **Escopo**, **Documentos relacionados** e **Fonte da verdade**.
 - Visão geral do produto: [`project/overview.md`](./project/overview.md).
 
 ---
@@ -128,6 +152,9 @@ Registre a escolha na documentação da rota ([`api/endpoints.md`](./api/endpoin
 | Ambiente, Docker, CI | [`infrastructure/environment.md`](./infrastructure/environment.md) → [`infrastructure/dependencies.md`](./infrastructure/dependencies.md) |
 | Segurança | [`infrastructure/security.md`](./infrastructure/security.md) |
 | Corrigir problemas conhecidos | [`project/issues.md`](./project/issues.md) |
+| Regras de negócio, nomes de conceitos, novos módulos de domínio | [`domain/glossary.md`](./domain/glossary.md) → [`domain/business-rules.md`](./domain/business-rules.md) (siga a regra definida mesmo quando o código atual divergir) |
+| Planejar o próximo trabalho | [`domain/roadmap.md`](./domain/roadmap.md) → [`project/issues.md`](./project/issues.md) |
+| Implementar um módulo planejado | Especificação do módulo em `domain/` (ex.: [`domain/products.md`](./domain/products.md)) → [`domain/business-rules.md`](./domain/business-rules.md) → [`modules/clients.md`](./modules/clients.md) (padrão de implementação) |
 
 ### Estrutura
 
@@ -137,6 +164,14 @@ docs/
 ├── project/
 │   ├── overview.md                 objetivo, domínio, escopo
 │   └── issues.md                   problemas conhecidos e soluções
+├── domain/
+│   ├── glossary.md                 termos do domínio e nomes usados no código
+│   ├── business-rules.md           regras de negócio oficiais e decisões de produto
+│   ├── roadmap.md                  fases de evolução do produto e progresso
+│   ├── products.md                 especificação do módulo de produtos
+│   ├── services.md                 especificação do módulo de serviços
+│   ├── budgets.md                  especificação do módulo de orçamentos
+│   └── dispatch.md                 especificação do envio do orçamento
 ├── architecture/
 │   ├── overview.md                 arquitetura em camadas, stack, componentes
 │   ├── folder-structure.md         organização de pastas
@@ -184,7 +219,49 @@ Ao alterar o código, atualize os documentos correspondentes:
 | Novo padrão de código | `architecture/conventions.md` |
 | Problema corrigido ou encontrado | `project/issues.md` |
 
-Ao editar um documento, atualize a data de **Última revisão** no cabeçalho.
+Ao editar um documento, atualize a data de **Última revisão** no cabeçalho e o campo `last_reviewed` do frontmatter.
+
+### 5.1 Metadados (frontmatter)
+
+Todo documento do RAG começa com um bloco YAML entre `---`. Ele permite filtrar e localizar documentos por tipo, módulo, tag ou arquivo de código, e é aproveitado na indexação se o RAG for carregado em uma base vetorial.
+
+```yaml
+---
+title: "Módulo auth"
+description: "Cadastro com verificação de e-mail, login, refresh token, logout e recuperação de senha."
+type: module
+tags:
+  - "auth"
+  - "jwt"
+modules:
+  - "auth"
+sources:
+  - "src/modules/auth/"
+  - "tests/unit/auth/"
+related:
+  - "modules/user.md"
+  - "api/authentication.md"
+last_reviewed: 2026-10-15
+---
+```
+
+| Campo | Obrigatório | Conteúdo |
+|---|---|---|
+| `title` | sim | Nome do documento (string entre aspas). |
+| `description` | sim | Uma frase resumindo o conteúdo. É o que um buscador lê para decidir se o documento é relevante. |
+| `type` | sim | Um de: `index`, `project`, `domain`, `architecture`, `module`, `api`, `database`, `infrastructure`, `testing`. Corresponde à pasta do documento (`index` é este README). |
+| `tags` | sim | Palavras-chave em minúsculas, sem acento, separadas por hífen (`rate-limit`, `cnpj-cpf`). |
+| `modules` | sim | Módulos de `src/modules/` tratados no documento (`auth`, `clients`, `user`; `products`, `services` e `budgets` quando citados como planejados). Lista vazia `[]` para documentos gerais. |
+| `sources` | sim | Caminhos **relativos à raiz do repositório** dos arquivos ou pastas de código que o documento descreve (a fonte da verdade). Pastas terminam com `/`. |
+| `related` | sim | Caminhos **relativos a `docs/`** dos documentos relacionados. |
+| `last_reviewed` | sim | Data da última revisão no formato `AAAA-MM-DD`. |
+
+Regras:
+
+- Ao **criar** um documento, inclua o frontmatter completo.
+- Ao **alterar** um arquivo de código listado em `sources` de algum documento, revise esse documento.
+- Ao **mover ou renomear** arquivos de código ou documentos, atualize `sources` e `related` de todos os documentos que os citam.
+- Mantenha `related` coerente com a linha **Documentos relacionados** do cabeçalho.
 
 ---
 
@@ -201,4 +278,4 @@ Antes de considerar uma tarefa concluída:
 - [ ] Os erros usam as classes de `src/shared/errors` com um `ErrorCode`.
 - [ ] Há testes unitários para cada método de service novo, no padrão de [`testing/strategy.md`](./testing/strategy.md).
 - [ ] `npm run test:unit:run`, `npm run build` e `npm run lint` passam.
-- [ ] O RAG foi atualizado (seção 5).
+- [ ] O RAG foi atualizado (seção 5), incluindo o frontmatter dos documentos alterados ou criados (seção 5.1).

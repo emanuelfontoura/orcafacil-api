@@ -1,3 +1,27 @@
+---
+title: "Ciclo de vida das requisições"
+description: "Pipeline de uma requisição: middlewares globais, rateLimit, authenticate, validateSchema, camadas do módulo, handleError e fluxos de autenticação."
+type: architecture
+tags:
+  - "requisicao"
+  - "middlewares"
+  - "pipeline"
+  - "autenticacao"
+  - "erros"
+modules:
+  - "auth"
+  - "clients"
+sources:
+  - "src/index.ts"
+  - "src/middlewares/"
+  - "src/modules/"
+related:
+  - "architecture/overview.md"
+  - "api/error-handling.md"
+  - "api/authentication.md"
+last_reviewed: 2026-10-15
+---
+
 # Arquitetura — Ciclo de Vida das Requisições
 
 > **Escopo:** o caminho de uma requisição HTTP no `orcafacil-api`, da entrada no Express até a resposta: middlewares globais, cadeia de middlewares por rota, camadas do módulo, formato da resposta e tratamento de erros. Inclui os fluxos de autenticação.

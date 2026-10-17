@@ -1,3 +1,23 @@
+---
+title: "Módulo clients"
+description: "CRUD de clientes por usuário: endpoints, schemas, fluxo de cada operação, repositório, regras de negócio e erros. Módulo de referência."
+type: module
+tags:
+  - "clients"
+  - "crud"
+  - "cnpj-cpf"
+  - "multi-tenant"
+modules:
+  - "clients"
+sources:
+  - "src/modules/clients/"
+related:
+  - "database/schema.md"
+  - "database/relationships.md"
+  - "api/endpoints.md"
+last_reviewed: 2026-10-15
+---
+
 # Módulo `clients`
 
 > **Escopo:** responsabilidades, arquivos, endpoints, regras de negócio, acesso a dados e erros do módulo de clientes.

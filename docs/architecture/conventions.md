@@ -1,3 +1,28 @@
+---
+title: "Convenções e padrões de código"
+description: "Idioma, nomenclatura, estilo, padrões de route/controller/service/repository/schema/DTO, erros, Redis, segurança, testes e Git."
+type: architecture
+tags:
+  - "convencoes"
+  - "padroes"
+  - "nomenclatura"
+  - "estilo"
+  - "git"
+modules:
+  - "auth"
+  - "clients"
+  - "user"
+sources:
+  - "src/"
+  - "tests/"
+  - "eslint.config.mjs"
+related:
+  - "architecture/folder-structure.md"
+  - "testing/strategy.md"
+  - "database/schema.md"
+last_reviewed: 2026-10-15
+---
+
 # Arquitetura — Convenções e Padrões
 
 > **Escopo:** convenções de código e padrões identificados no `orcafacil-api`: nomenclatura, estilo, estrutura de cada camada, tipagem, validação, erros, respostas, Redis, rotas, testes, Git e CI. Use este documento como guia para escrever código que pareça ter sido escrito pelo mesmo autor.

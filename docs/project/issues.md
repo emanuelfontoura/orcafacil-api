@@ -1,3 +1,33 @@
+---
+title: "Problemas conhecidos"
+description: "Lista de bugs, falhas de segurança, inconsistências e débitos técnicos com módulo, local, impacto e solução."
+type: project
+tags:
+  - "issues"
+  - "bugs"
+  - "seguranca"
+  - "debito-tecnico"
+  - "correcoes"
+modules:
+  - "auth"
+  - "clients"
+  - "user"
+  - "products"
+sources:
+  - "src/"
+  - "prisma/schema.prisma"
+  - "Dockerfile"
+  - "docker-compose.prod.yml"
+  - "bitbucket-pipelines.yml"
+  - "package.json"
+related:
+  - "infrastructure/security.md"
+  - "database/schema.md"
+  - "modules/auth.md"
+  - "modules/clients.md"
+last_reviewed: 2026-10-15
+---
+
 # Projeto — Problemas Conhecidos (Issues)
 
 > **Escopo:** erros, falhas de segurança, inconsistências e débitos técnicos encontrados no `orcafacil-api`. Cada item informa módulo, arquivo e local, explicação, impacto e solução proposta.

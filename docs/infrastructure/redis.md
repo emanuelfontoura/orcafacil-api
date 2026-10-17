@@ -1,3 +1,27 @@
+---
+title: "Redis"
+description: "Cliente ioredis, catálogo de chaves e TTLs, comandos usados, rate limit, tratamento de falhas, persistência e regras para novas chaves."
+type: infrastructure
+tags:
+  - "redis"
+  - "cache"
+  - "rate-limit"
+  - "sessao"
+  - "ttl"
+modules:
+  - "auth"
+sources:
+  - "src/lib/redis.ts"
+  - "src/middlewares/rateLimit.ts"
+  - "src/modules/auth/auth.service.ts"
+  - "src/shared/utils/verifyKeyExists.ts"
+related:
+  - "modules/auth.md"
+  - "api/authentication.md"
+  - "infrastructure/security.md"
+last_reviewed: 2026-10-15
+---
+
 # Infraestrutura — Redis
 
 > **Escopo:** papel do Redis no `orcafacil-api`: configuração do cliente, catálogo completo de chaves, TTLs, comandos usados, rate limit, tratamento de falhas, persistência por ambiente, testes e regras para criar novas chaves.

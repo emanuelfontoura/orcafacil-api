@@ -1,3 +1,21 @@
+---
+title: "Módulo user"
+description: "Repositório da tabela users usado por auth e clients, tipos, ciclo de vida do usuário e como evoluir o módulo."
+type: module
+tags:
+  - "user"
+  - "repositorio"
+  - "usuarios"
+modules:
+  - "user"
+sources:
+  - "src/modules/user/"
+related:
+  - "modules/auth.md"
+  - "database/schema.md"
+last_reviewed: 2026-10-15
+---
+
 # Módulo `user`
 
 > **Escopo:** responsabilidades, arquivos, estado atual e repositório do módulo de usuários.

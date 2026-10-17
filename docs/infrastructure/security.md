@@ -1,3 +1,31 @@
+---
+title: "Segurança"
+description: "Medidas de segurança por camada (senhas, tokens, cookies, CORS, rate limit, validação, dados, segredos, infraestrutura) e diretrizes para código novo."
+type: infrastructure
+tags:
+  - "seguranca"
+  - "argon2"
+  - "jwt"
+  - "cors"
+  - "rate-limit"
+  - "segredos"
+modules:
+  - "auth"
+  - "clients"
+sources:
+  - "src/middlewares/"
+  - "src/shared/utils/"
+  - "src/modules/auth/"
+  - "src/index.ts"
+  - "Dockerfile"
+  - "docker-compose.prod.yml"
+related:
+  - "api/authentication.md"
+  - "infrastructure/redis.md"
+  - "database/relationships.md"
+last_reviewed: 2026-10-15
+---
+
 # Infraestrutura — Segurança
 
 > **Escopo:** medidas de segurança adotadas no `orcafacil-api`, organizadas por camada: autenticação e sessões, senhas e segredos, cookies e CORS, proteção contra abuso, validação de entrada, exposição de dados, isolamento entre usuários, tratamento de erros, segredos de ambiente e infraestrutura. Inclui as diretrizes para código novo.

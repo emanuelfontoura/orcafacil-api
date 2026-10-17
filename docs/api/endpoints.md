@@ -1,3 +1,27 @@
+---
+title: "Endpoints da API"
+description: "Referência de todas as rotas: método, caminho, autenticação, rate limit, body, resposta e erros possíveis."
+type: api
+tags:
+  - "endpoints"
+  - "rotas"
+  - "rest"
+  - "contrato"
+modules:
+  - "auth"
+  - "clients"
+  - "user"
+sources:
+  - "src/index.ts"
+  - "src/modules/auth/auth.route.ts"
+  - "src/modules/clients/clients.route.ts"
+related:
+  - "api/authentication.md"
+  - "api/validation.md"
+  - "api/error-handling.md"
+last_reviewed: 2026-10-15
+---
+
 # API — Endpoints
 
 > **Escopo:** referência completa dos endpoints HTTP do `orcafacil-api`: método, caminho, autenticação, rate limit, parâmetros, body, resposta e erros possíveis.

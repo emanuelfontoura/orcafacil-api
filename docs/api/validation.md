@@ -1,3 +1,26 @@
+---
+title: "Validação de entrada"
+description: "Zod, middleware validateSchema, validação de query, regras reutilizáveis, CPF/CNPJ, schemas por rota e formato do erro 400."
+type: api
+tags:
+  - "validacao"
+  - "zod"
+  - "schemas"
+  - "cnpj-cpf"
+modules:
+  - "auth"
+  - "clients"
+sources:
+  - "src/middlewares/validate.ts"
+  - "src/modules/auth/auth.schema.ts"
+  - "src/modules/clients/clients.schema.ts"
+  - "src/shared/utils/IsValidCnpjCpf.ts"
+related:
+  - "api/error-handling.md"
+  - "architecture/conventions.md"
+last_reviewed: 2026-10-15
+---
+
 # API — Validação
 
 > **Escopo:** como a API valida dados de entrada: biblioteca, middleware `validateSchema`, validação de query string, schemas de cada rota, regras reutilizáveis (CPF/CNPJ, e-mail, senha, código, UUID), formato do erro de validação e camadas de validação além do Zod.

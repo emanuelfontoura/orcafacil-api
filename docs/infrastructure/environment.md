@@ -1,3 +1,28 @@
+---
+title: "Ambientes, Docker e CI/CD"
+description: "Variáveis de ambiente, arquivos .env, desenvolvimento local, Dockerfile, docker-compose de dev e prod, pipeline de CI e processo de deploy."
+type: infrastructure
+tags:
+  - "ambiente"
+  - "env"
+  - "docker"
+  - "ci"
+  - "cd"
+  - "deploy"
+modules: []
+sources:
+  - "Dockerfile"
+  - "docker-compose.dev.yml"
+  - "docker-compose.prod.yml"
+  - "bitbucket-pipelines.yml"
+  - "package.json"
+related:
+  - "infrastructure/dependencies.md"
+  - "infrastructure/redis.md"
+  - "infrastructure/security.md"
+last_reviewed: 2026-10-15
+---
+
 # Infraestrutura — Ambientes, Docker e CI/CD
 
 > **Escopo:** variáveis de ambiente, arquivos `.env`, ambientes (desenvolvimento, CI e produção), Docker (`Dockerfile` e Compose), pipeline de CI no Bitbucket, processo de deploy e como executar o projeto localmente.

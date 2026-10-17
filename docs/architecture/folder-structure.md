@@ -1,3 +1,28 @@
+---
+title: "Estrutura de pastas"
+description: "Árvore de arquivos do repositório, papel de cada diretório, arquivos padrão de um módulo, alias @/ e onde colocar código novo."
+type: architecture
+tags:
+  - "pastas"
+  - "estrutura"
+  - "modulos"
+  - "alias"
+modules:
+  - "auth"
+  - "clients"
+  - "user"
+sources:
+  - "src/"
+  - "prisma/"
+  - "tests/"
+  - "tsconfig.json"
+  - "vite.config.ts"
+related:
+  - "architecture/overview.md"
+  - "architecture/conventions.md"
+last_reviewed: 2026-10-15
+---
+
 # Arquitetura — Estrutura de Pastas
 
 > **Escopo:** organização de pastas e arquivos do `orcafacil-api`, o papel de cada diretório e onde colocar código novo.

@@ -1,3 +1,26 @@
+---
+title: "Módulo auth"
+description: "Cadastro com verificação de e-mail, login, refresh token, logout e recuperação de senha: endpoints, regras, Redis, tokens e testes."
+type: module
+tags:
+  - "auth"
+  - "autenticacao"
+  - "jwt"
+  - "cookies"
+  - "redis"
+  - "senha"
+modules:
+  - "auth"
+sources:
+  - "src/modules/auth/"
+  - "tests/unit/auth/"
+related:
+  - "modules/user.md"
+  - "api/authentication.md"
+  - "infrastructure/redis.md"
+last_reviewed: 2026-10-15
+---
+
 # Módulo `auth`
 
 > **Escopo:** responsabilidades, arquivos, endpoints, regras de negócio, uso do Redis, tokens/cookies e testes do módulo de autenticação.

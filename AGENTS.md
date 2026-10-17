@@ -1,6 +1,6 @@
 # orcafacil-api
 
-Backend do OrçaFácil (gestão de orçamentos, clientes e vendas). A documentação completa do projeto (RAG) está em `docs/`.
+Backend do OrçaFácil (gestão de orçamentos e clientes). A documentação completa do projeto (RAG) está em `docs/`.
 
 Antes de qualquer tarefa, leia `docs/README.md`: ele contém as regras obrigatórias do projeto e indica quais documentos ler conforme a tarefa.
 

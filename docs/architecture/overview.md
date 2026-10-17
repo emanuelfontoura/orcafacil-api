@@ -1,3 +1,31 @@
+---
+title: "Visão geral da arquitetura"
+description: "Stack, arquitetura em camadas por módulo, componentes de infraestrutura, variáveis de ambiente, autenticação, módulos e ambientes."
+type: architecture
+tags:
+  - "arquitetura"
+  - "camadas"
+  - "stack"
+  - "express"
+  - "prisma"
+  - "redis"
+modules:
+  - "auth"
+  - "clients"
+  - "user"
+sources:
+  - "src/index.ts"
+  - "package.json"
+  - "docker-compose.dev.yml"
+  - "docker-compose.prod.yml"
+  - "Dockerfile"
+related:
+  - "architecture/folder-structure.md"
+  - "architecture/request-lifecycle.md"
+  - "architecture/conventions.md"
+last_reviewed: 2026-10-15
+---
+
 # Arquitetura — Visão Geral
 
 > **Escopo:** resumo da arquitetura do `orcafacil-api`: o que o sistema faz, stack, estilo arquitetural, camadas, componentes de infraestrutura e módulos existentes.
@@ -14,7 +42,7 @@
 
 ## 1. O que é o sistema
 
-O **OrçaFácil** é uma API REST para **gestão de orçamentos, clientes e vendas**. Cada usuário (empresa ou profissional, identificado por CPF/CNPJ) se cadastra, faz login e gerencia os próprios dados — hoje, clientes; em seguida, produtos e orçamentos.
+O **OrçaFácil** é uma API REST para **gestão de orçamentos e clientes** (vendas estão fora do escopo atual). Cada usuário (empresa ou profissional, identificado por CPF/CNPJ) se cadastra, faz login e gerencia os próprios dados — hoje, clientes; em seguida, produtos, serviços e orçamentos.
 
 É uma API **backend pura** (sem renderização de páginas), consumida por um frontend separado que roda em `http://localhost:3000` em desenvolvimento (origem liberada no CORS).
 

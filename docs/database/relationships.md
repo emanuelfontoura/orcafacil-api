@@ -1,3 +1,26 @@
+---
+title: "Relacionamentos do banco"
+description: "Relações entre tabelas, chaves estrangeiras, comportamento em delete/update, isolamento por usuário e consultas relacionadas no Prisma."
+type: database
+tags:
+  - "banco"
+  - "relacionamentos"
+  - "foreign-key"
+  - "multi-tenant"
+  - "prisma"
+modules:
+  - "clients"
+  - "user"
+  - "products"
+sources:
+  - "prisma/schema.prisma"
+  - "prisma/migrations/"
+related:
+  - "database/schema.md"
+  - "infrastructure/security.md"
+last_reviewed: 2026-10-15
+---
+
 # Banco de Dados — Relacionamentos
 
 > **Escopo:** relações entre as tabelas do `orcafacil-api`: cardinalidade, chaves estrangeiras, comportamento em delete/update, regras de isolamento por usuário (multi-tenant) e como consultar dados relacionados com o Prisma.

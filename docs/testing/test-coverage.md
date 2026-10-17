@@ -1,3 +1,24 @@
+---
+title: "Cobertura de testes"
+description: "Resultado da última execução, matriz de cobertura por método e camada, inventário de cenários, lacunas e como medir cobertura."
+type: testing
+tags:
+  - "testes"
+  - "cobertura"
+  - "lacunas"
+modules:
+  - "auth"
+  - "clients"
+  - "user"
+sources:
+  - "tests/unit/"
+related:
+  - "testing/strategy.md"
+  - "modules/auth.md"
+  - "modules/clients.md"
+last_reviewed: 2026-10-15
+---
+
 # Testes — Cobertura
 
 > **Escopo:** o que está coberto por testes no `orcafacil-api` hoje: resultado da última execução, matriz de cobertura por módulo, método e camada, inventário de cenários de cada arquivo de teste, lacunas e prioridades, e como medir cobertura de código.

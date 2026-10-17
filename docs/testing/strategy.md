@@ -1,3 +1,26 @@
+---
+title: "Estratégia e padrões de testes"
+description: "Testes unitários de services com Vitest: organização, anatomia do arquivo, mocks, asserções, categorias de cenários e template."
+type: testing
+tags:
+  - "testes"
+  - "vitest"
+  - "mocks"
+  - "unitarios"
+  - "template"
+modules:
+  - "auth"
+  - "clients"
+sources:
+  - "tests/"
+  - "vite.config.ts"
+  - "bitbucket-pipelines.yml"
+related:
+  - "testing/test-coverage.md"
+  - "architecture/conventions.md"
+last_reviewed: 2026-10-15
+---
+
 # Testes — Estratégia e Padrões
 
 > **Escopo:** estratégia de testes do `orcafacil-api`: o que é testado e por quê, ferramentas e configuração, organização de arquivos, anatomia de um arquivo de teste, técnicas de mock, asserções, categorias de cenários, execução local e no CI, e um template para novos testes. Baseado nos testes unitários existentes em `tests/unit/auth/`.

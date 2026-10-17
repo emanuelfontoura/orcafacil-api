@@ -1,3 +1,28 @@
+---
+title: "Autenticação da API"
+description: "Modelo de tokens JWT, cookies httpOnly, middleware authenticate, rotação de refresh token, fluxos e consumo pelo frontend."
+type: api
+tags:
+  - "autenticacao"
+  - "jwt"
+  - "cookies"
+  - "sessao"
+  - "frontend"
+modules:
+  - "auth"
+sources:
+  - "src/modules/auth/"
+  - "src/middlewares/authenticate.ts"
+  - "src/shared/utils/generateTokens.ts"
+  - "src/shared/utils/AuthCookies.ts"
+  - "src/shared/utils/ArgonHash.ts"
+related:
+  - "modules/auth.md"
+  - "infrastructure/security.md"
+  - "infrastructure/redis.md"
+last_reviewed: 2026-10-15
+---
+
 # API — Autenticação
 
 > **Escopo:** como a API autentica usuários e protege rotas: modelo de tokens, cookies, middleware `authenticate`, sessões no Redis, rotação de refresh token, logout, recuperação de senha, rate limit e como um cliente (frontend) deve consumir a autenticação.

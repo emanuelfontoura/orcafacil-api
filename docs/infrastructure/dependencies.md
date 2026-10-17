@@ -1,3 +1,25 @@
+---
+title: "Dependências"
+description: "Runtime, serviços, pacotes npm de produção e desenvolvimento com versões, scripts npm e regras para adicionar dependências."
+type: infrastructure
+tags:
+  - "dependencias"
+  - "npm"
+  - "versoes"
+  - "scripts"
+modules: []
+sources:
+  - "package.json"
+  - "package-lock.json"
+  - "tsconfig.json"
+  - "prisma.config.ts"
+  - "vite.config.ts"
+related:
+  - "infrastructure/environment.md"
+  - "architecture/overview.md"
+last_reviewed: 2026-10-15
+---
+
 # Infraestrutura — Dependências
 
 > **Escopo:** dependências do `orcafacil-api`: runtime, serviços externos, pacotes npm de produção e de desenvolvimento (com versão declarada e versão instalada), onde cada um é usado, scripts npm e regras para adicionar dependências.

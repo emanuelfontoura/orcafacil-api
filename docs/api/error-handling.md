@@ -1,3 +1,27 @@
+---
+title: "Tratamento de erros"
+description: "Hierarquia AppError, enum ErrorCode, middleware handleError, formato das respostas, mapa de status e como criar novos erros."
+type: api
+tags:
+  - "erros"
+  - "error-code"
+  - "handle-error"
+  - "http-status"
+modules:
+  - "auth"
+  - "clients"
+  - "user"
+sources:
+  - "src/shared/errors/"
+  - "src/middlewares/handleError.ts"
+  - "src/shared/types/apiResponse.ts"
+related:
+  - "api/endpoints.md"
+  - "api/validation.md"
+  - "architecture/conventions.md"
+last_reviewed: 2026-10-15
+---
+
 # API — Tratamento de Erros
 
 > **Escopo:** como os erros são criados, propagados e transformados em respostas HTTP no `orcafacil-api`: hierarquia de classes, enum `ErrorCode`, middleware `handleError`, formato das respostas, mapa de status, responsabilidades por camada e como criar novos erros.

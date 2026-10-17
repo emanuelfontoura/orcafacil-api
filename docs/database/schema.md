@@ -1,3 +1,27 @@
+---
+title: "Schema do banco de dados"
+description: "PostgreSQL e Prisma: convenções de modelagem, tabelas users, clients e products, colunas, restrições e histórico de migrations."
+type: database
+tags:
+  - "banco"
+  - "schema"
+  - "prisma"
+  - "postgresql"
+  - "migrations"
+modules:
+  - "auth"
+  - "clients"
+  - "user"
+  - "products"
+sources:
+  - "prisma/schema.prisma"
+  - "prisma/migrations/"
+related:
+  - "database/relationships.md"
+  - "infrastructure/redis.md"
+last_reviewed: 2026-10-15
+---
+
 # Banco de Dados — Schema
 
 > **Escopo:** estrutura do banco de dados relacional do `orcafacil-api`: tecnologia, convenções, tabelas, colunas, restrições e regras de negócio ligadas a cada tabela.

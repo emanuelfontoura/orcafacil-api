@@ -1,13 +1,16 @@
-import { prisma } from "@/lib/prisma"
 import { AppError } from "@/shared/errors/AppError"
 import { ErrorCode } from "@/shared/errors/ErrorCodes"
 import { ClientsTypes } from "./clients.types"
+import { PrismaClient } from "@prisma/client"
 
 export class ClientsRepository{
+    constructor(
+        private readonly prisma: PrismaClient
+    ){}
 
-    static async create(data: ClientsTypes['CreateType']): Promise<ClientsTypes['CreateResponseType']>{
+    async create(data: ClientsTypes['CreateType']): Promise<ClientsTypes['CreateResponseType']>{
         try{
-            const newClient = await prisma.client.create({
+            const newClient = await this.prisma.client.create({
                 data: {
                     name: data.name,
                     cnpjCpf: data.cnpjCpf,
@@ -22,9 +25,9 @@ export class ClientsRepository{
         }
     }
 
-    static async edit(id: number, userId: number, data: ClientsTypes['EditType']): Promise<ClientsTypes['EditResponseType']>{
+    async edit(id: number, userId: number, data: ClientsTypes['EditType']): Promise<ClientsTypes['EditResponseType']>{
         try{
-            const editedClient = await prisma.client.update({
+            const editedClient = await this.prisma.client.update({
                 data,
                 where: {id, userId}
             })
@@ -34,18 +37,18 @@ export class ClientsRepository{
         }
     }
 
-    static async delete(id: number, userId: number): Promise<ClientsTypes['DeleteType']>{
+    async delete(id: number, userId: number): Promise<ClientsTypes['DeleteType']>{
         try{
-            const deletedClient = await prisma.client.delete({where: {id, userId}})
+            const deletedClient = await this.prisma.client.delete({where: {id, userId}})
             return deletedClient
         }catch{
             throw new AppError('Erro ao deletar usuário.', 500, ErrorCode.INTERNAL_SERVER_ERROR)
         }
     }
 
-    static async searchClientByCnpjCpf(cnpjCpf: string, userId: number){
+    async searchClientByCnpjCpf(cnpjCpf: string, userId: number){
         try{
-            const data = await prisma.client.findUnique({
+            const data = await this.prisma.client.findUnique({
                 where: {
                     userId_cnpjCpf: {
                         cnpjCpf,
@@ -59,18 +62,18 @@ export class ClientsRepository{
         }
     }
 
-    static async searchClientById(id: number, userId: number){
+    async searchClientById(id: number, userId: number){
         try{
-            const data = await prisma.client.findFirst({where: {id, userId}})
+            const data = await this.prisma.client.findFirst({where: {id, userId}})
             return data
         }catch{
             throw new AppError('Erro ao realizar busca de cliente pelo ID', 500, ErrorCode.INTERNAL_SERVER_ERROR)
         }
     }
 
-    static async getAll(userId: number, filters?: ClientsTypes['GetAllType']): Promise<ClientsTypes['GetAllResponseType'][]>{
+    async getAll(userId: number, filters?: ClientsTypes['GetAllType']): Promise<ClientsTypes['GetAllResponseType'][]>{
         try{
-            const filteredClients = await prisma.client.findMany({where: {userId, ...filters}})
+            const filteredClients = await this.prisma.client.findMany({where: {userId, ...filters}})
             return filteredClients
         }catch{
             throw new AppError('Erro ao filtrar usuários.', 500, ErrorCode.INTERNAL_SERVER_ERROR)

@@ -1,16 +1,45 @@
-import { Router } from 'express'
-import { rateLimit } from '@/middlewares/rateLimit'
+import { Container } from '@/container'
 import { validateSchema } from '@/middlewares/validate'
-import { ClientsController } from './clients.controller'
+import { Router } from 'express'
 import { ClientsSchema } from './clients.schema'
-import { authenticate } from '@/middlewares/authenticate'
 
-const ClientsRoutes = Router()
+type ClientsRoutesDeps = Pick<Container, 'clientsController' | 'rateLimit'>
 
-ClientsRoutes.post('/create', rateLimit(100, 60, 'clients/create'), authenticate, validateSchema(ClientsSchema.create), ClientsController.create)
-ClientsRoutes.patch('/edit/:id', rateLimit(100, 60, 'clients/edit'), authenticate, validateSchema(ClientsSchema.edit), ClientsController.edit)
-ClientsRoutes.delete('/delete/:id', rateLimit(100, 60, 'clients/delete'), authenticate, ClientsController.delete)
-ClientsRoutes.get('/', rateLimit(100, 60, 'clients/getAll'), authenticate, ClientsController.getAll)
-ClientsRoutes.get('/:id', rateLimit(100, 60, 'clients/getById'), authenticate, ClientsController.getById)
+export function createClientsRoute({clientsController, rateLimit}: ClientsRoutesDeps): Router{
+    const router = Router()
 
-export { ClientsRoutes }
+    // Criar usuário
+    router.post(
+        '/create',
+        validateSchema(ClientsSchema.create),
+        clientsController.create
+    )
+
+    // Atualizar dados usuário
+    router.patch(
+        '/edit/:id',
+        validateSchema(ClientsSchema.edit),
+        clientsController.edit
+    )
+
+    // Deletar usuário
+    router.delete(
+        '/delete/:id',
+        clientsController.delete
+    )
+
+    // Obter dados de todos os usuários com filtro
+    router.get(
+        '/',
+        validateSchema(ClientsSchema.getAllQuery),
+        clientsController.getAll
+    )
+    
+    // Obter dados de um usuário buscando por ID
+    router.get(
+        '/:id',
+        clientsController.getById
+    )
+
+    return router
+}

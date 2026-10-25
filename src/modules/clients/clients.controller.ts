@@ -5,11 +5,15 @@ import { ClientsService } from "./clients.service"
 import { ClientsSchema } from "./clients.schema"
 
 export class ClientsController{
+    constructor(
+        private readonly clientsService: ClientsService
+    ){}
 
-    static async create(req: Request, res: Response<ApiResponse<ClientsDTOs['CreateResponseDTO']>>, next: NextFunction){
+
+    async create(req: Request, res: Response<ApiResponse<ClientsDTOs['CreateResponseDTO']>>, next: NextFunction){
         const data: ClientsDTOs['CreateRequestDTO'] = req.body
         try{
-            const dataClient = await ClientsService.create(data)
+            const dataClient = await this.clientsService.create(data)
             return res.status(200).json({
                 success: true,
                 data: dataClient
@@ -19,11 +23,11 @@ export class ClientsController{
         }
     }
 
-    static async edit(req: Request, res: Response<ApiResponse<ClientsDTOs['EditResponseDTO']>>, next: NextFunction){
+    async edit(req: Request, res: Response<ApiResponse<ClientsDTOs['EditResponseDTO']>>, next: NextFunction){
         const data: ClientsDTOs['EditRequestDTO'] = req.body
         const { id } = req.params
         try{
-            const dataClientEdited = await ClientsService.edit(Number(id), Number(req.user), data)
+            const dataClientEdited = await this.clientsService.edit(Number(id), Number(req.user), data)
             return res.status(200).json({
                 success: true,
                 data: dataClientEdited
@@ -33,10 +37,10 @@ export class ClientsController{
         }
     }
 
-    static async delete(req: Request, res: Response<ApiResponse<ClientsDTOs['DeleteResponseDTO']>>, next: NextFunction){
+    async delete(req: Request, res: Response<ApiResponse<ClientsDTOs['DeleteResponseDTO']>>, next: NextFunction){
         try{
             const { id } = req.params
-            const deletedClient = await ClientsService.delete(Number(id), Number(req.user))
+            const deletedClient = await this.clientsService.delete(Number(id), Number(req.user))
             return res.status(200).json({
                 success: true,
                 data: deletedClient
@@ -46,11 +50,11 @@ export class ClientsController{
         }
     }
 
-    static async getAll(req: Request, res: Response<ApiResponse<ClientsDTOs['GetAllResponseDTO'][]>>, next: NextFunction){
+    async getAll(req: Request, res: Response<ApiResponse<ClientsDTOs['GetAllResponseDTO'][]>>, next: NextFunction){
         try{
             const userId = req.user
             const filters = ClientsSchema.getAllQuery.parse(req.query)
-            const filteredClients = await ClientsService.getAll(Number(userId), filters)
+            const filteredClients = await this.clientsService.getAll(Number(userId), filters)
             return res.status(200).json({
                 success: true,
                 data: filteredClients
@@ -60,10 +64,10 @@ export class ClientsController{
         }
     }
 
-    static async getById(req: Request, res: Response<ApiResponse<ClientsDTOs['GetByIdResponseDTO']>>, next: NextFunction){
+    async getById(req: Request, res: Response<ApiResponse<ClientsDTOs['GetByIdResponseDTO']>>, next: NextFunction){
         try{
             const { id } = req.params
-            const filteredClient = await ClientsService.getById(Number(id), Number(req.user))
+            const filteredClient = await this.clientsService.getById(Number(id), Number(req.user))
             return res.status(200).json({
                 success: true,
                 data: filteredClient

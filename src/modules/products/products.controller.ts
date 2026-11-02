@@ -5,13 +5,13 @@ import { ProductsService } from './products.service';
 import { ProductsSchema } from './products.schema';
 
 export class ProductsController {
-    constructor(private readonly productsService: ProductsService){}
+    constructor(private readonly ProductsService: ProductsService){}
 
     async create(req: Request, res: Response<ApiResponse<ProductsDTOs['ProductDTO']>>, next: NextFunction){
         try{
             const data: ProductsDTOs['ProductCreateDTO'] = req.body
             const userId = req.user
-            const product = await this.productsService.create(data, Number(userId))
+            const product = await this.ProductsService.create(data, Number(userId))
             return res.status(200).json({
                 success: true,
                 data: product
@@ -25,7 +25,7 @@ export class ProductsController {
         try{
             const data: ProductsDTOs['ProductEditDTO'] = req.body
             const { id } = ProductsSchema.isValidIDNumber.parse(req.params)
-            const editedProduct = await this.productsService.edit(data, Number(id))
+            const editedProduct = await this.ProductsService.edit(data, Number(id))
             return res.status(200).json({
                 success: true,
                 data: editedProduct
@@ -38,7 +38,7 @@ export class ProductsController {
     async delete(req: Request, res: Response<ApiResponse<ProductsDTOs['ProductDTO']>>, next: NextFunction){
         try{
             const { id } = ProductsSchema.isValidIDNumber.parse(req.params)
-            const deletedProduct = await this.productsService.delete(Number(id))
+            const deletedProduct = await this.ProductsService.delete(Number(id))
             return res.status(200).json({
                 success: true,
                 data: deletedProduct

@@ -15,11 +15,14 @@ import { randomUUID } from "crypto";
 
 export class AuthUserService{
 
-    constructor(private readonly AuthUserRepository: AuthUserRepository){}
+    constructor(
+        private readonly AuthUserRepository: AuthUserRepository,
+        private readonly UserRepository: UserRepository
+    ){}
 
     async verifyEmail(data: AuthDTOs['VerifyEmailRequestDTO']):Promise<AuthDTOs['VerifyEmailResponseDTO']>{
         // Email exists
-        const user = await UserRepository.findByEmail(data.email)
+        const user = await this.UserRepository.findByEmail(data.email)
         if(user) throw new ConflictError('Esse email já está cadastrado.', ErrorCode.USER_ALREADY_EXISTS)
 
         // Password hash with Argon2
@@ -78,7 +81,7 @@ export class AuthUserService{
         const codeMatch = await ArgonHash.argonVerify(dataParsed.code, data.code)
         if(!codeMatch) throw new UnauthorizedError('Código inválido.', ErrorCode.INVALID_CODE)
 
-        const user = await UserRepository.createUser({
+        const user = await this.UserRepository.createUser({
             email: data.email,
             cnpjCpf: dataParsed.cnpjCpf,
             name: dataParsed.name,
@@ -147,14 +150,14 @@ export class AuthUserService{
     async login(data: AuthDTOs['LoginRequestDTO']): Promise<AuthDTOs['TokensDTO']>{
         const {email, password} = data
 
-        const userCredentials = await UserRepository.returnLoginCredentials(email)
+        const userCredentials = await this.UserRepository.returnLoginCredentials(email)
         if(!userCredentials) throw new UnauthorizedError('Credenciais inválidas', ErrorCode.INVALID_CREDENTIALS)
 
         const passwordMatch = await ArgonHash.argonVerify(userCredentials.password, password) 
         if(!passwordMatch) throw new UnauthorizedError('Credenciais inválidas', ErrorCode.INVALID_CREDENTIALS)
 
         const newHashedPassword = await ArgonHash.argonRehash(password, userCredentials.password)
-        if(newHashedPassword) await UserRepository.updatePasswordHash(userCredentials.id, newHashedPassword)
+        if(newHashedPassword) await this.UserRepository.updatePasswordHash(userCredentials.id, newHashedPassword)
 
         const jti = randomUUID()
         const tokens = await generateTokens(userCredentials.id, jti)
@@ -218,7 +221,7 @@ export class AuthUserService{
     }
 
     async sendCodeRecovery(email: string): Promise<{tokenUUID: string | null}>{
-        const user = await UserRepository.findByEmail(email)
+        const user = await this.UserRepository.findByEmail(email)
         if(!user) throw new UnauthorizedError('Credencial inválida', ErrorCode.INVALID_CREDENTIALS)
 
         const tokenUUID = randomUUID()
@@ -311,7 +314,7 @@ export class AuthUserService{
         const dataUserParsed = JSON.parse(dataUser)
         if(!dataUserParsed.authorized) throw new UnauthorizedError('Usuário não autorizado', ErrorCode.UNAUTHORIZED_USER)
         const hashedNewPassword = await ArgonHash.argonHash(newPassword)
-        await UserRepository.updatePasswordHash(dataUserParsed.id, hashedNewPassword)
+        await this.UserRepository.updatePasswordHash(dataUserParsed.id, hashedNewPassword)
     }
 
     async logout(refreshToken: string){

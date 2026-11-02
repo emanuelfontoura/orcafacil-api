@@ -1,13 +1,14 @@
 import { UserTypes } from "@/modules/user/user.types"
-import { prisma } from "@/lib/prisma"
 import { AppError } from "@/shared/errors/AppError"
 import { ErrorCode } from "@/shared/errors/ErrorCodes"
+import { PrismaClient } from "@prisma/client/extension"
 
 export class UserRepository {
+    constructor(private readonly prisma: PrismaClient){}
 
-    static async findByEmail(email: string): Promise<UserTypes['UserResponse'] | null>{
+    async findByEmail(email: string): Promise<UserTypes['UserResponse'] | null>{
         try{
-            const data =  await prisma.user.findUnique({
+            const data =  await this.prisma.user.findUnique({
                 where: {email},
                 select: {
                     id: true,
@@ -32,9 +33,9 @@ export class UserRepository {
         }
     }
 
-    static async findById(id: number): Promise<UserTypes['UserResponse'] | null>{
+    async findById(id: number): Promise<UserTypes['UserResponse'] | null>{
         try{
-            const data = await prisma.user.findUnique({
+            const data = await this.prisma.user.findUnique({
                 where: {id}, 
                 select: {
                     id: true, 
@@ -60,9 +61,9 @@ export class UserRepository {
         }
     }
 
-    static async createUser(data: UserTypes['UserComplete']): Promise<UserTypes['UserResponse']>{
+    async createUser(data: UserTypes['UserComplete']): Promise<UserTypes['UserResponse']>{
         try{
-            const dataUser = await prisma.user.create({
+            const dataUser = await this.prisma.user.create({
                 data: {
                     cnpjCpf: data.cnpjCpf,
                     email: data.email,
@@ -83,9 +84,9 @@ export class UserRepository {
         }   
     }
 
-    static async returnLoginCredentials(email: string): Promise<UserTypes['UserCredentials'] | null>{
+    async returnLoginCredentials(email: string): Promise<UserTypes['UserCredentials'] | null>{
         try{
-            const userCredentials = await prisma.user.findUnique({
+            const userCredentials = await this.prisma.user.findUnique({
                 where: {email},
                 select: {
                     id: true,
@@ -106,9 +107,9 @@ export class UserRepository {
         }
     }
 
-    static async updatePasswordHash(userId: number, newHashedPassword: string){
+    async updatePasswordHash(userId: number, newHashedPassword: string){
         try{
-            await prisma.user.update(
+            await this.prisma.user.update(
                 {where: {id: userId},
                 data: {password: newHashedPassword}
             })

@@ -15,6 +15,7 @@ import { AuthUserController } from "./modules/auth/auth.controller"
 import { ProductsRepository } from './modules/products/products.repository'
 import { ProductsService } from './modules/products/products.service'
 import { ProductsController } from './modules/products/products.controller'
+import { UserRepository } from './modules/user/user.repository'
 
 const tokenService = new TokenService({
     acessSecret: process.env.JWT_ACCESS_SECRET!,
@@ -26,7 +27,8 @@ export function createContainer(){
     const clientsService = new ClientsService(clientsRepository)
 
     const authUserRepository = new AuthUserRepository()
-    const authUserService = new AuthUserService(authUserRepository)
+    const userRepository = new UserRepository(prisma)
+    const authUserService = new AuthUserService(authUserRepository, userRepository)
 
     const productRepository = new ProductsRepository(prisma)
     const productService = new ProductsService(productRepository)

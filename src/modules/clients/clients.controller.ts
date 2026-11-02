@@ -6,14 +6,14 @@ import { ClientsSchema } from "./clients.schema"
 
 export class ClientsController{
     constructor(
-        private readonly clientsService: ClientsService
+        private readonly ClientsService: ClientsService
     ){}
 
 
     async create(req: Request, res: Response<ApiResponse<ClientsDTOs['CreateResponseDTO']>>, next: NextFunction){
         const data: ClientsDTOs['CreateRequestDTO'] = req.body
         try{
-            const dataClient = await this.clientsService.create(data)
+            const dataClient = await this.ClientsService.create(data)
             return res.status(200).json({
                 success: true,
                 data: dataClient
@@ -27,7 +27,7 @@ export class ClientsController{
         const data: ClientsDTOs['EditRequestDTO'] = req.body
         const { id } = req.params
         try{
-            const dataClientEdited = await this.clientsService.edit(Number(id), Number(req.user), data)
+            const dataClientEdited = await this.ClientsService.edit(Number(id), Number(req.user), data)
             return res.status(200).json({
                 success: true,
                 data: dataClientEdited
@@ -40,7 +40,7 @@ export class ClientsController{
     async delete(req: Request, res: Response<ApiResponse<ClientsDTOs['DeleteResponseDTO']>>, next: NextFunction){
         try{
             const { id } = req.params
-            const deletedClient = await this.clientsService.delete(Number(id), Number(req.user))
+            const deletedClient = await this.ClientsService.delete(Number(id), Number(req.user))
             return res.status(200).json({
                 success: true,
                 data: deletedClient
@@ -54,7 +54,7 @@ export class ClientsController{
         try{
             const userId = req.user
             const filters = ClientsSchema.getAllQuery.parse(req.query)
-            const filteredClients = await this.clientsService.getAll(Number(userId), filters)
+            const filteredClients = await this.ClientsService.getAll(Number(userId), filters)
             return res.status(200).json({
                 success: true,
                 data: filteredClients
@@ -67,7 +67,7 @@ export class ClientsController{
     async getById(req: Request, res: Response<ApiResponse<ClientsDTOs['GetByIdResponseDTO']>>, next: NextFunction){
         try{
             const { id } = req.params
-            const filteredClient = await this.clientsService.getById(Number(id), Number(req.user))
+            const filteredClient = await this.ClientsService.getById(Number(id), Number(req.user))
             return res.status(200).json({
                 success: true,
                 data: filteredClient

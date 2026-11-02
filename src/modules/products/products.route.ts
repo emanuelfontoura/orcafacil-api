@@ -1,13 +1,28 @@
 import { Router } from 'express'
-import { rateLimit } from '@/middlewares/rateLimit'
 import { validateSchema } from '@/middlewares/validate'
-import { authenticate } from '@/middlewares/authenticate'
 import { ProductsSchema } from './products.schema'
-import { ProductsController } from './products.controller'
+import { Container } from '@/container'
 
-const ProductsRoutes = Router()
+type ProductsRoutesDeps = Pick<Container, 'productsController' | 'authenticate' | 'rateLimit'>
 
-ProductsRoutes.post('/create', rateLimit(100, 60, 'products/create'), validateSchema(ProductsSchema.create), authenticate, ProductsController.create)
-ProductsRoutes.patch('/edit/:id', rateLimit(100, 60, 'products/edit'), validateSchema(ProductsSchema.edit), authenticate, ProductsController.edit)
+export function createProductsRoutes({productsController, authenticate, rateLimit}: ProductsRoutesDeps): Router{
+    const router = Router()
 
-export { ProductsRoutes }
+    router.post(
+        '/create',
+        authenticate,
+        rateLimit({maxReqLimit: 100, maxTimeLimit: 60, route: 'products/create'}),
+        validateSchema(ProductsSchema.create),
+        productsController.create
+    )
+
+    router.post(
+        '/edit/:id',
+        authenticate,
+        rateLimit({maxReqLimit: 100, maxTimeLimit: 60, route: 'products/edit'}),
+        validateSchema(ProductsSchema.edit),
+        productsController.edit
+    )
+
+    return router
+}

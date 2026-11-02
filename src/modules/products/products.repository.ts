@@ -1,14 +1,16 @@
-import { prisma } from "@/lib/prisma";
 import { ProductsDTOs } from "./products.dtos";
 import { AppError } from "@/shared/errors/AppError";
 import { ErrorCode } from "@/shared/errors/ErrorCodes";
 import { Product } from "@prisma/client";
+import { PrismaClient } from "@prisma/client/extension";
 
 export class ProductsRepository{
+    constructor(private readonly prisma: PrismaClient){}
+
     // CRUD
-    static async create(data: ProductsDTOs['ProductCreateDTO'], userId: number): Promise<ProductsDTOs['ProductDTO']>{
+    async create(data: ProductsDTOs['ProductCreateDTO'], userId: number): Promise<ProductsDTOs['ProductDTO']>{
         try{
-            const newProduct = await prisma.product.create({
+            const newProduct = await this.prisma.product.create({
                 data: {
                     name: data.name,
                     description: data.description,
@@ -22,9 +24,9 @@ export class ProductsRepository{
         }
     }
 
-    static async edit(data: ProductsDTOs['ProductEditDTO'], id: number): Promise<ProductsDTOs['ProductDTO']>{
+    async edit(data: ProductsDTOs['ProductEditDTO'], id: number): Promise<ProductsDTOs['ProductDTO']>{
         try{
-            const editedProduct = await prisma.product.update({
+            const editedProduct = await this.prisma.product.update({
                 data,
                 where: {id}
             })
@@ -34,9 +36,9 @@ export class ProductsRepository{
         }
     }
 
-    static async delete(id: number): Promise<ProductsDTOs['ProductDTO']>{
+    async delete(id: number): Promise<ProductsDTOs['ProductDTO']>{
         try{
-            const deletedProduct = await prisma.product.delete({where: {id}})
+            const deletedProduct = await this.prisma.product.delete({where: {id}})
             return this.convertPriceToNumber(deletedProduct)
         }catch{
             throw new AppError('Erro ao deletar produto', 500, ErrorCode.INTERNAL_SERVER_ERROR)
@@ -44,9 +46,9 @@ export class ProductsRepository{
     }
 
     // Buscas
-    static async searchProductById(id: number): Promise<ProductsDTOs['ProductDTO'] | null>{
+    async searchProductById(id: number): Promise<ProductsDTOs['ProductDTO'] | null>{
         try{
-            const product = await prisma.product.findUnique({where: {id}})
+            const product = await this.prisma.product.findUnique({where: {id}})
             if(product) return this.convertPriceToNumber(product)
             return null
         }catch{
@@ -55,7 +57,7 @@ export class ProductsRepository{
     }
 
     // Helpers da classe
-    private static convertPriceToNumber(data: Product): ProductsDTOs['ProductDTO']{
+    private convertPriceToNumber(data: Product): ProductsDTOs['ProductDTO']{
         return {...data, price: Number(data.price)}
     }
 }

@@ -4,20 +4,22 @@ import { ProductsRepository } from "./products.repository";
 import { ErrorCode } from "@/shared/errors/ErrorCodes";
 
 export class ProductsService{
-    static async create(data: ProductsDTOs['ProductCreateDTO'], userId: number): Promise<ProductsDTOs['ProductDTO']>{
-        const newProduct = await ProductsRepository.create(data, userId)
+    constructor(private readonly productsRepository: ProductsRepository){}
+
+    async create(data: ProductsDTOs['ProductCreateDTO'], userId: number): Promise<ProductsDTOs['ProductDTO']>{
+        const newProduct = await this.productsRepository.create(data, userId)
         return newProduct
     }
 
-    static async edit(data: ProductsDTOs['ProductEditDTO'], id: number): Promise<ProductsDTOs['ProductDTO']>{
-        const editedProduct = await ProductsRepository.edit(data, id)
+    async edit(data: ProductsDTOs['ProductEditDTO'], id: number): Promise<ProductsDTOs['ProductDTO']>{
+        const editedProduct = await this.productsRepository.edit(data, id)
         return editedProduct
     }
 
-    static async delete(id: number): Promise<ProductsDTOs['ProductDTO']>{
-        const product = await ProductsRepository.searchProductById(id)
+    async delete(id: number): Promise<ProductsDTOs['ProductDTO']>{
+        const product = await this.productsRepository.searchProductById(id)
         if(!product) throw new ConflictError('Produto não cadastrado', ErrorCode.INVALID_PRODUCT)
-        const deletedProduct = await ProductsRepository.delete(id)
+        const deletedProduct = await this.productsRepository.delete(id)
         return deletedProduct
     }
 }

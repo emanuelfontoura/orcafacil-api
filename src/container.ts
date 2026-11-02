@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma"
 import { createAuthenticate } from "./middlewares/authenticate"
 import { createRateLimit } from "./middlewares/rateLimit"
 import { TokenService } from "./shared/utils/TokenService"
+import { ArgonHash } from './shared/utils/ArgonHash'
 
 import { ClientsController } from "./modules/clients/clients.controller"
 import { ClientsRepository } from "./modules/clients/clients.repository"
@@ -23,12 +24,14 @@ const tokenService = new TokenService({
 })
 
 export function createContainer(){
+    const argonHash = new ArgonHash()
+
     const clientsRepository = new ClientsRepository(prisma)
     const clientsService = new ClientsService(clientsRepository)
 
     const authUserRepository = new AuthUserRepository()
     const userRepository = new UserRepository(prisma)
-    const authUserService = new AuthUserService(authUserRepository, userRepository)
+    const authUserService = new AuthUserService(authUserRepository, userRepository, argonHash, redis)
 
     const productRepository = new ProductsRepository(prisma)
     const productService = new ProductsService(productRepository)

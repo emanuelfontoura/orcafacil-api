@@ -1,7 +1,6 @@
 import { AuthDTOs } from '@/modules/auth/auth.dtos'
 import { AuthUserRepository } from '@/modules/auth/auth.repository'
 import { UserRepository } from '@/modules/user/user.repository'
-import { redis } from '@/lib/redis'
 import { ArgonHash } from '@/shared/utils/ArgonHash'
 import jwt from 'jsonwebtoken'
 import { ConflictError } from '@/shared/errors/ConflictError'
@@ -12,12 +11,15 @@ import { verifyKeyExists } from '@/shared/utils/verifyKeyExists'
 import { generateCode } from '@/shared/utils/generateCode'
 import { generateTokens } from '@/shared/utils/generateTokens'
 import { randomUUID } from "crypto";
+import Redis from 'ioredis'
 
 export class AuthUserService{
 
     constructor(
         private readonly AuthUserRepository: AuthUserRepository,
-        private readonly UserRepository: UserRepository
+        private readonly UserRepository: UserRepository,
+        private readonly ArgonHash: ArgonHash,
+        private readonly Redis: Redis
     ){}
 
     async verifyEmail(data: AuthDTOs['VerifyEmailRequestDTO']):Promise<AuthDTOs['VerifyEmailResponseDTO']>{
@@ -26,17 +28,17 @@ export class AuthUserService{
         if(user) throw new ConflictError('Esse email já está cadastrado.', ErrorCode.USER_ALREADY_EXISTS)
 
         // Password hash with Argon2
-       const hashedPassword = await ArgonHash.argonHash(data.password)
+       const hashedPassword = await this.ArgonHash.hash(data.password)
         
         const keyExists = await verifyKeyExists(`verify-email-cooldown-${data.email}`)
         if(keyExists) throw new ConflictError('Aguarde para realizar esta ação novamente.', ErrorCode.LIMIT_ATTEMPTS)
 
         // Save on Redis
         const code = generateCode()
-        const hashedCode = await ArgonHash.argonHash(code)
+        const hashedCode = await this.ArgonHash.hash(code)
 
         try{
-            await redis.set(
+            await this.Redis.set(
                 `verify-email-${data.email}`,
                 JSON.stringify({
                     code: hashedCode,
@@ -54,7 +56,7 @@ export class AuthUserService{
         await this.AuthUserRepository.sendEmailVerificationCode({email: data.email, code})
 
         try{
-            await redis.set(
+            await this.Redis.set(
                 `verify-email-cooldown-${data.email}`,
                 1,
                 "EX",
@@ -70,7 +72,7 @@ export class AuthUserService{
     async confirmEmail(data: AuthDTOs['ConfirmEmailRequestDTO']): Promise<AuthDTOs['ConfirmEmailResponseDTO']>{
         let dataUser
         try{
-            dataUser = await redis.get(`verify-email-${data.email}`) 
+            dataUser = await this.Redis.get(`verify-email-${data.email}`) 
         }catch{
             throw new AppError('Erro ao obter dados da recuperação de senha.', 500, ErrorCode.REDIS_GET_ERROR)
         }
@@ -78,7 +80,7 @@ export class AuthUserService{
 
         const dataParsed = JSON.parse(dataUser)
 
-        const codeMatch = await ArgonHash.argonVerify(dataParsed.code, data.code)
+        const codeMatch = await this.ArgonHash.verify(dataParsed.code, data.code)
         if(!codeMatch) throw new UnauthorizedError('Código inválido.', ErrorCode.INVALID_CODE)
 
         const user = await this.UserRepository.createUser({
@@ -106,7 +108,7 @@ export class AuthUserService{
 
         let oldKey
         try{
-            oldKey = await redis.get(keyNewCode)
+            oldKey = await this.Redis.get(keyNewCode)
         }catch{
             throw new AppError('Erro ao obter dados do cadastro.', 500, ErrorCode.REDIS_GET_ERROR)
         }
@@ -115,10 +117,10 @@ export class AuthUserService{
         const parsedOldKey = JSON.parse(oldKey)
 
         const newCode = generateCode()
-        const hashedNewCode = await ArgonHash.argonHash(newCode)
+        const hashedNewCode = await this.ArgonHash.hash(newCode)
 
         try{
-            await redis.set(
+            await this.Redis.set(
                 keyNewCode,
                 JSON.stringify({
                     ...parsedOldKey,
@@ -134,7 +136,7 @@ export class AuthUserService{
         await this.AuthUserRepository.sendEmailVerificationCode({email: data.email, code: newCode})
 
         try{
-            await redis.set(
+            await this.Redis.set(
                 keyCooldown,
                 1,
                 "EX",
@@ -153,17 +155,17 @@ export class AuthUserService{
         const userCredentials = await this.UserRepository.returnLoginCredentials(email)
         if(!userCredentials) throw new UnauthorizedError('Credenciais inválidas', ErrorCode.INVALID_CREDENTIALS)
 
-        const passwordMatch = await ArgonHash.argonVerify(userCredentials.password, password) 
+        const passwordMatch = await this.ArgonHash.verify(userCredentials.password, password) 
         if(!passwordMatch) throw new UnauthorizedError('Credenciais inválidas', ErrorCode.INVALID_CREDENTIALS)
 
-        const newHashedPassword = await ArgonHash.argonRehash(password, userCredentials.password)
+        const newHashedPassword = await this.ArgonHash.rehash(password, userCredentials.password)
         if(newHashedPassword) await this.UserRepository.updatePasswordHash(userCredentials.id, newHashedPassword)
 
         const jti = randomUUID()
         const tokens = await generateTokens(userCredentials.id, jti)
 
         try{
-            await redis.set(
+            await this.Redis.set(
                 `refresh-token-${jti}`,
                 userCredentials.id,
                 "EX",
@@ -184,15 +186,15 @@ export class AuthUserService{
         try{
             const decodedRefreshToken = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET!) as jwt.JwtPayload
             const {jti, sub} = decodedRefreshToken
-            const dataTokens = await redis.exists(`refresh-token-${jti}`)
+            const dataTokens = await this.Redis.exists(`refresh-token-${jti}`)
             if(!dataTokens) throw new UnauthorizedError('Refresh token inválido', ErrorCode.INVALID_TOKEN)
-            await redis.del(`refresh-token-${jti}`)
+            await this.Redis.del(`refresh-token-${jti}`)
 
             const newJti = randomUUID()
             const newTokens = await generateTokens(Number(sub), newJti)
 
             try{
-                await redis.set(
+                await this.Redis.set(
                     `refresh-token-${newJti}`,
                     Number(sub),
                     "EX",
@@ -226,10 +228,10 @@ export class AuthUserService{
 
         const tokenUUID = randomUUID()
         const code = generateCode()
-        const hashedCode = await ArgonHash.argonHash(code)
+        const hashedCode = await this.ArgonHash.hash(code)
 
         try{
-            await redis.set(
+            await this.Redis.set(
                 `recovery-password-${tokenUUID}`,
                 JSON.stringify({
                     id: user.id,
@@ -258,7 +260,7 @@ export class AuthUserService{
 
         let dataUser
         try{
-            dataUser = await redis.get(key)
+            dataUser = await this.Redis.get(key)
         }catch{
             throw new AppError('Erro ao obter dados da recuperação de senha', 500, ErrorCode.REDIS_GET_ERROR)
         }
@@ -266,24 +268,24 @@ export class AuthUserService{
         const dataParsed = JSON.parse(dataUser)
 
         if(dataParsed.attempts >= 5){
-            await redis.del(key)
+            await this.Redis.del(key)
             throw new UnauthorizedError('Muitas tentativas. Solicite um novo código.', ErrorCode.LIMIT_ATTEMPTS)
         }
         dataParsed.attempts += 1
 
         try{
-            await redis.set(key, JSON.stringify(dataParsed), "KEEPTTL")
+            await this.Redis.set(key, JSON.stringify(dataParsed), "KEEPTTL")
         }catch{
             throw new AppError('Erro ao atualizar estado de recuperação', 500, ErrorCode.REDIS_SAVE_ERROR)
         }
 
-        const codeMatch = await ArgonHash.argonVerify(dataParsed.code, code)
+        const codeMatch = await this.ArgonHash.verify(dataParsed.code, code)
         if(!codeMatch) throw new UnauthorizedError('Código inválido', ErrorCode.INVALID_CODE)
 
         const newTokenUUID = randomUUID()
         const newKey = `recovery-password-${newTokenUUID}`
         try{
-            await redis.set(
+            await this.Redis.set(
                 newKey, 
                 JSON.stringify(
                     {
@@ -294,7 +296,7 @@ export class AuthUserService{
                 "EX",
                 600
             )
-            await redis.del(key)
+            await this.Redis.del(key)
         }catch{
             throw new AppError('Erro ao atualizar estado de recuperação', 500, ErrorCode.REDIS_SAVE_ERROR)
         }
@@ -306,14 +308,14 @@ export class AuthUserService{
         const {tokenUUID, newPassword} = data
         let dataUser
         try{
-            dataUser = await redis.get(`recovery-password-${tokenUUID}`)
+            dataUser = await this.Redis.get(`recovery-password-${tokenUUID}`)
         }catch{
             throw new AppError('Erro ao obter dados da recuperação de senha', 500, ErrorCode.REDIS_GET_ERROR)
         }
         if(!dataUser) throw new UnauthorizedError('Token UUID inválido', ErrorCode.INVALID_TOKEN)
         const dataUserParsed = JSON.parse(dataUser)
         if(!dataUserParsed.authorized) throw new UnauthorizedError('Usuário não autorizado', ErrorCode.UNAUTHORIZED_USER)
-        const hashedNewPassword = await ArgonHash.argonHash(newPassword)
+        const hashedNewPassword = await this.ArgonHash.hash(newPassword)
         await this.UserRepository.updatePasswordHash(dataUserParsed.id, hashedNewPassword)
     }
 
@@ -322,7 +324,7 @@ export class AuthUserService{
             const decodedToken = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET!) as jwt.JwtPayload
             const {jti} = decodedToken
             try{
-                await redis.del(`refresh-token-${jti}`)
+                await this.Redis.del(`refresh-token-${jti}`)
             }catch{
                 throw new AppError('Erro ao deletar refresh token', 500, ErrorCode.REDIS_DEL_ERROR)
             }

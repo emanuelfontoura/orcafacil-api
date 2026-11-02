@@ -15,7 +15,9 @@ import { randomUUID } from "crypto";
 
 export class AuthUserService{
 
-    static async verifyEmail(data: AuthDTOs['VerifyEmailRequestDTO']):Promise<AuthDTOs['VerifyEmailResponseDTO']>{
+    constructor(private readonly AuthUserRepository: AuthUserRepository){}
+
+    async verifyEmail(data: AuthDTOs['VerifyEmailRequestDTO']):Promise<AuthDTOs['VerifyEmailResponseDTO']>{
         // Email exists
         const user = await UserRepository.findByEmail(data.email)
         if(user) throw new ConflictError('Esse email já está cadastrado.', ErrorCode.USER_ALREADY_EXISTS)
@@ -46,7 +48,7 @@ export class AuthUserService{
             throw new AppError('Erro ao salvar código de verificação.', 500, ErrorCode.REDIS_SAVE_ERROR)
         }
         
-        await AuthUserRepository.sendEmailVerificationCode({email: data.email, code})
+        await this.AuthUserRepository.sendEmailVerificationCode({email: data.email, code})
 
         try{
             await redis.set(
@@ -62,7 +64,7 @@ export class AuthUserService{
         return {email: data.email, name: data.name, cnpjCpf: data.cnpjCpf}
     }
 
-    static async confirmEmail(data: AuthDTOs['ConfirmEmailRequestDTO']): Promise<AuthDTOs['ConfirmEmailResponseDTO']>{
+    async confirmEmail(data: AuthDTOs['ConfirmEmailRequestDTO']): Promise<AuthDTOs['ConfirmEmailResponseDTO']>{
         let dataUser
         try{
             dataUser = await redis.get(`verify-email-${data.email}`) 
@@ -92,7 +94,7 @@ export class AuthUserService{
         }
     }
 
-    static async resendEmailCode(data: {email: string}): Promise<{email: string}>{
+    async resendEmailCode(data: {email: string}): Promise<{email: string}>{
         const keyCooldown = `verify-email-cooldown-${data.email}`
         const keyNewCode = `verify-email-${data.email}`
 
@@ -126,7 +128,7 @@ export class AuthUserService{
             throw new AppError('Erro ao salvar código de verificação.', 500, ErrorCode.REDIS_SAVE_ERROR)
         }
 
-        await AuthUserRepository.sendEmailVerificationCode({email: data.email, code: newCode})
+        await this.AuthUserRepository.sendEmailVerificationCode({email: data.email, code: newCode})
 
         try{
             await redis.set(
@@ -142,7 +144,7 @@ export class AuthUserService{
         return {email: data.email}
     }
 
-    static async login(data: AuthDTOs['LoginRequestDTO']): Promise<AuthDTOs['TokensDTO']>{
+    async login(data: AuthDTOs['LoginRequestDTO']): Promise<AuthDTOs['TokensDTO']>{
         const {email, password} = data
 
         const userCredentials = await UserRepository.returnLoginCredentials(email)
@@ -175,7 +177,7 @@ export class AuthUserService{
         return {accessToken, refreshToken}
     }
 
-    static async refreshToken(refreshToken: string): Promise<AuthDTOs['TokensDTO']>{
+    async refreshToken(refreshToken: string): Promise<AuthDTOs['TokensDTO']>{
         try{
             const decodedRefreshToken = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET!) as jwt.JwtPayload
             const {jti, sub} = decodedRefreshToken
@@ -215,7 +217,7 @@ export class AuthUserService{
         }
     }
 
-    static async sendCodeRecovery(email: string): Promise<{tokenUUID: string | null}>{
+    async sendCodeRecovery(email: string): Promise<{tokenUUID: string | null}>{
         const user = await UserRepository.findByEmail(email)
         if(!user) throw new UnauthorizedError('Credencial inválida', ErrorCode.INVALID_CREDENTIALS)
 
@@ -239,7 +241,7 @@ export class AuthUserService{
             throw new AppError('Erro ao salvar código de verificação', 500, ErrorCode.REDIS_SAVE_ERROR)
         }
 
-        await AuthUserRepository.sendEmailVerificationCode({
+        await this.AuthUserRepository.sendEmailVerificationCode({
             email,
             code
         })
@@ -247,7 +249,7 @@ export class AuthUserService{
         return {tokenUUID}
     }
 
-    static async confirmCodeRecovery(data: AuthDTOs['ConfirmCodeRecoveryRequestDTO']): Promise<{tokenUUID: string | null}>{
+    async confirmCodeRecovery(data: AuthDTOs['ConfirmCodeRecoveryRequestDTO']): Promise<{tokenUUID: string | null}>{
         const {tokenUUID, code} = data
         const key = `recovery-password-${tokenUUID}`
 
@@ -297,7 +299,7 @@ export class AuthUserService{
         return {tokenUUID: newTokenUUID}
     }
 
-    static async createNewPassword(data: AuthDTOs['CreateNewPasswordRequestDTO']){
+    async createNewPassword(data: AuthDTOs['CreateNewPasswordRequestDTO']){
         const {tokenUUID, newPassword} = data
         let dataUser
         try{
@@ -312,7 +314,7 @@ export class AuthUserService{
         await UserRepository.updatePasswordHash(dataUserParsed.id, hashedNewPassword)
     }
 
-    static async logout(refreshToken: string){
+    async logout(refreshToken: string){
         try{
             const decodedToken = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET!) as jwt.JwtPayload
             const {jti} = decodedToken

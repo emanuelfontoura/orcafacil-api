@@ -5,7 +5,7 @@ import { ErrorCode } from '@/shared/errors/ErrorCodes'
 
 export class AuthUserRepository {
 
-    static async sendEmailVerificationCode(data: AuthTypes['EmailCode']){
+    async sendEmailVerificationCode(data: AuthTypes['EmailCode']){
         try{
             const transporter = nodemailer.createTransport({
                 service: "gmail",

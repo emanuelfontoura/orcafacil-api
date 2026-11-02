@@ -7,12 +7,14 @@ import { AuthCookies } from "@/shared/utils/AuthCookies";
 
 export class AuthUserController {
 
-    static async verifyEmail(req: Request, res: Response<ApiResponse<AuthDTOs['VerifyEmailResponseDTO']>>, next: NextFunction){
+    constructor(private readonly AuthUserService: AuthUserService){}
+
+    async verifyEmail(req: Request, res: Response<ApiResponse<AuthDTOs['VerifyEmailResponseDTO']>>, next: NextFunction){
         const data: AuthDTOs['VerifyEmailRequestDTO'] = req.body
         const {cnpjCpf, email, name, password, confirmPassword} = data
 
         try{
-            const dataUser = await AuthUserService.verifyEmail(
+            const dataUser = await this.AuthUserService.verifyEmail(
                 {cnpjCpf, email, name, password, confirmPassword}
             )
             return res.status(200).json({
@@ -25,11 +27,11 @@ export class AuthUserController {
 
     }
 
-    static async confirmEmail(req: Request, res: Response<ApiResponse<AuthDTOs['ConfirmEmailResponseDTO']>>, next: NextFunction){
+    async confirmEmail(req: Request, res: Response<ApiResponse<AuthDTOs['ConfirmEmailResponseDTO']>>, next: NextFunction){
         const data: AuthDTOs['ConfirmEmailRequestDTO'] = req.body
         const {email, code} = data
         try{
-            const user: AuthDTOs['ConfirmEmailResponseDTO'] = await AuthUserService.confirmEmail({email, code})
+            const user: AuthDTOs['ConfirmEmailResponseDTO'] = await this.AuthUserService.confirmEmail({email, code})
             res.status(200).json({
                 success: true,
                 data: {
@@ -45,11 +47,11 @@ export class AuthUserController {
         }
     }
 
-    static async resendEmailCode(req: Request, res: Response<ApiResponse<{email: string}>>, next: NextFunction){
+    async resendEmailCode(req: Request, res: Response<ApiResponse<{email: string}>>, next: NextFunction){
         const data: {email: string} = req.body
         const {email} = data
         try{
-            const dataEmail = await AuthUserService.resendEmailCode({email})
+            const dataEmail = await this.AuthUserService.resendEmailCode({email})
 
             res.status(200).json({
                 success: true,
@@ -60,11 +62,11 @@ export class AuthUserController {
         }
     }
 
-    static async login(req: Request, res: Response<ApiResponse<null>>, next: NextFunction){
+    async login(req: Request, res: Response<ApiResponse<null>>, next: NextFunction){
         const data: AuthDTOs['LoginRequestDTO'] = req.body
 
         try {
-            const tokens = await AuthUserService.login(data)
+            const tokens = await this.AuthUserService.login(data)
 
             AuthCookies.setAuthCookies(res, tokens)
 
@@ -77,12 +79,12 @@ export class AuthUserController {
         }
     }
 
-    static async refreshToken(req: Request, res: Response<ApiResponse<null>>, next: NextFunction){
+    async refreshToken(req: Request, res: Response<ApiResponse<null>>, next: NextFunction){
         try{
             const refreshToken = req.cookies.refreshToken
             if(!refreshToken) throw new UnauthorizedError('Refresh token não fornecido')
 
-            const newTokens = await AuthUserService.refreshToken(refreshToken)
+            const newTokens = await this.AuthUserService.refreshToken(refreshToken)
 
             AuthCookies.setAuthCookies(res, newTokens)
 
@@ -95,12 +97,12 @@ export class AuthUserController {
         }
     }
 
-    static async sendCodeRecovery(req: Request, res: Response<ApiResponse<{tokenUUID: string | null}>>, next: NextFunction){
+    async sendCodeRecovery(req: Request, res: Response<ApiResponse<{tokenUUID: string | null}>>, next: NextFunction){
         const data: {email: string} = req.body
         const {email} = data
 
         try{
-            const tokenUUID = await AuthUserService.sendCodeRecovery(email)
+            const tokenUUID = await this.AuthUserService.sendCodeRecovery(email)
             res.status(200).json({
                 success: true,
                 data: tokenUUID
@@ -110,12 +112,12 @@ export class AuthUserController {
         }
     } 
 
-    static async confirmCodeRecovery(req: Request, res: Response<ApiResponse<{tokenUUID: string | null}>>, next: NextFunction){
+    async confirmCodeRecovery(req: Request, res: Response<ApiResponse<{tokenUUID: string | null}>>, next: NextFunction){
         const data: AuthDTOs['ConfirmCodeRecoveryRequestDTO'] = req.body
         const {tokenUUID, code} = data
 
         try{
-            const newTokenUUID = await AuthUserService.confirmCodeRecovery({tokenUUID, code})
+            const newTokenUUID = await this.AuthUserService.confirmCodeRecovery({tokenUUID, code})
             res.status(200).json({
                 success: true,
                 data: newTokenUUID
@@ -125,11 +127,11 @@ export class AuthUserController {
         }
     }
 
-    static async createNewPassword(req: Request, res: Response<ApiResponse<null>>, next: NextFunction){
+    async createNewPassword(req: Request, res: Response<ApiResponse<null>>, next: NextFunction){
         const data: AuthDTOs['CreateNewPasswordRequestDTO'] = req.body
         
         try{
-            await AuthUserService.createNewPassword(data)
+            await this.AuthUserService.createNewPassword(data)
             res.status(200).json({
                 success: true,
                 data: null
@@ -139,9 +141,9 @@ export class AuthUserController {
         }
     }
 
-    static async logout(req: Request, res: Response<ApiResponse<null>>, next: NextFunction){
+    async logout(req: Request, res: Response<ApiResponse<null>>, next: NextFunction){
         try{
-            await AuthUserService.logout(req.cookies.refreshToken)
+            await this.AuthUserService.logout(req.cookies.refreshToken)
             AuthCookies.clearAuthCookies(res)
             res.status(200).json({
                 success: true,

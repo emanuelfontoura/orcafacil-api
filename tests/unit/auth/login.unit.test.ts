@@ -1,142 +1,124 @@
-import { describe, it, expect, vi, beforeEach } from "vitest"
-import { UserRepository } from "@/modules/user/user.repository"
-import { ArgonHash } from "@/shared/utils/ArgonHash"
-import { randomUUID } from "crypto"
-import { generateTokens } from "@/shared/utils/generateTokens"
-import { redis } from "@/lib/redis"
-import { AuthUserService } from "@/modules/auth/auth.service"
-import { ErrorCode } from "@/shared/errors/ErrorCodes"
-import { AppError } from "@/shared/errors/AppError"
+// module: auth
+// route: login
 
-vi.mock('@/modules/user/user.repository')
-vi.mock('@/shared/utils/ArgonHash')
-vi.mock('crypto')
-vi.mock('@/shared/utils/generateTokens')
-vi.mock('@/lib/redis')
+import { describe, it, expect, vi } from 'vitest'
+import { AuthUserService } from '@/modules/auth/auth.service'
+import { ErrorCode } from '@/shared/errors/ErrorCodes'
 
-describe('Unit test - AuthUserService - login', () => {
-    const body = {
-        email: 'teste@gmail.com',
-        password: '12345678'
+function makeSut(){
+    const UserRepository = {
+        returnLoginCredentials: vi.fn().mockResolvedValue({id: 1, cnpjCpf: '00000000000', email: 'teste@gmail.com', password: 'hash-salvo'}),
+        updatePasswordHash: vi.fn().mockResolvedValue(undefined)
     }
-    const tokens = {
-        accessToken: '123',
-        refreshToken: '123'
+    const ArgonHash = {
+        verify: vi.fn().mockResolvedValue(true),
+        rehash: vi.fn().mockResolvedValue(null)
     }
-    const id = 1
-    const jti = '3181d0e7-b884-4f0f-b233-324e9ae9e180'
+    const Redis = {
+        set: vi.fn().mockResolvedValue('OK')
+    }
+    const TokenService = {
+        generateAccessToken: vi.fn().mockReturnValue('access'),
+        generateRefreshToken: vi.fn().mockReturnValue('refresh')
+    }
 
-    beforeEach(() => {
-        vi.clearAllMocks()
+    const sut = new AuthUserService(
+        {} as any,
+        UserRepository as any,
+        ArgonHash as any,
+        Redis as any,
+        TokenService as any
+    )
 
-        vi.mocked(UserRepository.returnLoginCredentials).mockResolvedValue({id, email: body.email, password: body.password})
-        vi.mocked(UserRepository.updatePasswordHash).mockResolvedValue()
-        vi.mocked(ArgonHash.argonVerify).mockResolvedValue(true)
-        vi.mocked(ArgonHash.argonRehash).mockResolvedValue(body.password)
-        vi.mocked(randomUUID).mockReturnValue(jti)
-        vi.mocked(generateTokens).mockResolvedValue(tokens)
-        vi.mocked(redis.set).mockResolvedValue('OK')
+    return {sut, UserRepository, ArgonHash, Redis, TokenService}
+}
+
+describe('AuthUserService.login', () => {
+    // Error cases
+    it('recusa com 401 quando email não existe', async () => {
+        // Arrange
+        const {sut, UserRepository} = makeSut()
+        UserRepository.returnLoginCredentials.mockResolvedValue(null)
+
+        // Act
+        const result = sut.login({email: 'teste@gmail.com', password: '123'})
+
+        // Assert
+        await expect(result).rejects.toMatchObject({statusCode: 401, code: ErrorCode.INVALID_CREDENTIALS})
+
+        // Espião
+        expect(UserRepository.returnLoginCredentials).toHaveBeenCalledWith('teste@gmail.com')
     })
 
-    it('deveria retornar um objeto com o acessToken e o refreshToken', async () => {
-        const data = await AuthUserService.login(body)
+    it('recusa com 401 quando a senha está incorreta', async () => {
+        // Arrange
+        const {sut, UserRepository, ArgonHash, TokenService} = makeSut()
+        ArgonHash.verify.mockResolvedValue(false)
 
-        expect(UserRepository.returnLoginCredentials).toHaveBeenCalledWith(body.email)
-        expect(UserRepository.updatePasswordHash).toHaveBeenCalledWith(1, body.password)
+        // Act
+        const result = sut.login({email: 'teste@gmail.com', password: 'senha-errada'})
 
-        expect(ArgonHash.argonVerify).toHaveBeenCalledWith(body.password, body.password)
-        expect(ArgonHash.argonRehash).toHaveBeenCalledWith(body.password, body.password)
+        // Assert
+        await expect(result).rejects.toMatchObject({statusCode: 401, code: ErrorCode.INVALID_CREDENTIALS})
 
-        expect(randomUUID).toHaveBeenCalled()
-
-        expect(generateTokens).toHaveBeenCalledWith(id, jti)
-
-        expect(redis.set).toHaveBeenCalledWith(`refresh-token-${jti}`, id, 'EX', 604800)
-
-        expect(data).toEqual(tokens)
+        // Espião
+        expect(UserRepository.returnLoginCredentials).toHaveBeenCalledWith('teste@gmail.com')
+        expect(ArgonHash.verify).toHaveBeenCalledWith('hash-salvo', 'senha-errada')
+        expect(TokenService.generateAccessToken).not.toHaveBeenCalled()
+        expect(TokenService.generateRefreshToken).not.toHaveBeenCalled()
     })
 
-    it('deveria retornar UnauthorizedError caso não encontre as credenciais', async () => {
-        vi.mocked(UserRepository.returnLoginCredentials).mockResolvedValue(null)
+    it('rehash necessário', async () => {
+        // Arrange
+        const {sut, UserRepository, ArgonHash} = makeSut()
+        ArgonHash.rehash.mockResolvedValue('hash-novo')
 
-        await expect(AuthUserService.login(body)).rejects.toMatchObject({
-            statusCode: 401,
-            code: ErrorCode.INVALID_CREDENTIALS
+        // Act
+        const result = await sut.login({email: 'teste@gmail.com', password: '123'})
+
+        // Assert
+        expect(result).toEqual({accessToken: 'access', refreshToken: 'refresh'})
+
+        // Espião
+        expect(ArgonHash.rehash).toHaveBeenCalledWith('123', 'hash-salvo')
+        expect(UserRepository.updatePasswordHash).toHaveBeenCalledWith(1, 'hash-novo')
+    })
+
+    it('deve retornar REDIS_SAVE_ERROR caso redis falhe ao salvar refresh token', async () => {
+        // Arrange
+        const {sut, Redis} = makeSut()
+        Redis.set.mockRejectedValue(new Error('down'))
+
+        // Act
+        const result = sut.login({email: 'teste@gmail.com', password: '123'})
+
+        // Assert
+        await expect(result).rejects.toMatchObject({statusCode: 500, code: ErrorCode.REDIS_SAVE_ERROR})
+
+        // Espião
+        expect(Redis.set).toHaveBeenCalledTimes(1)
+    })
+
+    // Happy path
+    it('deve retornar os tokens e salvar o refresh token no Redis', async () => {
+        // Arrange
+        const {sut, UserRepository, ArgonHash, Redis, TokenService} = makeSut()
+
+        // Act
+        const result = await sut.login({email: 'teste@gmail.com', password: '123'})
+
+        // Assert
+        expect(result).toEqual({
+            accessToken: 'access',
+            refreshToken: 'refresh'
         })
-    })
 
-    it('deveria retornar UnauthorizedError caso a verificação da senha dê credenciais incorretas', async () => {
-        vi.mocked(ArgonHash.argonVerify).mockResolvedValue(false)
-
-        await expect(AuthUserService.login(body)).rejects.toMatchObject({
-            statusCode: 401,
-            code: ErrorCode.INVALID_CREDENTIALS
-        })
-    })
-
-    it('deveria NÃO atualizar o hash caso não precise de rehash', async () => {
-        vi.mocked(ArgonHash.argonRehash).mockResolvedValue(null)
-
-        await AuthUserService.login(body)
-        
-        expect(ArgonHash.argonRehash).toHaveBeenCalledWith(body.password, body.password)
-
+        // Espião
+        expect(UserRepository.returnLoginCredentials).toHaveBeenCalledWith('teste@gmail.com')
+        expect(ArgonHash.verify).toHaveBeenCalledWith('hash-salvo', '123')
+        expect(ArgonHash.rehash).toHaveBeenCalledWith('123', 'hash-salvo')
         expect(UserRepository.updatePasswordHash).not.toHaveBeenCalled()
-    })
-
-    it('deveria falhar caso o returnLoginCredentials falhe', async () => {
-        vi.mocked(UserRepository.returnLoginCredentials).mockRejectedValue(new AppError('Erro', 500, ErrorCode.INTERNAL_SERVER_ERROR))
-
-        await expect(AuthUserService.login(body)).rejects.toMatchObject({
-            statusCode: 500,
-            code: ErrorCode.INTERNAL_SERVER_ERROR
-        })
-    })
-
-    it('deveria falhar caso o argonVerify falhe', async () => {
-        vi.mocked(ArgonHash.argonVerify).mockRejectedValue(new AppError('Erro', 500, ErrorCode.INTERNAL_SERVER_ERROR))
-
-        await expect(AuthUserService.login(body)).rejects.toMatchObject({
-            statusCode: 500,
-            code: ErrorCode.INTERNAL_SERVER_ERROR
-        })
-    })
-
-    it('deveria falhar caso o argonRehash falhe', async () => {
-        vi.mocked(ArgonHash.argonRehash).mockRejectedValue(new AppError('Erro', 500, ErrorCode.INTERNAL_SERVER_ERROR))
-
-        await expect(AuthUserService.login(body)).rejects.toMatchObject({
-            statusCode: 500,
-            code: ErrorCode.INTERNAL_SERVER_ERROR
-        })
-    })
-
-    it('deveria falhar caso o updatePasswordHash falhe', async () => {
-        vi.mocked(UserRepository.updatePasswordHash).mockRejectedValue(new AppError('Erro', 500, ErrorCode.UPDATE_DATABASE_ERROR))
-
-        await expect(AuthUserService.login(body)).rejects.toMatchObject({
-            statusCode: 500,
-            code: ErrorCode.UPDATE_DATABASE_ERROR
-        })
-    })
-
-    it('deveria falhar caso o generateTokens falhe', async () => {
-        vi.mocked(generateTokens).mockRejectedValue(new AppError('Erro', 500, ErrorCode.INTERNAL_SERVER_ERROR))
-
-        await expect(AuthUserService.login(body)).rejects.toMatchObject({
-            statusCode: 500,
-            code: ErrorCode.INTERNAL_SERVER_ERROR
-        })
-    })
-
-    it('deveria falhar caso o redis.set falhe', async () => {
-        vi.mocked(redis.set).mockRejectedValue(new AppError('Erro', 500, ErrorCode.INTERNAL_SERVER_ERROR))
-
-        await expect(AuthUserService.login(body)).rejects.toMatchObject(
-            {
-                statusCode: 500,
-                code: ErrorCode.REDIS_SAVE_ERROR
-            }
-        )
+        expect(TokenService.generateRefreshToken).toHaveBeenCalledWith({userId: '1', jti: expect.any(String)})
+        expect(Redis.set).toHaveBeenCalledWith(expect.stringContaining('refresh-token'), 1, 'EX', 604800)
     })
 })

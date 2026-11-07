@@ -11,13 +11,31 @@ interface AcessTokenData{
 }
 const AcessPayloadSchema = z.object({sub: z.string()})
 
-interface RefreshTokenData extends AcessTokenData{}
-const RefreshPayloadSchema = z.object({sub: z.string()})
+interface RefreshTokenData extends AcessTokenData{
+    jti: string
+}
+const RefreshPayloadSchema = z.object({sub: z.string(), jti: z.string()})
 
 const ALGORITHM = 'HS256';
 
 export class TokenService{
     constructor(private readonly config: TokenServiceConfig) {}
+
+    generateAccessToken({userId}: AcessTokenData): string{
+        return jwt.sign(
+            {sub: userId},
+            this.config.acessSecret,
+            {expiresIn: "15m"}
+        )
+    }
+
+    generateRefreshToken({userId, jti}: RefreshTokenData): string{
+        return jwt.sign(
+            {sub: userId, jti},
+            this.config.refreshSecret,
+            {expiresIn: "7d"}
+        )
+    }
 
     verifyAcessToken(token: string): AcessTokenData | null{
         const payload = this.decode(token, this.config.acessSecret, AcessPayloadSchema)
@@ -26,7 +44,7 @@ export class TokenService{
 
     verifyRefreshToken(token: string): RefreshTokenData | null{
         const payload = this.decode(token, this.config.refreshSecret, RefreshPayloadSchema)
-        return payload && {userId: payload.sub}
+        return payload && {userId: payload.sub, jti: payload.jti}
     }
 
     private decode<T>(token: string, secret: string, schema: z.ZodType<T>): T | null{

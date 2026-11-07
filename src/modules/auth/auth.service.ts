@@ -2,15 +2,13 @@ import { AuthDTOs } from '@/modules/auth/auth.dtos'
 import { AuthUserRepository } from '@/modules/auth/auth.repository'
 import { UserRepository } from '@/modules/user/user.repository'
 import { ArgonHash } from '@/shared/utils/ArgonHash'
-import jwt from 'jsonwebtoken'
 import { ConflictError } from '@/shared/errors/ConflictError'
 import { ErrorCode } from '@/shared/errors/ErrorCodes'
 import { AppError } from '@/shared/errors/AppError'
 import { UnauthorizedError } from '@/shared/errors/UnauthorizedError'
-import { verifyKeyExists } from '@/shared/utils/verifyKeyExists'
-import { generateCode } from '@/shared/utils/generateCode'
-import { generateTokens } from '@/shared/utils/generateTokens'
+import { generateCode } from '@/shared/utils/GenerateCode'
 import { randomUUID } from "crypto";
+import { TokenService } from '@/shared/utils/TokenService'
 import Redis from 'ioredis'
 
 export class AuthUserService{
@@ -19,7 +17,8 @@ export class AuthUserService{
         private readonly AuthUserRepository: AuthUserRepository,
         private readonly UserRepository: UserRepository,
         private readonly ArgonHash: ArgonHash,
-        private readonly Redis: Redis
+        private readonly Redis: Redis,
+        private readonly TokenService: TokenService
     ){}
 
     async verifyEmail(data: AuthDTOs['VerifyEmailRequestDTO']):Promise<AuthDTOs['VerifyEmailResponseDTO']>{
@@ -30,7 +29,8 @@ export class AuthUserService{
         // Password hash with Argon2
        const hashedPassword = await this.ArgonHash.hash(data.password)
         
-        const keyExists = await verifyKeyExists(`verify-email-cooldown-${data.email}`)
+       // Verificar cooldown
+        const keyExists = await this.Redis.exists(`verify-email-cooldown-${data.email}`)
         if(keyExists) throw new ConflictError('Aguarde para realizar esta ação novamente.', ErrorCode.LIMIT_ATTEMPTS)
 
         // Save on Redis
@@ -103,7 +103,7 @@ export class AuthUserService{
         const keyCooldown = `verify-email-cooldown-${data.email}`
         const keyNewCode = `verify-email-${data.email}`
 
-        const keyExists = await verifyKeyExists(keyCooldown)
+        const keyExists = await this.Redis.exists(keyCooldown)
         if(keyExists) throw new ConflictError('Aguarde para realizar esta ação novamente.', ErrorCode.LIMIT_ATTEMPTS)
 
         let oldKey
@@ -162,7 +162,8 @@ export class AuthUserService{
         if(newHashedPassword) await this.UserRepository.updatePasswordHash(userCredentials.id, newHashedPassword)
 
         const jti = randomUUID()
-        const tokens = await generateTokens(userCredentials.id, jti)
+        const refreshToken = this.TokenService.generateRefreshToken({userId: userCredentials.id.toString(), jti})
+        const accessToken = this.TokenService.generateAccessToken({userId: userCredentials.id.toString()})
 
         try{
             await this.Redis.set(
@@ -175,51 +176,34 @@ export class AuthUserService{
             throw new AppError('Erro ao salvar token', 500, ErrorCode.REDIS_SAVE_ERROR)
         }
 
-        const {accessToken, refreshToken} = tokens
-
-        if(!accessToken || !refreshToken) throw new AppError('Token inválido.', 500, ErrorCode.INTERNAL_SERVER_ERROR)
-
         return {accessToken, refreshToken}
     }
 
     async refreshToken(refreshToken: string): Promise<AuthDTOs['TokensDTO']>{
+        const oldRefreshToken = this.TokenService.verifyRefreshToken(refreshToken)
+        if (!oldRefreshToken) throw new UnauthorizedError('Refresh token inválido', ErrorCode.INVALID_TOKEN)
+        const userId = oldRefreshToken.userId
+        const oldJti = oldRefreshToken.jti
+
+        const removed = await this.Redis.del(`refresh-token-${oldJti}`)
+        if(!removed) throw new UnauthorizedError('Refresh token inválido', ErrorCode.INVALID_TOKEN)            
+
+        const newJti = randomUUID()
+        const newRefreshToken = this.TokenService.generateRefreshToken({userId, jti: newJti})
+        const newAcessToken = this.TokenService.generateAccessToken({userId})
+
         try{
-            const decodedRefreshToken = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET!) as jwt.JwtPayload
-            const {jti, sub} = decodedRefreshToken
-            const dataTokens = await this.Redis.exists(`refresh-token-${jti}`)
-            if(!dataTokens) throw new UnauthorizedError('Refresh token inválido', ErrorCode.INVALID_TOKEN)
-            await this.Redis.del(`refresh-token-${jti}`)
-
-            const newJti = randomUUID()
-            const newTokens = await generateTokens(Number(sub), newJti)
-
-            try{
-                await this.Redis.set(
-                    `refresh-token-${newJti}`,
-                    Number(sub),
-                    "EX",
-                    604800
-                )
-            }catch{
-                throw new AppError('Erro ao salvar token', 500, ErrorCode.REDIS_SAVE_ERROR)
-            }
-
-            return newTokens
-        }catch(error){
-            if(error instanceof jwt.TokenExpiredError){
-                throw new UnauthorizedError('Refresh token expirado', ErrorCode.TOKEN_EXPIRED)
-            }
-
-            if(error instanceof jwt.JsonWebTokenError){
-                throw new UnauthorizedError('Refresh token inválido', ErrorCode.INVALID_TOKEN)
-            }
-
-            if(error instanceof AppError){
-                throw error
-            }
-
-            throw new AppError('Erro ao renovar sessão', 500, ErrorCode.INTERNAL_SERVER_ERROR)
+            await this.Redis.set(
+                `refresh-token-${newJti}`,
+                userId,
+                "EX",
+                604800
+            )
+        }catch{
+            throw new AppError('Erro ao salvar token', 500, ErrorCode.REDIS_SAVE_ERROR)
         }
+
+        return {accessToken: newAcessToken, refreshToken: newRefreshToken}
     }
 
     async sendCodeRecovery(email: string): Promise<{tokenUUID: string | null}>{
@@ -321,17 +305,15 @@ export class AuthUserService{
 
     async logout(refreshToken: string){
         try{
-            const decodedToken = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET!) as jwt.JwtPayload
-            const {jti} = decodedToken
+            const dataToken = this.TokenService.verifyRefreshToken(refreshToken)
+            if (!dataToken) throw new UnauthorizedError('Refresh token inválido', ErrorCode.INVALID_TOKEN)
             try{
-                await this.Redis.del(`refresh-token-${jti}`)
+                await this.Redis.del(`refresh-token-${dataToken.jti}`)
             }catch{
                 throw new AppError('Erro ao deletar refresh token', 500, ErrorCode.REDIS_DEL_ERROR)
             }
-        }catch(error){
-            if(error instanceof jwt.JsonWebTokenError) throw new UnauthorizedError('Refresh Token inválido', ErrorCode.INVALID_TOKEN)
-            if(error instanceof jwt.TokenExpiredError) throw new UnauthorizedError('Refresh Token expirado', ErrorCode.TOKEN_EXPIRED)
-            if(error instanceof AppError) throw error
+        }catch{
+            throw new AppError('Erro interno do servidor', 500, ErrorCode.INTERNAL_SERVER_ERROR)
         }
     }
 }

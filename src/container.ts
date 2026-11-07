@@ -31,7 +31,7 @@ export function createContainer(){
 
     const authUserRepository = new AuthUserRepository()
     const userRepository = new UserRepository(prisma)
-    const authUserService = new AuthUserService(authUserRepository, userRepository, argonHash, redis)
+    const authUserService = new AuthUserService(authUserRepository, userRepository, argonHash, redis, tokenService)
 
     const productRepository = new ProductsRepository(prisma)
     const productService = new ProductsService(productRepository)

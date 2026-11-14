@@ -9,5 +9,5 @@ const app = createApp(createContainer())
 app.listen(port, (error) => {
     if (error) throw error
 
-    console.log(`API rodando em http://localhost/${port}`)
+    console.log(`API rodando em http://localhost:${port}`)
 })

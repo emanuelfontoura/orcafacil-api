@@ -12,22 +12,23 @@ modules:
   - "auth"
   - "clients"
 sources:
-  - "src/index.ts"
+  - "src/app.ts"
+  - "src/routes.ts"
   - "src/middlewares/"
   - "src/modules/"
 related:
   - "architecture/overview.md"
   - "api/error-handling.md"
   - "api/authentication.md"
-last_reviewed: 2026-10-16
+last_reviewed: 2026-11-14
 ---
 
 # Arquitetura — Ciclo de Vida das Requisições
 
 > **Escopo:** o caminho de uma requisição HTTP no `orcafacil-api`, da entrada no Express até a resposta: middlewares globais, cadeia de middlewares por rota, camadas do módulo, formato da resposta e tratamento de erros. Inclui os fluxos de autenticação.
 > **Documentos relacionados:** [`overview.md`](./overview.md) · [`folder-structure.md`](./folder-structure.md) · [`conventions.md`](./conventions.md)
-> **Fonte da verdade:** `src/index.ts`, `src/middlewares/`, `src/modules/*/`.
-> **Última revisão:** 2026-10-16.
+> **Fonte da verdade:** `src/app.ts`, `src/routes.ts`, `src/middlewares/`, `src/modules/*/`.
+> **Última revisão:** 2026-11-14.
 
 ---
 
@@ -62,7 +63,7 @@ Toda resposta, de sucesso ou de erro, segue o tipo `ApiResponse<T>` (`src/shared
 
 ## 2. Etapa por etapa
 
-### 2.1 Middlewares globais (`src/index.ts`)
+### 2.1 Middlewares globais (`src/app.ts`)
 
 Executados em **todas** as requisições, nesta ordem:
 
@@ -76,11 +77,12 @@ Executados em **todas** as requisições, nesta ordem:
 
 | Prefixo | Router | Arquivo |
 |---|---|---|
-| `/user/auth` | `AuthUserRoutes` | `src/modules/auth/auth.route.ts` |
+| `/clients` | `createClientsRoute(container)` | `src/modules/clients/clients.route.ts` |
+| `/user/auth` | `createAuthUserRoutes(container)` | `src/modules/auth/auth.route.ts` |
 | `/user` | `UserRoutes` | `src/modules/user/user.route.ts` |
-| `/clients` | `ClientsRoutes` | `src/modules/clients/clients.route.ts` |
+| `/products` | `createProductsRoutes(container)` | `src/modules/products/products.route.ts` |
 
-`/user/auth` é registrado **antes** de `/user`. Rota inexistente cai no 404 padrão do Express (não passa pelo `ApiResponse`).
+Os prefixos são registrados em `src/routes.ts`, e o `src/app.ts` monta esse router em `/api/v1` (ex.: `/api/v1/user/auth/login`). `/user/auth` é registrado **antes** de `/user`. Rota inexistente cai no 404 padrão do Express (não passa pelo `ApiResponse`).
 
 ### 2.3 Cadeia de middlewares da rota
 
@@ -139,7 +141,7 @@ static async metodo(req: Request, res: Response<ApiResponse<DTO>>, next: NextFun
 
 ### 2.7 Tratamento de erros — `handleError`
 
-Registrado por último em `src/index.ts`. Recebe tudo o que foi passado a `next(error)` e também promises rejeitadas de middlewares assíncronos (o Express 5 encaminha automaticamente).
+Registrado por último em `src/app.ts`. Recebe tudo o que foi passado a `next(error)` e também promises rejeitadas de middlewares assíncronos (o Express 5 encaminha automaticamente).
 
 | Tipo do erro | Status | Corpo da resposta |
 |---|---|---|

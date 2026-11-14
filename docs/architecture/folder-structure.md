@@ -23,7 +23,7 @@ sources:
 related:
   - "architecture/overview.md"
   - "architecture/conventions.md"
-last_reviewed: 2026-10-17
+last_reviewed: 2026-11-14
 ---
 
 # Arquitetura — Estrutura de Pastas
@@ -31,7 +31,7 @@ last_reviewed: 2026-10-17
 > **Escopo:** organização de pastas e arquivos do `orcafacil-api`, o papel de cada diretório e onde colocar código novo.
 > **Documentos relacionados:** [`overview.md`](./overview.md) · [`request-lifecycle.md`](./request-lifecycle.md) · [`conventions.md`](./conventions.md)
 > **Fonte da verdade:** árvore de arquivos do repositório `orcafacil-api`.
-> **Última revisão:** 2026-10-17.
+> **Última revisão:** 2026-11-14.
 
 ---
 
@@ -52,7 +52,10 @@ orcafacil-api/
 │   └── schema.prisma                   # Models do banco (fonte da verdade do schema)
 │
 ├── src/
-│   ├── index.ts                        # Entry point: cria o app Express, middlewares globais, rotas e handleError
+│   ├── server.ts                       # Entry point: cria o container e o app e inicia o servidor em PORT
+│   ├── app.ts                          # createApp: middlewares globais, router em /api/v1 e handleError
+│   ├── routes.ts                       # createRouter: monta o router de cada módulo no seu prefixo
+│   ├── container.ts                    # createContainer: instancia repositories, services, controllers e middlewares
 │   │
 │   ├── lib/                            # Clientes de infraestrutura (instâncias únicas)
 │   │   ├── prisma.ts                   # PrismaClient com adapter pg (singleton)
@@ -140,8 +143,8 @@ Arquivos não versionados: `.env`, `.env.dev`, `.env.test`, `.env.prod`, `dist/`
 ### `prisma/`
 Tudo o que define o banco relacional. `schema.prisma` é a fonte da verdade dos models; `migrations/` guarda o SQL gerado por `prisma migrate dev`, uma pasta por migration (`{AAAAMMDDHHMMSS}_{descricao_em_snake_case}`). Migrations aplicadas nunca são editadas. Detalhes em [`../database/schema.md`](../database/schema.md).
 
-### `src/index.ts`
-Único entry point. Faz, nesta ordem: carrega o `.env` (`dotenv/config`), cria o app Express, registra os middlewares globais (`cors`, `express.json`, `cookieParser`), monta os routers de cada módulo em seus prefixos, registra o `handleError` **por último** e inicia o servidor em `PORT`. Ao criar um módulo novo, o router dele deve ser registrado aqui.
+### `src/server.ts`, `src/app.ts`, `src/routes.ts` e `src/container.ts`
+`server.ts` é o único entry point (`npm run dev` e `node dist/server.js`): cria o container e o app e inicia o servidor em `PORT`. `container.ts` instancia as dependências (repositories, services, controllers, `authenticate`, `rateLimit`). `app.ts` registra os middlewares globais (`cors`, `express.json`, `cookieParser`), monta o router em `/api/v1` e registra o `handleError` **por último**. `routes.ts` monta o router de cada módulo no seu prefixo. Ao criar um módulo novo, registre o router dele em `routes.ts`.
 
 ### `src/lib/`
 Instâncias de clientes de infraestrutura, criadas **uma única vez** e importadas onde forem necessárias:
@@ -198,7 +201,7 @@ Use `@/...` para importar de outra pasta de `src/`. Imports relativos (`./`) apa
 
 | Preciso criar… | Local |
 |---|---|
-| Um novo recurso da API (ex.: produtos, orçamentos) | `src/modules/{recurso}/` com os 7 arquivos padrão + registrar o router em `src/index.ts` |
+| Um novo recurso da API (ex.: produtos, orçamentos) | `src/modules/{recurso}/` com os 7 arquivos padrão + registrar o router em `src/routes.ts` |
 | Um endpoint num recurso existente | Rota em `{modulo}.route.ts`, método no controller, no service e (se acessar dados) no repository; schema Zod em `{modulo}.schema.ts`; tipos em `.dtos.ts`/`.types.ts` |
 | Uma regra de validação de entrada | `{modulo}.schema.ts` (Zod) |
 | Uma validação reutilizável (ex.: CPF/CNPJ) | `src/shared/utils/` |

@@ -19,7 +19,7 @@ related:
   - "api/endpoints.md"
   - "api/validation.md"
   - "architecture/conventions.md"
-last_reviewed: 2026-10-16
+last_reviewed: 2026-11-14
 ---
 
 # API — Tratamento de Erros
@@ -27,7 +27,7 @@ last_reviewed: 2026-10-16
 > **Escopo:** como os erros são criados, propagados e transformados em respostas HTTP no `orcafacil-api`: hierarquia de classes, enum `ErrorCode`, middleware `handleError`, formato das respostas, mapa de status, responsabilidades por camada e como criar novos erros.
 > **Documentos relacionados:** [`endpoints.md`](./endpoints.md) (erros por rota) · [`validation.md`](./validation.md) · [`authentication.md`](./authentication.md) · [`../architecture/request-lifecycle.md`](../architecture/request-lifecycle.md#27-tratamento-de-erros--handleerror) · [`../architecture/conventions.md`](../architecture/conventions.md#5-erros)
 > **Fonte da verdade:** `src/shared/errors/`, `src/middlewares/handleError.ts`, `src/shared/types/apiResponse.ts`.
-> **Última revisão:** 2026-10-16.
+> **Última revisão:** 2026-11-14.
 
 ---
 
@@ -124,7 +124,7 @@ Enum de strings enviado no campo `code` da resposta. **O cliente recebe o valor*
 
 ## 4. Middleware `handleError`
 
-Arquivo: `src/middlewares/handleError.ts`. Registrado **por último** em `src/index.ts` (`app.use(handleError)`).
+Arquivo: `src/middlewares/handleError.ts`. Registrado **por último** em `src/app.ts` (`app.use(handleError)`).
 
 ```ts
 export function handleError(error: any, req, res, next){

@@ -12,23 +12,24 @@ modules:
   - "clients"
   - "user"
 sources:
-  - "src/index.ts"
+  - "src/app.ts"
+  - "src/routes.ts"
   - "src/modules/auth/auth.route.ts"
   - "src/modules/clients/clients.route.ts"
 related:
   - "api/authentication.md"
   - "api/validation.md"
   - "api/error-handling.md"
-last_reviewed: 2026-10-16
+last_reviewed: 2026-11-14
 ---
 
 # API — Endpoints
 
 > **Escopo:** referência completa dos endpoints HTTP do `orcafacil-api`: método, caminho, autenticação, rate limit, parâmetros, body, resposta e erros possíveis.
 > **Documentos relacionados:** [`authentication.md`](./authentication.md) · [`validation.md`](./validation.md) · [`error-handling.md`](./error-handling.md) · [`../modules/auth.md`](../modules/auth.md) · [`../modules/clients.md`](../modules/clients.md) · [`../modules/user.md`](../modules/user.md)
-> **Fonte da verdade:** `src/index.ts` e `src/modules/*/*.route.ts` no repositório `orcafacil-api`.
+> **Fonte da verdade:** `src/app.ts`, `src/routes.ts` e `src/modules/*/*.route.ts` no repositório `orcafacil-api`.
 > **Documentação externa (Postman):** https://documenter.getpostman.com/view/53399164/2sBXqDsiVE
-> **Última revisão:** 2026-10-16.
+> **Última revisão:** 2026-11-14.
 
 ---
 
@@ -36,11 +37,11 @@ last_reviewed: 2026-10-16
 
 | Item | Valor |
 |---|---|
-| URL base (dev) | `http://localhost:3000` (porta definida por `PORT`, padrão `3000`) |
+| URL base (dev) | `http://localhost:3000/api/v1` (porta definida por `PORT`, padrão `3000`); os caminhos deste documento são relativos a `/api/v1` |
 | Formato | JSON (`Content-Type: application/json`) |
 | Autenticação | Cookie `accessToken` (JWT) — ver [`authentication.md`](./authentication.md) |
 | CORS | Origem `http://localhost:3000`, `credentials: true` |
-| Versionamento | Não há prefixo de versão (`/v1`) |
+| Versionamento | Prefixo `/api/v1` em todas as rotas (`src/app.ts`) |
 | Status de sucesso | Sempre **200** |
 
 ### Formato das respostas

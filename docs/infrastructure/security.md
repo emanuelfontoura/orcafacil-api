@@ -16,22 +16,22 @@ sources:
   - "src/middlewares/"
   - "src/shared/utils/"
   - "src/modules/auth/"
-  - "src/index.ts"
+  - "src/app.ts"
   - "Dockerfile"
   - "docker-compose.prod.yml"
 related:
   - "api/authentication.md"
   - "infrastructure/redis.md"
   - "database/relationships.md"
-last_reviewed: 2026-10-16
+last_reviewed: 2026-11-14
 ---
 
 # Infraestrutura — Segurança
 
 > **Escopo:** medidas de segurança adotadas no `orcafacil-api`, organizadas por camada: autenticação e sessões, senhas e segredos, cookies e CORS, proteção contra abuso, validação de entrada, exposição de dados, isolamento entre usuários, tratamento de erros, segredos de ambiente e infraestrutura. Inclui as diretrizes para código novo.
 > **Documentos relacionados:** [`../api/authentication.md`](../api/authentication.md) · [`redis.md`](./redis.md) · [`environment.md`](./environment.md) · [`../api/validation.md`](../api/validation.md) · [`../api/error-handling.md`](../api/error-handling.md) · [`../database/relationships.md`](../database/relationships.md#4-isolamento-por-usuário-multi-tenant)
-> **Fonte da verdade:** `src/middlewares/`, `src/shared/utils/`, `src/modules/auth/`, `src/index.ts`, arquivos Docker.
-> **Última revisão:** 2026-10-16.
+> **Fonte da verdade:** `src/middlewares/`, `src/shared/utils/`, `src/modules/auth/`, `src/app.ts`, arquivos Docker.
+> **Última revisão:** 2026-11-14.
 
 ---
 
@@ -44,7 +44,7 @@ last_reviewed: 2026-10-16
 | Sessão | JWT de curta duração + refresh token rotativo e revogável | `generateTokens`, Redis |
 | Transporte dos tokens | Cookies `httpOnly`, `sameSite=strict`, `secure` em produção | `AuthCookies` |
 | Rotas protegidas | Middleware `authenticate` | `src/middlewares/authenticate.ts` |
-| CORS | Origem única com credenciais | `src/index.ts` |
+| CORS | Origem única com credenciais | `src/app.ts` |
 | Abuso / força bruta | Rate limit por IP e rota, cooldown, limite de tentativas | `rateLimit`, Redis |
 | Enumeração de usuários | Mensagem única para e-mail inexistente e senha errada no login | `AuthUserService.login` |
 | Entrada | Validação Zod com descarte de campos extras | `validateSchema` |
@@ -117,7 +117,7 @@ last_reviewed: 2026-10-16
 
 Os tokens **nunca** são retornados no corpo da resposta.
 
-**CORS** (`src/index.ts`):
+**CORS** (`src/app.ts`):
 
 ```ts
 app.use(cors({ origin: 'http://localhost:3000', credentials: true }))

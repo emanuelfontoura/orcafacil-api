@@ -20,7 +20,7 @@ related:
   - "infrastructure/dependencies.md"
   - "infrastructure/redis.md"
   - "infrastructure/security.md"
-last_reviewed: 2026-10-15
+last_reviewed: 2026-11-14
 ---
 
 # Infraestrutura — Ambientes, Docker e CI/CD
@@ -28,7 +28,7 @@ last_reviewed: 2026-10-15
 > **Escopo:** variáveis de ambiente, arquivos `.env`, ambientes (desenvolvimento, CI e produção), Docker (`Dockerfile` e Compose), pipeline de CI no Bitbucket, processo de deploy e como executar o projeto localmente.
 > **Documentos relacionados:** [`dependencies.md`](./dependencies.md) · [`redis.md`](./redis.md) · [`security.md`](./security.md) · [`../architecture/overview.md`](../architecture/overview.md#7-ambientes-build-e-ci)
 > **Fonte da verdade:** `Dockerfile`, `docker-compose.dev.yml`, `docker-compose.prod.yml`, `bitbucket-pipelines.yml`, `package.json`, `prisma.config.ts` e usos de `process.env` em `src/`.
-> **Última revisão:** 2026-10-15.
+> **Última revisão:** 2026-11-14.
 
 ---
 
@@ -38,7 +38,7 @@ last_reviewed: 2026-10-15
 |---|---|---|---|---|---|
 | **Desenvolvimento** | No host, `npm run dev` (ts-node-dev) | `postgres:15` em container | `redis:7` em container | `.env` | `docker-compose.dev.yml` |
 | **CI** | Testes unitários + build | `postgres:15` (service do pipeline) | `redis:7` (service do pipeline) | Variáveis `export` no script | `bitbucket-pipelines.yml` |
-| **Produção** | Container da imagem (`node dist/index.js`) | `postgres:17` em container | `redis:8-alpine` em container (AOF) | `.env.prod` | `docker-compose.prod.yml` |
+| **Produção** | Container da imagem (`node dist/server.js`) | `postgres:17` em container | `redis:8-alpine` em container (AOF) | `.env.prod` | `docker-compose.prod.yml` |
 
 ```mermaid
 flowchart LR
@@ -64,7 +64,7 @@ Carregadas pelo `dotenv` (`import 'dotenv/config'`), que lê o arquivo **`.env` 
 
 | Variável | Obrigatória | Usada em | Descrição |
 |---|---|---|---|
-| `PORT` | não (padrão `3000`) | `src/index.ts` | Porta HTTP da API. |
+| `PORT` | não (padrão `3000`) | `src/server.ts` | Porta HTTP da API. |
 | `NODE_ENV` | não | `src/lib/prisma.ts`, `AuthCookies.ts` | `production` ativa `secure` nos cookies e desativa o cache global do Prisma Client. CI usa `test`. |
 | `DATABASE_URL` | **sim** | `src/lib/prisma.ts`, `prisma.config.ts` | String de conexão PostgreSQL (`postgresql://user:senha@host:5432/banco`). |
 | `DATABASE_USER` | dev | `docker-compose.dev.yml` | Usuário do PostgreSQL criado no container. |
@@ -174,7 +174,7 @@ COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 EXPOSE 3000
-CMD ["node", "dist/index.js"]
+CMD ["node", "dist/server.js"]
 ```
 
 - A imagem final contém só `dist/`, `prisma/` (schema e migrations), o Prisma Client gerado e as dependências de produção.
@@ -265,4 +265,4 @@ Ao automatizar o CD, um step de `branches: main` no `bitbucket-pipelines.yml` po
 | API | `http://localhost:3000` | `api:3000` (publicada em `3000` no host) |
 | PostgreSQL | `localhost:5432` | `postgres:5432` (não publicado) |
 | Redis | `localhost:6379` | `redis:6379` (não publicado) |
-| Frontend permitido no CORS | `http://localhost:3000` | idem (fixo em `src/index.ts`) |
+| Frontend permitido no CORS | `http://localhost:3000` | idem (fixo em `src/app.ts`) |

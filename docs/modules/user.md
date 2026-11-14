@@ -13,7 +13,7 @@ sources:
 related:
   - "modules/auth.md"
   - "database/schema.md"
-last_reviewed: 2026-10-15
+last_reviewed: 2026-11-14
 ---
 
 # Módulo `user`
@@ -21,7 +21,7 @@ last_reviewed: 2026-10-15
 > **Escopo:** responsabilidades, arquivos, estado atual e repositório do módulo de usuários.
 > **Documentos relacionados:** [`auth.md`](./auth.md) (principal consumidor do repositório) · [`clients.md`](./clients.md) · [`../database/schema.md`](../database/schema.md#31-users-model-user) · [`../architecture/conventions.md`](../architecture/conventions.md)
 > **Fonte da verdade:** `src/modules/user/` no repositório `orcafacil-api`.
-> **Última revisão:** 2026-10-15.
+> **Última revisão:** 2026-11-14.
 
 ---
 
@@ -44,7 +44,7 @@ A **camada HTTP do módulo ainda não foi implementada**: o router é montado em
 
 | Arquivo | Estado | Conteúdo |
 |---|---|---|
-| `user.route.ts` | Esqueleto | `UserRoutes = Router()` sem rotas; registrado em `src/index.ts` como `app.use('/user', UserRoutes)`. |
+| `user.route.ts` | Esqueleto | `UserRoutes = Router()` sem rotas; registrado em `src/routes.ts` como `router.use('/user', UserRoutes)` (caminho final `/api/v1/user`). |
 | `user.controller.ts` | Vazio | `export class UserController {}` |
 | `user.service.ts` | Vazio | `export class UserService {}` |
 | `user.repository.ts` | **Implementado** | `UserRepository` com 5 métodos de acesso à tabela `users`. |

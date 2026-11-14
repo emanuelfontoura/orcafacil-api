@@ -17,7 +17,7 @@ sources:
 related:
   - "infrastructure/environment.md"
   - "architecture/overview.md"
-last_reviewed: 2026-10-16
+last_reviewed: 2026-11-14
 ---
 
 # Infraestrutura — Dependências
@@ -25,7 +25,7 @@ last_reviewed: 2026-10-16
 > **Escopo:** dependências do `orcafacil-api`: runtime, serviços externos, pacotes npm de produção e de desenvolvimento (com versão declarada e versão instalada), onde cada um é usado, scripts npm e regras para adicionar dependências.
 > **Documentos relacionados:** [`environment.md`](./environment.md) · [`redis.md`](./redis.md) · [`security.md`](./security.md) · [`../architecture/overview.md`](../architecture/overview.md#2-stack)
 > **Fonte da verdade:** `package.json` e `package-lock.json` (lockfile v3) no repositório `orcafacil-api`.
-> **Última revisão:** 2026-10-16.
+> **Última revisão:** 2026-11-14.
 
 ---
 
@@ -46,10 +46,10 @@ last_reviewed: 2026-10-16
 
 | Pacote | Declarado | Instalado | Finalidade | Onde é usado |
 |---|---|---|---|---|
-| `express` | ^5.2.1 | 5.2.1 | Framework HTTP (Express 5: encaminha promises rejeitadas ao error handler) | `src/index.ts`, routers, middlewares |
-| `cors` | ^2.8.6 | 2.8.6 | CORS com `credentials: true` | `src/index.ts` |
-| `cookie-parser` | ^1.4.7 | 1.4.7 | Popula `req.cookies` (tokens de autenticação) | `src/index.ts` |
-| `dotenv` | ^17.3.1 | 17.4.2 | Carrega o `.env` (`import 'dotenv/config'`) | `src/index.ts`, `src/lib/redis.ts`, `src/middlewares/authenticate.ts`, `prisma.config.ts` |
+| `express` | ^5.2.1 | 5.2.1 | Framework HTTP (Express 5: encaminha promises rejeitadas ao error handler) | `src/app.ts`, routers, middlewares |
+| `cors` | ^2.8.6 | 2.8.6 | CORS com `credentials: true` | `src/app.ts` |
+| `cookie-parser` | ^1.4.7 | 1.4.7 | Popula `req.cookies` (tokens de autenticação) | `src/app.ts` |
+| `dotenv` | ^17.3.1 | 17.4.2 | Carrega o `.env` (`import 'dotenv/config'`) | `src/config/env.ts`, `src/server.ts`, `src/lib/redis.ts`, `src/middlewares/authenticate.ts`, `prisma.config.ts` |
 | `@prisma/client` | ^7.5.0 | 7.8.0 | Client gerado do ORM | `src/lib/prisma.ts`, repositórios |
 | `@prisma/adapter-pg` | ^7.5.0 | 7.8.0 | Driver adapter do Prisma usando `pg` | `src/lib/prisma.ts` |
 | `ioredis` | ^5.10.1 | 5.11.1 | Cliente Redis | `src/lib/redis.ts` |
@@ -94,7 +94,7 @@ last_reviewed: 2026-10-16
 
 | Script | Comando | Uso |
 |---|---|---|
-| `dev` | `ts-node-dev --respawn --transpile-only -r tsconfig-paths/register src/index.ts` | Sobe a API em desenvolvimento com reload. `--transpile-only` não faz type-check. |
+| `dev` | `ts-node-dev --respawn --transpile-only -r tsconfig-paths/register src/server.ts` | Sobe a API em desenvolvimento com reload. `--transpile-only` não faz type-check. |
 | `build` | `tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json` | Compila `src/` para `dist/` e resolve os aliases. Faz type-check. |
 | `lint` | `eslint .` | Lint de `src/` e `tests/`. |
 | `test:unit:run` | `vitest run ./tests/unit` | Executa os testes unitários uma vez. |

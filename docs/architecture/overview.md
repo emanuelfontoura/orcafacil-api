@@ -14,7 +14,8 @@ modules:
   - "clients"
   - "user"
 sources:
-  - "src/index.ts"
+  - "src/server.ts"
+  - "src/app.ts"
   - "package.json"
   - "docker-compose.dev.yml"
   - "docker-compose.prod.yml"
@@ -23,7 +24,7 @@ related:
   - "architecture/folder-structure.md"
   - "architecture/request-lifecycle.md"
   - "architecture/conventions.md"
-last_reviewed: 2026-10-15
+last_reviewed: 2026-11-14
 ---
 
 # Arquitetura — Visão Geral
@@ -36,7 +37,7 @@ last_reviewed: 2026-10-15
 > - [`../database/schema.md`](../database/schema.md) e [`../database/relationships.md`](../database/relationships.md) — banco de dados.
 >
 > **Fonte da verdade:** código do repositório `orcafacil-api`. Se este documento divergir do código, o código prevalece.
-> **Última revisão:** 2026-10-15.
+> **Última revisão:** 2026-11-14.
 
 ---
 
@@ -181,7 +182,7 @@ Documentação externa dos endpoints (Postman): https://documenter.getpostman.co
 |---|---|
 | **Desenvolvimento** | `npm run dev:docker:up` sobe PostgreSQL 15 e Redis 7 (`docker-compose.dev.yml`); a API roda no host com `npm run dev` (`ts-node-dev`, hot reload, `tsconfig-paths`). |
 | **Build** | `npm run build` → `tsc -p tsconfig.build.json` + `tsc-alias` (resolve o alias `@/`) → saída em `dist/`. |
-| **Produção** | `Dockerfile` multi-stage (`node:20-alpine`): gera o Prisma Client, compila e executa `node dist/index.js` na porta 3000. `docker-compose.prod.yml` sobe API + PostgreSQL 17 + Redis 8 (com AOF) numa rede `orcafacil`, lendo `.env.prod`. |
+| **Produção** | `Dockerfile` multi-stage (`node:20-alpine`): gera o Prisma Client, compila e executa `node dist/server.js` na porta 3000. `docker-compose.prod.yml` sobe API + PostgreSQL 17 + Redis 8 (com AOF) numa rede `orcafacil`, lendo `.env.prod`. |
 | **CI** | `bitbucket-pipelines.yml`, em todo pull request: sobe PostgreSQL e Redis, `npm install` → `prisma generate` → `prisma migrate deploy` → testes unitários → build. |
 
 Repositório remoto: Bitbucket (`bitbucket.org/orcafacil-api/orcafacil-api`), com fluxo de pull requests.

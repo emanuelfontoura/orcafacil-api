@@ -20,7 +20,7 @@ related:
   - "architecture/folder-structure.md"
   - "testing/strategy.md"
   - "database/schema.md"
-last_reviewed: 2026-10-15
+last_reviewed: 2026-11-14
 ---
 
 # Arquitetura — Convenções e Padrões
@@ -28,7 +28,7 @@ last_reviewed: 2026-10-15
 > **Escopo:** convenções de código e padrões identificados no `orcafacil-api`: nomenclatura, estilo, estrutura de cada camada, tipagem, validação, erros, respostas, Redis, rotas, testes, Git e CI. Use este documento como guia para escrever código que pareça ter sido escrito pelo mesmo autor.
 > **Documentos relacionados:** [`overview.md`](./overview.md) · [`folder-structure.md`](./folder-structure.md) · [`request-lifecycle.md`](./request-lifecycle.md) · [`../database/schema.md`](../database/schema.md) (convenções de banco)
 > **Fonte da verdade:** código do repositório `orcafacil-api`.
-> **Última revisão:** 2026-10-15.
+> **Última revisão:** 2026-11-14.
 
 ---
 
@@ -329,6 +329,6 @@ Resumo das convenções detalhadas em [`../database/schema.md`](../database/sche
 2. Pasta `src/modules/{recurso}/` com `route`, `controller`, `service`, `repository`, `schema`, `dtos`, `types`.
 3. Rotas com `rateLimit` → `authenticate` → `validateSchema` → controller, seguindo os caminhos `/create`, `/edit/:id`, `/delete/:id`, `/`, `/:id`.
 4. Novos `ErrorCode` na seção do domínio.
-5. Registrar o router em `src/index.ts` (`app.use('/{recurso}', {Recurso}Routes)`) **antes** do `handleError`.
+5. Registrar o router em `src/routes.ts` (`router.use('/{recurso}', create{Recurso}Routes(container))`); o `src/app.ts` monta esse router em `/api/v1`, **antes** do `handleError`.
 6. Testes unitários do service em `tests/unit/{recurso}/`.
 7. Atualizar esta documentação (RAG): `database/` e `architecture/`.

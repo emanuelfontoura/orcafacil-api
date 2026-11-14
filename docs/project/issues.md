@@ -25,7 +25,7 @@ related:
   - "database/schema.md"
   - "modules/auth.md"
   - "modules/clients.md"
-last_reviewed: 2026-10-16
+last_reviewed: 2026-11-14
 ---
 
 # Projeto — Problemas Conhecidos (Issues)
@@ -33,7 +33,7 @@ last_reviewed: 2026-10-16
 > **Escopo:** erros, falhas de segurança, inconsistências e débitos técnicos encontrados no `orcafacil-api`. Cada item informa módulo, arquivo e local, explicação, impacto e solução proposta.
 > **Documentos relacionados:** [`overview.md`](./overview.md) · [`../infrastructure/security.md`](../infrastructure/security.md) · [`../database/schema.md`](../database/schema.md) · [`../modules/auth.md`](../modules/auth.md) · [`../modules/clients.md`](../modules/clients.md)
 > **Origem:** revisão do código, execução de `tsc --noEmit`, `eslint`, `vitest` e `docker compose config` em 2026-10-15 (branch `main`, commit `cf9f1b6`).
-> **Última revisão:** 2026-10-16.
+> **Última revisão:** 2026-11-14.
 
 As linhas citadas se referem ao commit acima e podem mudar. Ao corrigir um item, **remova-o deste arquivo** (ou marque como resolvido) e atualize os documentos afetados.
 
@@ -149,7 +149,7 @@ ou mapear no compose (`environment: POSTGRES_USER: ${DATABASE_USER}` etc.).
 
 **Impacto:** um atacante envia um valor diferente de `X-Forwarded-For` a cada requisição e **ignora completamente o rate limit**, viabilizando força bruta em `/login`, `/email/confirm` (ver ISS-09) e `/password-recovery/confirm-code`, além de spam de e-mails.
 
-**Solução:** configurar `app.set('trust proxy', <nº de proxies ou IP do proxy>)` em `src/index.ts` e usar apenas `req.ip` (o Express resolve o `X-Forwarded-For` de forma segura conforme o `trust proxy`). Sem proxy, usar `req.socket.remoteAddress`.
+**Solução:** configurar `app.set('trust proxy', <nº de proxies ou IP do proxy>)` em `src/app.ts` e usar apenas `req.ip` (o Express resolve o `X-Forwarded-For` de forma segura conforme o `trust proxy`). Sem proxy, usar `req.socket.remoteAddress`.
 
 ---
 
@@ -352,7 +352,7 @@ email: z.string().trim().toLowerCase().pipe(z.email().max(255))
 | | |
 |---|---|
 | **Módulo** | infraestrutura |
-| **Local** | `src/index.ts:12` (`PORT || 3000`) e `:20` (`origin: 'http://localhost:3000'`) |
+| **Local** | `src/server.ts` (`PORT || 3000`) e `src/app.ts` (`origin: 'http://localhost:3000'`) |
 
 **Problema:** a origem permitida está fixa no código e é a mesma porta padrão da própria API.
 
@@ -514,13 +514,12 @@ return res.status(500).json({ success: false, error: 'Erro interno do servidor' 
 | | |
 |---|---|
 | **Módulo** | vários |
-| **Local** | `src/shared/errors/ErrorCodes.ts` · `package.json` · `src/modules/user/user.dtos.ts` · `src/index.ts:14` · `bitbucket-pipelines.yml` |
+| **Local** | `src/shared/errors/ErrorCodes.ts` · `package.json` · `src/modules/user/user.dtos.ts` · `bitbucket-pipelines.yml` |
 
 **Problema:**
 - `ErrorCode.SELLER_NOT_EXISTS` (módulo removido), `CREATE_DATABASE_ERROR` (valor `'DATABASE_ERROR'` diferente da chave), `DELETE_DATABASE_ERROR`, `INTERNAL_HASH_ERROR` sem uso.
 - `nodemon` em `dependencies` sem uso.
 - `UserResponseDTO` (snake_case) sem uso.
-- Comentário `// teste` em `src/index.ts`; import de `ClientsRoutes` com caminho relativo em vez de `@/`.
 - `REDIS_URL` exportada no CI sem uso.
 
 **Solução:** remover ou alinhar esses itens.

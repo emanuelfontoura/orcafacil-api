@@ -16,7 +16,7 @@ related:
   - "testing/strategy.md"
   - "modules/auth.md"
   - "modules/clients.md"
-last_reviewed: 2026-10-16
+last_reviewed: 2026-11-14
 ---
 
 # Testes — Cobertura
@@ -24,7 +24,7 @@ last_reviewed: 2026-10-16
 > **Escopo:** o que está coberto por testes no `orcafacil-api` hoje: resultado da última execução, matriz de cobertura por módulo, método e camada, inventário de cenários de cada arquivo de teste, lacunas e prioridades, e como medir cobertura de código.
 > **Documentos relacionados:** [`strategy.md`](./strategy.md) · [`../modules/auth.md`](../modules/auth.md) · [`../modules/clients.md`](../modules/clients.md) · [`../modules/user.md`](../modules/user.md)
 > **Fonte da verdade:** `tests/unit/` no repositório `orcafacil-api`. Atualize este documento sempre que testes forem adicionados ou removidos.
-> **Última revisão:** 2026-10-16.
+> **Última revisão:** 2026-11-14.
 
 ---
 
@@ -53,7 +53,7 @@ Test Files  8 passed (8)
 
 | Módulo | Método | Testado | Arquivo | Casos |
 |---|---|---|---|---|
-| `auth` | `AuthUserService.verifyEmail` | ✅ | `tests/unit/auth/verifyEmail.unit.test.ts` | 10 |
+| `auth` | `AuthUserService.verifyEmail` | ✅ | `tests/unit/auth/verifyEmail.unit.test.ts` | 6 |
 | `auth` | `AuthUserService.confirmEmail` | ❌ | — | — |
 | `auth` | `AuthUserService.resendEmailCode` | ✅ | `tests/unit/auth/resendEmailCode.unit.test.ts` | 11 |
 | `auth` | `AuthUserService.login` | ✅ | `tests/unit/auth/login.unit.test.ts` | 10 |
@@ -86,24 +86,22 @@ Test Files  8 passed (8)
 
 ## 4. Inventário de cenários
 
-### 4.1 `verifyEmail.unit.test.ts` — `AuthUserService.verifyEmail` (10 casos)
+### 4.1 `verifyEmail.unit.test.ts` — `AuthUserService.verifyEmail` (6 casos)
 
-**Mocks:** `UserRepository` (automock), `ArgonHash` (automock), `verifyKeyExists` (automock), `redis` (factory com `set`), `AuthUserRepository` (automock), `generateCode` (factory, retorna `'123456'`).
+**Modelo:** classe instanciável. O `makeSut()` cria mocks com `vi.fn()` e injeta no construtor de `AuthUserService`: `UserRepository.findByEmail` (padrão `null`), `ArgonHash.hash` (1ª chamada `'hashed-password'`, 2ª `'hashed-code'`), `Redis.exists` (padrão `0`), `Redis.set` (padrão `'OK'`), `AuthUserRepository.sendEmailVerificationCode` (padrão `undefined`). O `TokenService` entra como `{}`, porque o método não usa. O `generateCode` não é mockado: o código é conferido com `/^\d{6}$/`.
+
+Os testes de erro verificam só o erro e até onde o fluxo chegou. O conteúdo do payload e os argumentos de cada colaborador ficam no caso de sucesso.
 
 | Categoria | Caso | Verifica |
 |---|---|---|
-| Sucesso | deveria enviar o código de verificação para o email | Retorno com `email` e `name` |
-| Colaboração | deve verificar se o userRepository.findByEmail está sendo chamado com o email de forma correta | `findByEmail(email)` |
-| Colaboração | deveria hashear a senha e o code antes de salvar no Redis | `argonHash` 1º com a senha, 2º com o código, 2 chamadas |
-| Colaboração | deveria verificar se verifyKeyExists está sendo chamado com a key correta | `verify-email-cooldown-{email}` |
-| Colaboração | deveria salvar no Redis com a key e o TTL corretos | 1º `set`: `verify-email-{email}`, JSON, `EX 600`; 2º `set`: cooldown, `1`, `EX 60`; 2 chamadas |
-| Colaboração | deveria chamar sendEmailVerificationCode com email e código corretos | `{ email, code: '123456' }` |
-| Erro de negócio | deveria gerar ConflictError caso o email já esteja cadastrado | 409 `USER_ALREADY_EXISTS`; sem hash e sem `set` |
-| Erro de negócio | deveria gerar ConflictError caso o cooldown do email ainda estiver ativo | 409 `LIMIT_ATTEMPTS`; sem `set` |
-| Erro de infraestrutura | deveria lançar AppError se o primeiro redis.set (code) falhar | 500 `REDIS_SAVE_ERROR`; 1 `set`; e-mail não enviado |
-| Erro de infraestrutura | deveria lançar AppError se o segundo redis.set (email cooldown) falhar | 500 `REDIS_SAVE_ERROR` |
+| Sucesso + colaboração | deve retornar os dados de cadastro do usuário | Retorno `{ email, name, cnpjCpf }`; `findByEmail(email)`; `hash` 1º com a senha, 2º com o código; `exists('verify-email-cooldown-{email}')`; 1º `set`: `verify-email-{email}`, JSON `{ code, name, cnpjCpf, password }` com os hashes, `EX 600`; 2º `set`: cooldown, `1`, `EX 60`; `sendEmailVerificationCode({ email, code })` |
+| Erro de negócio | deve retornar 409 ConflictError caso o email já tenha usuário vinculado | 409 `USER_ALREADY_EXISTS`; sem hash, `exists`, `set` e envio |
+| Erro de negócio | deve retornar 409 ConflictError caso o email esteja em cooldown no redis | 409 `LIMIT_ATTEMPTS`; 1 hash (senha, ver ISS-29); sem `set` e sem envio |
+| Erro de infraestrutura | deve retornar 500 AppError ao dar erro no primeiro Redis.set | 500 `REDIS_SAVE_ERROR` ("Erro ao salvar código de verificação."); 1 `set`; e-mail não enviado |
+| Erro de infraestrutura | deve retornar 500 AppError ao dar erro no segundo Redis.set | 500 `REDIS_SAVE_ERROR` ("Erro ao salvar email na fila de cooldown."); 2 `set`; e-mail enviado 1x |
+| Erro de infraestrutura | deve retornar 500 AppError caso o envio do email falhe | O mesmo `AppError` do repository sobe sem alteração (`toBe`); 1 `set` (cooldown não gravado) |
 
-Não cobertos neste método: falha do `sendEmailVerificationCode`, falha do `findByEmail`, falha do `verifyKeyExists`, presença de `cnpjCpf` no retorno/JSON salvo.
+Não cobertos neste método: falha do `findByEmail`, do `exists` e do `hash` (o service não trata esses erros; eles sobem crus e viram 500 no `handleError`).
 
 ### 4.2 `login.unit.test.ts` — `AuthUserService.login` (10 casos)
 

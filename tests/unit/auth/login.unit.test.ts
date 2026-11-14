@@ -1,6 +1,3 @@
-// module: auth
-// route: login
-
 import { describe, it, expect, vi } from 'vitest'
 import { AuthUserService } from '@/modules/auth/auth.service'
 import { ErrorCode } from '@/shared/errors/ErrorCodes'

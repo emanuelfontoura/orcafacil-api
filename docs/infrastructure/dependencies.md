@@ -49,7 +49,7 @@ last_reviewed: 2026-11-14
 | `express` | ^5.2.1 | 5.2.1 | Framework HTTP (Express 5: encaminha promises rejeitadas ao error handler) | `src/app.ts`, routers, middlewares |
 | `cors` | ^2.8.6 | 2.8.6 | CORS com `credentials: true` | `src/app.ts` |
 | `cookie-parser` | ^1.4.7 | 1.4.7 | Popula `req.cookies` (tokens de autenticação) | `src/app.ts` |
-| `dotenv` | ^17.3.1 | 17.4.2 | Carrega o `.env` (`import 'dotenv/config'`) | `src/config/env.ts`, `src/server.ts`, `src/lib/redis.ts`, `src/middlewares/authenticate.ts`, `prisma.config.ts` |
+| `dotenv` | ^17.3.1 | 17.4.2 | Carrega o `.env` (`import 'dotenv/config'`) | `src/config/env.ts`, `prisma.config.ts` |
 | `@prisma/client` | ^7.5.0 | 7.8.0 | Client gerado do ORM | `src/lib/prisma.ts`, repositórios |
 | `@prisma/adapter-pg` | ^7.5.0 | 7.8.0 | Driver adapter do Prisma usando `pg` | `src/lib/prisma.ts` |
 | `ioredis` | ^5.10.1 | 5.11.1 | Cliente Redis | `src/lib/redis.ts` |

@@ -22,7 +22,7 @@ const envSchema = z.object({
     PORT: port(3000),
     NODE_ENV: z.enum(['development', 'test', 'production'], {error: 'Obrigatório: development, test ou production.'}),
     DATABASE_URL: z
-      .string({ error: 'Obrigatória, ex.: postgresql://orcafacil:orcafacil@localhost:5433/orcafacil.' })
+      .string({ error: 'Obrigatória, ex.: postgresql://orcafacil:orcafacil@localhost:5432/orcafacil.' })
       .regex(/^postgres(ql)?:\/\//, { error: 'Use uma URL postgresql://.' }), 
     REDIS_HOST: z.string().min(1),
     REDIS_PORT: port(6379),

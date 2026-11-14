@@ -186,7 +186,8 @@ Regras completas em [`../database/relationships.md`](../database/relationships.m
 | `USER_PASSWORD` | SMTP do Gmail | Usar **senha de app**, nunca a senha da conta |
 
 - Todos os arquivos `.env*` estão no `.gitignore`; nunca versionar segredos.
-- No CI, os valores são fictícios e exclusivos de teste (`test-access-secret`, `test-pepper`).
+- No CI, os valores são fictícios e exclusivos de teste (`test-access-secret-…`, `test-pepper`).
+- `src/config/env.ts` impede a subida com segredo JWT ausente ou com menos de 32 caracteres.
 - Gerar segredos com, por exemplo: `node -e "console.log(require('crypto').randomBytes(48).toString('base64'))"`.
 
 ---

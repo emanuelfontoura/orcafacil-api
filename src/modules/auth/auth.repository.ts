@@ -2,6 +2,7 @@ import { AuthTypes } from '@/modules/auth/auth.types'
 import nodemailer from "nodemailer"
 import { AppError } from '@/shared/errors/AppError'
 import { ErrorCode } from '@/shared/errors/ErrorCodes'
+import { env } from '@/config/env'
 
 export class AuthUserRepository {
 
@@ -10,8 +11,8 @@ export class AuthUserRepository {
             const transporter = nodemailer.createTransport({
                 service: "gmail",
                 auth: {
-                    user: process.env.USER_EMAIL,
-                    pass: process.env.USER_PASSWORD
+                    user: env.USER_EMAIL,
+                    pass: env.USER_PASSWORD
                 }
             })
             await transporter.sendMail({

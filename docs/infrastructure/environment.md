@@ -60,25 +60,25 @@ flowchart LR
 
 ## 2. Variáveis de ambiente
 
-Carregadas pelo `dotenv` (`import 'dotenv/config'`), que lê o arquivo **`.env` da raiz** do diretório de execução.
+Carregadas e validadas em `src/config/env.ts`: o `dotenv` (`import 'dotenv/config'`) lê o arquivo **`.env` da raiz** do diretório de execução, e um schema Zod valida e converte os valores. O resto do código importa `import { env } from '@/config/env'` e nunca lê `process.env` (exceção: `prisma.config.ts`, que roda no CLI do Prisma).
 
 | Variável | Obrigatória | Usada em | Descrição |
 |---|---|---|---|
-| `PORT` | não (padrão `3000`) | `src/server.ts` | Porta HTTP da API. |
-| `NODE_ENV` | não | `src/lib/prisma.ts`, `AuthCookies.ts` | `production` ativa `secure` nos cookies e desativa o cache global do Prisma Client. CI usa `test`. |
-| `DATABASE_URL` | **sim** | `src/lib/prisma.ts`, `prisma.config.ts` | String de conexão PostgreSQL (`postgresql://user:senha@host:5432/banco`). |
+| `PORT` | não (padrão `3000`) | `src/server.ts` | Porta HTTP da API (só dígitos, 1 a 65535). |
+| `NODE_ENV` | **sim** (`development`, `test` ou `production`) | `src/lib/prisma.ts`, `AuthCookies.ts` | `production` ativa `secure` nos cookies e desativa o cache global do Prisma Client. CI usa `test`. |
+| `DATABASE_URL` | **sim** | `src/lib/prisma.ts`, `prisma.config.ts` | String de conexão PostgreSQL; precisa começar com `postgres://` ou `postgresql://` (`postgresql://user:senha@host:5432/banco`). |
 | `DATABASE_USER` | dev | `docker-compose.dev.yml` | Usuário do PostgreSQL criado no container. |
 | `DATABASE_PASSWORD` | dev | `docker-compose.dev.yml` | Senha do PostgreSQL do container. |
 | `DATABASE_NAME` | dev | `docker-compose.dev.yml` | Nome do banco criado no container. |
 | `REDIS_HOST` | **sim** | `src/lib/redis.ts` | Host do Redis (`localhost` em dev; nome do serviço `redis` dentro da rede Docker). |
-| `REDIS_PORT` | **sim** | `src/lib/redis.ts` | Porta do Redis (`6379`). |
-| `JWT_ACCESS_SECRET` | **sim** | `generateTokens.ts`, `authenticate.ts` | Segredo do access token. |
-| `JWT_REFRESH_SECRET` | **sim** | `generateTokens.ts`, `auth.service.ts` | Segredo do refresh token (diferente do access). |
+| `REDIS_PORT` | não (padrão `6379`) | `src/lib/redis.ts` | Porta do Redis (só dígitos, 1 a 65535). |
+| `JWT_ACCESS_SECRET` | **sim** | `src/container.ts` (`TokenService`) | Segredo do access token; mínimo de 32 caracteres. |
+| `JWT_REFRESH_SECRET` | **sim** | `src/container.ts` (`TokenService`) | Segredo do refresh token (diferente do access); mínimo de 32 caracteres. |
 | `PEPPER` | **sim** | `ArgonHash.ts` | Pepper do Argon2. **Não pode mudar** depois que existem senhas cadastradas (invalidaria todos os hashes). |
-| `USER_EMAIL` | **sim** (envio de e-mail) | `auth.repository.ts` | Conta Gmail remetente. |
-| `USER_PASSWORD` | **sim** (envio de e-mail) | `auth.repository.ts` | Senha de app do Gmail. |
+| `USER_EMAIL` | **sim** | `auth.repository.ts` | Conta Gmail remetente; precisa ser um e-mail válido. |
+| `USER_PASSWORD` | **sim** | `auth.repository.ts` | Senha de app do Gmail. |
 
-Não há validação das variáveis na inicialização: uma variável ausente só se manifesta quando o código que a usa é executado.
+A validação roda uma vez, no primeiro import de `@/config/env`, antes de o servidor subir. Variável vazia no `.env` (`PEPPER=`) conta como ausente. Se alguma variável estiver ausente ou inválida, a API não sobe e o erro lista todas de uma vez (`Variáveis de ambiente inválidas:`). `DATABASE_USER`, `DATABASE_PASSWORD` e `DATABASE_NAME` ficam fora do schema: só o docker-compose as lê. Variável nova entra no schema de `src/config/env.ts` e nesta tabela.
 
 ### Arquivos `.env`
 

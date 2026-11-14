@@ -1,4 +1,4 @@
-import 'dotenv/config'
+import { env } from '@/config/env'
 
 import { redis } from "./lib/redis"
 import { prisma } from "@/lib/prisma"
@@ -19,8 +19,8 @@ import { ProductsController } from './modules/products/products.controller'
 import { UserRepository } from './modules/user/user.repository'
 
 const tokenService = new TokenService({
-    acessSecret: process.env.JWT_ACCESS_SECRET!,
-    refreshSecret: process.env.JWT_REFRESH_SECRET!
+    acessSecret: env.JWT_ACCESS_SECRET,
+    refreshSecret: env.JWT_REFRESH_SECRET
 })
 
 export function createContainer(){

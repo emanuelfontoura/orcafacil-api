@@ -1,7 +1,6 @@
 import { UnauthorizedError } from "@/shared/errors/UnauthorizedError";
 import { Request, Response, NextFunction } from "express"
 import { TokenService } from "@/shared/utils/TokenService";
-import 'dotenv/config'
 
 export function createAuthenticate(tokenService: TokenService) {
     return (req: Request, res: Response, next: NextFunction) => {

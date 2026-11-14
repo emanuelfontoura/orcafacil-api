@@ -87,7 +87,7 @@ Padrões predominantes (não há Prettier configurado; siga o estilo do arquivo 
 - `async/await` sempre; nada de `.then()`.
 - Imports com o alias `@/` para outras pastas de `src/`; `./` só dentro do mesmo módulo.
 - Exports **nomeados** (sem `export default`).
-- Variáveis de ambiente lidas direto de `process.env`, com non-null assertion quando obrigatórias (`process.env.JWT_ACCESS_SECRET!`).
+- Variáveis de ambiente lidas de `import { env } from '@/config/env'` (já validadas e tipadas pelo schema Zod), nunca de `process.env`. Variável nova entra no schema de `src/config/env.ts`.
 
 **ESLint** (`eslint.config.mjs`): `js.recommended` + `typescript-eslint/recommended`, com:
 - `@typescript-eslint/no-unused-vars`: `warn`, ignorando nomes iniciados por `_`;

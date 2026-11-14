@@ -20,14 +20,14 @@ related:
   - "project/overview.md"
   - "architecture/conventions.md"
   - "testing/strategy.md"
-last_reviewed: 2026-10-17
+last_reviewed: 2026-11-14
 ---
 
 # RAG — orcafacil-api
 
 > **Leia este arquivo primeiro.** Ele explica como usar esta documentação e define as **regras obrigatórias** para qualquer IA (ou pessoa) que for escrever código no `orcafacil-api`.
 > **Repositório do projeto:** `orcafacil-api` (Bitbucket: `bitbucket.org/orcafacil-api/orcafacil-api`).
-> **Última revisão:** 2026-10-17.
+> **Última revisão:** 2026-11-14.
 
 ---
 
@@ -214,7 +214,7 @@ Ao alterar o código, atualize os documentos correspondentes:
 | Model, coluna ou migration | `database/schema.md` (inclusive o histórico de migrations), `database/relationships.md` |
 | Novo `ErrorCode` ou classe de erro | `api/error-handling.md`, `modules/{modulo}.md` |
 | Nova chave no Redis | `infrastructure/redis.md` (catálogo de chaves) |
-| Nova variável de ambiente | `infrastructure/environment.md` |
+| Nova variável de ambiente | Schema em `src/config/env.ts` e `infrastructure/environment.md` |
 | Nova dependência | `infrastructure/dependencies.md` |
 | Mudança de autenticação ou segurança | `api/authentication.md`, `infrastructure/security.md`, `modules/auth.md` |
 | Novos testes | `testing/test-coverage.md` |

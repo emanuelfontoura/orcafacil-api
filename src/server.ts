@@ -1,8 +1,8 @@
 import { createApp } from "./app";
 import { createContainer } from "./container";
-import 'dotenv/config'
+import { env } from '@/config/env'
 
-const port = process.env.PORT || 3000
+const port = env.PORT
 
 const app = createApp(createContainer())
 

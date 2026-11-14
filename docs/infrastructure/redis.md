@@ -19,7 +19,7 @@ related:
   - "modules/auth.md"
   - "api/authentication.md"
   - "infrastructure/security.md"
-last_reviewed: 2026-10-15
+last_reviewed: 2026-11-14
 ---
 
 # Infraestrutura — Redis
@@ -27,7 +27,7 @@ last_reviewed: 2026-10-15
 > **Escopo:** papel do Redis no `orcafacil-api`: configuração do cliente, catálogo completo de chaves, TTLs, comandos usados, rate limit, tratamento de falhas, persistência por ambiente, testes e regras para criar novas chaves.
 > **Documentos relacionados:** [`environment.md`](./environment.md) · [`security.md`](./security.md) · [`../modules/auth.md`](../modules/auth.md#5-redis-usado-pelo-módulo) · [`../api/authentication.md`](../api/authentication.md) · [`../database/schema.md`](../database/schema.md#dados-que-não-ficam-no-postgresql)
 > **Fonte da verdade:** `src/lib/redis.ts`, `src/middlewares/rateLimit.ts`, `src/modules/auth/auth.service.ts`, `src/shared/utils/verifyKeyExists.ts`.
-> **Última revisão:** 2026-10-15.
+> **Última revisão:** 2026-11-14.
 
 ---
 
@@ -53,11 +53,11 @@ Arquivo: `src/lib/redis.ts`.
 
 ```ts
 import Redis from "ioredis"
-import "dotenv/config"
+import { env } from "@/config/env"
 
 export const redis = new Redis({
-    host: process.env.REDIS_HOST,
-    port: Number(process.env.REDIS_PORT)
+    host: env.REDIS_HOST,
+    port: env.REDIS_PORT
 })
 ```
 

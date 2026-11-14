@@ -57,6 +57,9 @@ orcafacil-api/
 │   ├── routes.ts                       # createRouter: monta o router de cada módulo no seu prefixo
 │   ├── container.ts                    # createContainer: instancia repositories, services, controllers e middlewares
 │   │
+│   ├── config/
+│   │   └── env.ts                      # Carrega o .env, valida com Zod e exporta o objeto env (único leitor de process.env)
+│   │
 │   ├── lib/                            # Clientes de infraestrutura (instâncias únicas)
 │   │   ├── prisma.ts                   # PrismaClient com adapter pg (singleton)
 │   │   └── redis.ts                    # Cliente ioredis

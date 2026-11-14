@@ -352,7 +352,7 @@ email: z.string().trim().toLowerCase().pipe(z.email().max(255))
 | | |
 |---|---|
 | **Módulo** | infraestrutura |
-| **Local** | `src/server.ts` (`PORT || 3000`) e `src/app.ts` (`origin: 'http://localhost:3000'`) |
+| **Local** | `src/config/env.ts` (`PORT`, padrão `3000`) e `src/app.ts` (`origin: 'http://localhost:3000'`) |
 
 **Problema:** a origem permitida está fixa no código e é a mesma porta padrão da própria API.
 
@@ -505,7 +505,7 @@ return res.status(500).json({ success: false, error: 'Erro interno do servidor' 
 
 **Impacto:** custo de conexão a cada envio; remetente pode ser reescrito pelo Gmail ou o e-mail ser marcado como spam.
 
-**Solução:** criar o transporter uma vez (ex.: `src/lib/mailer.ts`) e usar `from: \`"OrçaFácil" <${process.env.USER_EMAIL}>\``.
+**Solução:** criar o transporter uma vez (ex.: `src/lib/mailer.ts`) e usar `from: \`"OrçaFácil" <${env.USER_EMAIL}>\``.
 
 ---
 

@@ -1,17 +1,18 @@
 import { CookieOptions, Response } from "express";
 import { AuthDTOs } from "@/modules/auth/auth.dtos";
+import { env } from "@/config/env";
 
 export class AuthCookies{
 
     private static configATCookies: CookieOptions = {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
+        secure: env.NODE_ENV === "production",
         sameSite: "strict"
     }
 
     private static configRTCookies: CookieOptions = {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
+        secure: env.NODE_ENV === "production",
         sameSite: "strict",
         path: "/"
     }

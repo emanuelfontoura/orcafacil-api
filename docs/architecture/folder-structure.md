@@ -121,10 +121,9 @@ orcafacil-api/
 │
 ├── tests/
 │   └── unit/                           # Testes unitários (Vitest), espelhando os módulos
-│       ├── auth/
-│       │   ├── login.unit.test.ts
-│       │   └── verifyEmail.unit.test.ts
-│       └── clients/                    # create, delete, edit e getById: arquivos vazios hoje
+│       └── auth/
+│           ├── login.unit.test.ts
+│           └── verifyEmail.unit.test.ts
 │
 ├── .gitattributes
 ├── AGENTS.md                           # Instruções para ferramentas de IA (aponta para docs/README.md)

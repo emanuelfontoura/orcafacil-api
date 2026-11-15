@@ -34,16 +34,16 @@ last_reviewed: 2026-11-15
 Execução de `npm run test:unit:run` em 2026-11-15 (Vitest 4.1.9):
 
 ```
-Test Files  4 failed | 2 passed (6)
+Test Files  2 passed (2)
      Tests  11 passed (11)
-  Duration  ~0.6s
+  Duration  ~0.3s
 ```
 
-Os 4 arquivos que falham são os testes de `clients`, que estão **vazios** desde a passagem para classes instanciáveis (o Vitest acusa `No test suite found`). Os casos que existem passam.
+Os 4 arquivos de teste de `clients` estavam vazios desde a passagem para classes instanciáveis e foram removidos em 2026-11-15: o Vitest acusava `No test suite found` neles e derrubava o CI.
 
 | Indicador | Valor |
 |---|---|
-| Arquivos de teste | 6 (2 com casos, 4 vazios) |
+| Arquivos de teste | 2 |
 | Casos de teste (`it`) | 11 |
 | Módulos com testes | 1 de 3 (`auth`) |
 | Métodos de service testados | 2 de 14 |
@@ -65,11 +65,11 @@ Os 4 arquivos que falham são os testes de `clients`, que estão **vazios** desd
 | `auth` | `AuthUserService.confirmCodeRecovery` | ❌ | — | — |
 | `auth` | `AuthUserService.createNewPassword` | ❌ | — (arquivo removido) | — |
 | `auth` | `AuthUserService.logout` | ❌ | — | — |
-| `clients` | `ClientsService.create` | ❌ | `tests/unit/clients/create.unit.test.ts` (vazio) | 0 |
-| `clients` | `ClientsService.edit` | ❌ | `tests/unit/clients/edit.unit.test.ts` (vazio) | 0 |
-| `clients` | `ClientsService.delete` | ❌ | `tests/unit/clients/delete.unit.test.ts` (vazio) | 0 |
+| `clients` | `ClientsService.create` | ❌ | — (arquivo vazio removido) | — |
+| `clients` | `ClientsService.edit` | ❌ | — (arquivo vazio removido) | — |
+| `clients` | `ClientsService.delete` | ❌ | — (arquivo vazio removido) | — |
 | `clients` | `ClientsService.getAll` | ❌ | — | — |
-| `clients` | `ClientsService.getById` | ❌ | `tests/unit/clients/getById.unit.test.ts` (vazio) | 0 |
+| `clients` | `ClientsService.getById` | ❌ | — (arquivo vazio removido) | — |
 | `user` | `UserService` | — | Classe vazia | — |
 
 ---
@@ -132,7 +132,7 @@ Ordem sugerida para ampliar a cobertura, mantendo o padrão de [`strategy.md`](.
 
 | Prioridade | Alvo | Cenários principais |
 |---|---|---|
-| 1 | `ClientsService.create`, `edit`, `delete`, `getById` | Reescrever os 4 arquivos vazios no modelo `makeSut()`. Eles guardavam os testes de regressão de ISS-04, ISS-05 e ISS-15 (cliente sempre filtrado por `userId`, 404 `INVALID_ID_CLIENT` para cliente de outro usuário, reenvio do próprio CPF/CNPJ sem 409) |
+| 1 | `ClientsService.create`, `edit`, `delete`, `getById` | Criar `tests/unit/clients/{create,edit,delete,getById}.unit.test.ts` no modelo `makeSut()`. Os arquivos antigos guardavam os testes de regressão de ISS-04, ISS-05 e ISS-15 (cliente sempre filtrado por `userId`, 404 `INVALID_ID_CLIENT` para cliente de outro usuário, reenvio do próprio CPF/CNPJ sem 409) |
 | 1 | `AuthUserService.resendEmailCode` | Regressão de ISS-03 (o código vai para o Redis com hash, nunca em texto puro); cooldown → 409 `LIMIT_ATTEMPTS`; cadastro expirado → 409 `TIME_OUT_REGISTER`; envio com o template `verifyEmailCode`; falha do envio → 500 `SEND_EMAIL_CODE_ERROR`; falhas do `get` e dos dois `set` |
 | 1 | `AuthUserService.confirmEmail` | Sucesso (cria usuário); chave ausente → 401 `INVALID_OR_EXPIRED_CODE`; código inválido → 401 `INVALID_CODE`; falha `Redis.get` → `REDIS_GET_ERROR`; falha `createUser` |
 | 1 | `AuthUserService.refreshToken` | Sucesso com rotação (`del` antigo + `set` novo); token inválido → `INVALID_TOKEN`; `del` sem remover → `INVALID_TOKEN`; falha do `set` → `REDIS_SAVE_ERROR` |

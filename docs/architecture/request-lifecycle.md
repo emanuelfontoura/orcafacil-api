@@ -20,7 +20,7 @@ related:
   - "architecture/overview.md"
   - "api/error-handling.md"
   - "api/authentication.md"
-last_reviewed: 2026-11-14
+last_reviewed: 2026-11-15
 ---
 
 # Arquitetura — Ciclo de Vida das Requisições
@@ -28,7 +28,7 @@ last_reviewed: 2026-11-14
 > **Escopo:** o caminho de uma requisição HTTP no `orcafacil-api`, da entrada no Express até a resposta: middlewares globais, cadeia de middlewares por rota, camadas do módulo, formato da resposta e tratamento de erros. Inclui os fluxos de autenticação.
 > **Documentos relacionados:** [`overview.md`](./overview.md) · [`folder-structure.md`](./folder-structure.md) · [`conventions.md`](./conventions.md)
 > **Fonte da verdade:** `src/app.ts`, `src/routes.ts`, `src/middlewares/`, `src/modules/*/`.
-> **Última revisão:** 2026-11-14.
+> **Última revisão:** 2026-11-15.
 
 ---
 
@@ -238,7 +238,7 @@ sequenceDiagram
     participant C as Cliente
     participant API as AuthUserService
     participant RD as Redis
-    participant M as Gmail
+    participant M as EmailSender (SMTP)
     participant DB as PostgreSQL
 
     C->>API: POST /email/verify {name, cnpjCpf, email, password, confirmPassword}

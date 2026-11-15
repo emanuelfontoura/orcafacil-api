@@ -20,14 +20,14 @@ related:
   - "project/overview.md"
   - "architecture/conventions.md"
   - "testing/strategy.md"
-last_reviewed: 2026-11-14
+last_reviewed: 2026-11-15
 ---
 
 # RAG — orcafacil-api
 
 > **Leia este arquivo primeiro.** Ele explica como usar esta documentação e define as **regras obrigatórias** para qualquer IA (ou pessoa) que for escrever código no `orcafacil-api`.
 > **Repositório do projeto:** `orcafacil-api` (Bitbucket: `bitbucket.org/orcafacil-api/orcafacil-api`).
-> **Última revisão:** 2026-11-14.
+> **Última revisão:** 2026-11-15.
 
 ---
 
@@ -101,7 +101,7 @@ Referências: [`architecture/conventions.md`](./architecture/conventions.md#43-s
 - Retornam `null` quando não encontram registros; quem decide se isso é erro é o service.
 - Não contêm regra de negócio.
 
-> Exceção existente: `AuthUserRepository` faz o envio de e-mail (Nodemailer) e não acessa o banco.
+> Integrações externas, como o envio de e-mail, não ficam em repositories. Ficam em `src/shared/{integracao}/`, atrás de uma interface que o service recebe pelo construtor (modelo: `src/shared/email/`). Ver [`architecture/conventions.md`](./architecture/conventions.md#47-integrações-externas).
 
 Referências: [`architecture/conventions.md`](./architecture/conventions.md#44-repository) · [`database/schema.md`](./database/schema.md)
 

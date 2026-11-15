@@ -23,7 +23,7 @@ related:
   - "api/authentication.md"
   - "infrastructure/redis.md"
   - "database/relationships.md"
-last_reviewed: 2026-11-14
+last_reviewed: 2026-11-15
 ---
 
 # Infraestrutura — Segurança
@@ -31,7 +31,7 @@ last_reviewed: 2026-11-14
 > **Escopo:** medidas de segurança adotadas no `orcafacil-api`, organizadas por camada: autenticação e sessões, senhas e segredos, cookies e CORS, proteção contra abuso, validação de entrada, exposição de dados, isolamento entre usuários, tratamento de erros, segredos de ambiente e infraestrutura. Inclui as diretrizes para código novo.
 > **Documentos relacionados:** [`../api/authentication.md`](../api/authentication.md) · [`redis.md`](./redis.md) · [`environment.md`](./environment.md) · [`../api/validation.md`](../api/validation.md) · [`../api/error-handling.md`](../api/error-handling.md) · [`../database/relationships.md`](../database/relationships.md#4-isolamento-por-usuário-multi-tenant)
 > **Fonte da verdade:** `src/middlewares/`, `src/shared/utils/`, `src/modules/auth/`, `src/app.ts`, arquivos Docker.
-> **Última revisão:** 2026-11-14.
+> **Última revisão:** 2026-11-15.
 
 ---
 
@@ -183,7 +183,7 @@ Regras completas em [`../database/relationships.md`](../database/relationships.m
 | `JWT_REFRESH_SECRET` | Assinar refresh tokens | Diferente do access secret |
 | `PEPPER` | Pepper do Argon2 | Valor aleatório longo; nunca alterar com usuários existentes |
 | `DATABASE_URL` / `DATABASE_PASSWORD` | Acesso ao PostgreSQL | Senha forte em produção |
-| `USER_PASSWORD` | SMTP do Gmail | Usar **senha de app**, nunca a senha da conta |
+| `SMTP_PASS` | Senha do SMTP (Gmail) | Usar **senha de app**, nunca a senha da conta. Com login fora da porta 465, o `SmtpEmailSender` exige TLS (`requireTLS`) |
 
 - Todos os arquivos `.env*` estão no `.gitignore`; nunca versionar segredos.
 - No CI, os valores são fictícios e exclusivos de teste (`test-access-secret-…`, `test-pepper`).

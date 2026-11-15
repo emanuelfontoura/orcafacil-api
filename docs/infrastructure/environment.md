@@ -16,11 +16,12 @@ sources:
   - "docker-compose.prod.yml"
   - "bitbucket-pipelines.yml"
   - "package.json"
+  - "src/config/env.ts"
 related:
   - "infrastructure/dependencies.md"
   - "infrastructure/redis.md"
   - "infrastructure/security.md"
-last_reviewed: 2026-11-14
+last_reviewed: 2026-11-15
 ---
 
 # Infraestrutura — Ambientes, Docker e CI/CD
@@ -28,7 +29,7 @@ last_reviewed: 2026-11-14
 > **Escopo:** variáveis de ambiente, arquivos `.env`, ambientes (desenvolvimento, CI e produção), Docker (`Dockerfile` e Compose), pipeline de CI no Bitbucket, processo de deploy e como executar o projeto localmente.
 > **Documentos relacionados:** [`dependencies.md`](./dependencies.md) · [`redis.md`](./redis.md) · [`security.md`](./security.md) · [`../architecture/overview.md`](../architecture/overview.md#7-ambientes-build-e-ci)
 > **Fonte da verdade:** `Dockerfile`, `docker-compose.dev.yml`, `docker-compose.prod.yml`, `bitbucket-pipelines.yml`, `package.json`, `prisma.config.ts` e usos de `process.env` em `src/`.
-> **Última revisão:** 2026-11-14.
+> **Última revisão:** 2026-11-15.
 
 ---
 
@@ -75,8 +76,11 @@ Carregadas e validadas em `src/config/env.ts`: o `dotenv` (`import 'dotenv/confi
 | `JWT_ACCESS_SECRET` | **sim** | `src/container.ts` (`TokenService`) | Segredo do access token; mínimo de 32 caracteres. |
 | `JWT_REFRESH_SECRET` | **sim** | `src/container.ts` (`TokenService`) | Segredo do refresh token (diferente do access); mínimo de 32 caracteres. |
 | `PEPPER` | **sim** | `ArgonHash.ts` | Pepper do Argon2. **Não pode mudar** depois que existem senhas cadastradas (invalidaria todos os hashes). |
-| `USER_EMAIL` | **sim** | `auth.repository.ts` | Conta Gmail remetente; precisa ser um e-mail válido. |
-| `USER_PASSWORD` | **sim** | `auth.repository.ts` | Senha de app do Gmail. |
+| `SMTP_HOST` | não (padrão `smtp.gmail.com`) | `src/container.ts` (`SmtpEmailSender`) | Servidor SMTP dos e-mails de código. `localhost` com o Mailpit no desenvolvimento. |
+| `SMTP_PORT` | não (padrão `465`) | `src/container.ts` (`SmtpEmailSender`) | Porta SMTP (só dígitos, 1 a 65535). `465` usa TLS desde o início; nas outras o nodemailer sobe para TLS (STARTTLS), obrigatório quando há login. `1025` no Mailpit. |
+| `SMTP_USER` | não (padrão vazio) | `src/container.ts` (`SmtpEmailSender`) | Usuário do SMTP (a conta Gmail). Vazio envia sem login, como no Mailpit. |
+| `SMTP_PASS` | não (padrão vazio) | `src/container.ts` (`SmtpEmailSender`) | Senha do SMTP. No Gmail, **senha de app** (exige verificação em duas etapas), nunca a senha da conta. |
+| `EMAIL_FROM` | **sim** | `src/container.ts` (`SmtpEmailSender`) | Remetente no formato `Nome <email@dominio>`, entre aspas no `.env`. No Gmail, o endereço deve ser o mesmo do `SMTP_USER`, ou o Gmail reescreve o remetente. |
 
 A validação roda uma vez, no primeiro import de `@/config/env`, antes de o servidor subir. Variável vazia no `.env` (`PEPPER=`) conta como ausente. Se alguma variável estiver ausente ou inválida, a API não sobe e o erro lista todas de uma vez (`Variáveis de ambiente inválidas:`). `DATABASE_USER`, `DATABASE_PASSWORD` e `DATABASE_NAME` ficam fora do schema: só o docker-compose as lê. Variável nova entra no schema de `src/config/env.ts` e nesta tabela.
 
@@ -106,8 +110,19 @@ PEPPER=gere_um_valor_aleatorio
 JWT_ACCESS_SECRET=gere_uma_chave_secreta_para_access_token
 JWT_REFRESH_SECRET=gere_outra_chave_secreta_para_refresh_token
 
-USER_EMAIL="email@gmail.com"
-USER_PASSWORD="senha_de_app_do_gmail"
+# E-mail pelo Gmail
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=465
+SMTP_USER="email@gmail.com"
+SMTP_PASS="senha_de_app_do_gmail"
+EMAIL_FROM="OrçaFácil <email@gmail.com>"
+
+# Ou e-mail pelo Mailpit (npm run dev:docker:up; caixa de entrada em http://localhost:8025)
+# SMTP_HOST=localhost
+# SMTP_PORT=1025
+# SMTP_USER=
+# SMTP_PASS=
+# EMAIL_FROM="OrçaFácil <nao-responda@orcafacil.local>"
 ```
 
 ---
@@ -122,7 +137,7 @@ Node.js, npm e Docker (ou PostgreSQL e Redis instalados localmente).
 ```bash
 npm install                 # dependências
 # criar o .env (seção 2)
-npm run dev:docker:up       # PostgreSQL :5432 e Redis :6379 em containers
+npm run dev:docker:up       # PostgreSQL :5432, Redis :6379 e Mailpit :1025/:8025 em containers
 npx prisma generate         # gera o Prisma Client
 npx prisma migrate dev      # aplica as migrations
 npm run dev                 # API em http://localhost:3000 com reload
@@ -136,6 +151,7 @@ Para derrubar os containers: `npm run dev:docker:down` (os dados do PostgreSQL p
 |---|---|---|---|---|
 | `postgres` | `postgres:15` | `orcafacil-postgres-dev` | `5432:5432` | `POSTGRES_USER/PASSWORD/DB` a partir de `DATABASE_USER/PASSWORD/NAME`; volume `postgres_dev_data`; healthcheck `pg_isready` a cada 5 s |
 | `redis` | `redis:7` | `orcafacil-redis-dev` | `6379:6379` | Sem persistência configurada e sem senha |
+| `mailpit` | `axllent/mailpit:v1.31` | `orcafacil-mailpit-dev` | `127.0.0.1:1025:1025` (SMTP) e `127.0.0.1:8025:8025` (web) | Servidor SMTP falso: guarda os e-mails sem enviar para a internet; caixa de entrada em `http://localhost:8025`. Portas só no `127.0.0.1`. Sem healthcheck e sem volume (os e-mails somem ao recriar o container) |
 
 A API **não** roda em container no desenvolvimento.
 

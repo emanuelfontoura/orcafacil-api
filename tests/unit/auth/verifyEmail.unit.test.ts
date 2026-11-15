@@ -1,7 +1,7 @@
 import { describe, expect, vi, it } from 'vitest'
 import { AuthUserService } from '@/modules/auth/auth.service'
 import { ErrorCode } from '@/shared/errors/ErrorCodes'
-import { AppError } from '@/shared/errors/AppError'
+import { EmailSender } from '@/shared/email/EmailSender'
 
 const verifyEmailInput = {name: 'Teste', cnpjCpf: '00000000000', email: 'teste@gmail.com', password: '12345678', confirmPassword: '12345678'}
 const existingUser = {id: 1, cnpjCpf: '00000000000', email: 'teste@gmail.com', name: 'Teste', createdAt: new Date('2026-01-01T00:00:00.000Z'), updatedAt: new Date('2026-01-01T00:00:00.000Z')}
@@ -19,19 +19,19 @@ function makeSut(){
         set: vi.fn().mockResolvedValue('OK'),
         exists: vi.fn().mockResolvedValue(0),
     }
-    const AuthUserRepository = {
-        sendEmailVerificationCode: vi.fn().mockResolvedValue(undefined)
+    const EmailSender = {
+        send: vi.fn<EmailSender['send']>().mockResolvedValue()
     }
 
     const sut = new AuthUserService(
-        AuthUserRepository as any,
         UserRepository as any,
         ArgonHash as any,
         Redis as any,
-        {} as any
+        {} as any,
+        EmailSender as any
     )
 
-    return {sut, UserRepository, ArgonHash, Redis, AuthUserRepository}
+    return {sut, UserRepository, ArgonHash, Redis, EmailSender}
 }
 
 describe('AuthUserService.verifyEmail', () => {
@@ -39,7 +39,7 @@ describe('AuthUserService.verifyEmail', () => {
     // Happy path
     it('deve retornar os dados de cadastro do usuário', async () => {
         // Arrange
-        const {sut, UserRepository, ArgonHash, Redis, AuthUserRepository} = makeSut()
+        const {sut, UserRepository, ArgonHash, Redis, EmailSender} = makeSut()
 
         // Act
         const result = await sut.verifyEmail(verifyEmailInput)
@@ -79,16 +79,20 @@ describe('AuthUserService.verifyEmail', () => {
             cnpjCpf: '00000000000',
             password: 'hashed-password'
         })
-        expect(AuthUserRepository.sendEmailVerificationCode).toHaveBeenCalledWith({
-            email: 'teste@gmail.com',
-            code: expect.stringMatching(/^\d{6}$/)
-        })
+        const code = ArgonHash.hash.mock.calls[1][0]
+        expect(EmailSender.send).toHaveBeenCalledWith(expect.objectContaining({
+            to: 'teste@gmail.com',
+            subject: 'Confirme seu e-mail no OrçaFácil'
+        }))
+        const message = EmailSender.send.mock.calls[0][0]
+        expect(message.text).toContain(code)
+        expect(message.html).toContain(code)
     })
 
     // Email já utilizado
     it('deve retornar 409 ConflictError caso o email já tenha usuário vinculado', async () => {
         // Arrange
-        const {sut, UserRepository, ArgonHash, Redis, AuthUserRepository} = makeSut()
+        const {sut, UserRepository, ArgonHash, Redis, EmailSender} = makeSut()
         UserRepository.findByEmail.mockResolvedValue(existingUser)
 
         // Act
@@ -102,13 +106,13 @@ describe('AuthUserService.verifyEmail', () => {
         expect(ArgonHash.hash).not.toHaveBeenCalled()
         expect(Redis.exists).not.toHaveBeenCalled()
         expect(Redis.set).not.toHaveBeenCalled()
-        expect(AuthUserRepository.sendEmailVerificationCode).not.toHaveBeenCalled()
+        expect(EmailSender.send).not.toHaveBeenCalled()
     })
 
     // Email em cooldown
     it('deve retornar 409 ConflictError caso o email esteja em cooldown no redis', async () => {
         // Arrange
-        const {sut, Redis, UserRepository, ArgonHash, AuthUserRepository} = makeSut()
+        const {sut, Redis, UserRepository, ArgonHash, EmailSender} = makeSut()
         Redis.exists.mockResolvedValue(1)
 
         // Act
@@ -123,13 +127,13 @@ describe('AuthUserService.verifyEmail', () => {
         expect(ArgonHash.hash).toHaveBeenCalledWith('12345678')
         expect(Redis.exists).toHaveBeenCalledWith('verify-email-cooldown-teste@gmail.com')
         expect(Redis.set).not.toHaveBeenCalled()
-        expect(AuthUserRepository.sendEmailVerificationCode).not.toHaveBeenCalled()
+        expect(EmailSender.send).not.toHaveBeenCalled()
     })
 
     // Erro no primeiro Redis.set
     it('deve retornar 500 AppError ao dar erro no primeiro Redis.set', async () => {
         // Arrange
-        const {sut, Redis, ArgonHash, AuthUserRepository, UserRepository} = makeSut()
+        const {sut, Redis, ArgonHash, EmailSender, UserRepository} = makeSut()
         Redis.set.mockRejectedValueOnce(new Error('redis'))
 
         // Act
@@ -150,12 +154,12 @@ describe('AuthUserService.verifyEmail', () => {
             'EX',
             600
         )
-        expect(AuthUserRepository.sendEmailVerificationCode).not.toHaveBeenCalled()
+        expect(EmailSender.send).not.toHaveBeenCalled()
     })
 
     it('deve retornar 500 AppError ao dar erro no segundo Redis.set', async () => {
         // Arrange
-        const {sut, Redis, ArgonHash, UserRepository, AuthUserRepository} = makeSut() 
+        const {sut, Redis, ArgonHash, UserRepository, EmailSender} = makeSut() 
         Redis.set
                 .mockResolvedValueOnce('OK')
                 .mockRejectedValueOnce(new Error('redis'))
@@ -185,20 +189,19 @@ describe('AuthUserService.verifyEmail', () => {
             'EX',
             60
         )
-        expect(AuthUserRepository.sendEmailVerificationCode).toHaveBeenCalledTimes(1)
+        expect(EmailSender.send).toHaveBeenCalledTimes(1)
     })
 
     it('deve retornar 500 AppError caso o envio do email falhe', async () => {
         // Arrange
-        const {sut, AuthUserRepository, UserRepository, ArgonHash, Redis} = makeSut()
-        const sendError = new AppError('Erro ao enviar email de verificação.', 500, ErrorCode.SEND_EMAIL_CODE_ERROR)
-        AuthUserRepository.sendEmailVerificationCode.mockRejectedValueOnce(sendError)
+        const {sut, EmailSender, UserRepository, ArgonHash, Redis} = makeSut()
+        EmailSender.send.mockRejectedValueOnce(new Error('ETIMEDOUT'))
 
         // Act
         const result = sut.verifyEmail(verifyEmailInput)
 
         // Assert
-        await expect(result).rejects.toBe(sendError)
+        await expect(result).rejects.toMatchObject({statusCode: 500, message: 'Erro ao enviar email de verificação', code: ErrorCode.SEND_EMAIL_CODE_ERROR})
 
         // Espião
         expect(UserRepository.findByEmail).toHaveBeenCalledWith('teste@gmail.com')
@@ -206,6 +209,6 @@ describe('AuthUserService.verifyEmail', () => {
         expect(Redis.exists).toHaveBeenCalledWith('verify-email-cooldown-teste@gmail.com')
         expect(Redis.set).toHaveBeenCalledTimes(1)
         expect(Redis.set).toHaveBeenCalledWith('verify-email-teste@gmail.com', expect.any(String), 'EX', 600)
-        expect(AuthUserRepository.sendEmailVerificationCode).toHaveBeenCalledTimes(1)
+        expect(EmailSender.send).toHaveBeenCalledTimes(1)
     })
 })

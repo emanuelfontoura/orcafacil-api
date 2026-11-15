@@ -24,7 +24,7 @@ related:
   - "architecture/folder-structure.md"
   - "architecture/request-lifecycle.md"
   - "architecture/conventions.md"
-last_reviewed: 2026-11-14
+last_reviewed: 2026-11-15
 ---
 
 # Arquitetura — Visão Geral
@@ -37,7 +37,7 @@ last_reviewed: 2026-11-14
 > - [`../database/schema.md`](../database/schema.md) e [`../database/relationships.md`](../database/relationships.md) — banco de dados.
 >
 > **Fonte da verdade:** código do repositório `orcafacil-api`. Se este documento divergir do código, o código prevalece.
-> **Última revisão:** 2026-11-14.
+> **Última revisão:** 2026-11-15.
 
 ---
 
@@ -62,7 +62,7 @@ O **OrçaFácil** é uma API REST para **gestão de orçamentos e clientes** (ve
 | Banco em memória | Redis + `ioredis` | Rate limit, códigos de verificação, refresh tokens, recuperação de senha |
 | Autenticação | `jsonwebtoken` (JWT) + cookies `httpOnly` | Access token (15 min) e refresh token (7 dias) |
 | Hash | `argon2` (Argon2id + pepper) | Senhas e códigos de verificação |
-| E-mail | `nodemailer` (Gmail) | Envio de códigos de verificação |
+| E-mail | `nodemailer`, atrás da interface `EmailSender` (`src/shared/email/`) | Envio dos códigos de cadastro e de recuperação de senha (Gmail; Mailpit em dev) |
 | CPF/CNPJ | `cpf-cnpj-validator` | Validação de documentos |
 | Testes | Vitest | Testes unitários dos services |
 | Lint | ESLint 10 + `typescript-eslint` | Padronização de código |
@@ -78,7 +78,7 @@ O **OrçaFácil** é uma API REST para **gestão de orçamentos e clientes** (ve
 O código é dividido em **módulos por domínio** (`auth`, `user`, `clients`, …) dentro de `src/modules/`. Dentro de cada módulo, a responsabilidade é separada em **camadas**, sempre na mesma direção:
 
 ```
-Route  →  Controller  →  Service  →  Repository  →  Prisma / Redis / Nodemailer
+Route  →  Controller  →  Service  →  Repository  →  Prisma / Redis
   │            │             │             │
   │            │             │             └─ acesso a dados e serviços externos
   │            │             └─ regras de negócio
@@ -91,7 +91,9 @@ Route  →  Controller  →  Service  →  Repository  →  Prisma / Redis / Nod
 | **Route** | `*.route.ts` | Define método + caminho e encadeia middlewares (`rateLimit`, `authenticate`, `validateSchema`) até o controller. | Conter lógica. |
 | **Controller** | `*.controller.ts` | Lê `req` (body, params, query, cookies, `req.user`), chama o service, monta a resposta `ApiResponse`, seta cookies e repassa erros com `next(error)`. | Ter regra de negócio ou acessar o banco. |
 | **Service** | `*.service.ts` | Regras de negócio: verificações de existência/conflito, hash, geração de códigos e tokens, orquestração de repositórios e Redis. Lança erros de domínio (`ConflictError`, `UnauthorizedError`…). | Conhecer `req`/`res` do Express. |
-| **Repository** | `*.repository.ts` | Acesso a dados (Prisma) e integrações externas (ex.: envio de e-mail). Converte falhas de infraestrutura em `AppError` 500. | Conter regras de negócio. |
+| **Repository** | `*.repository.ts` | Acesso a dados (Prisma). Converte falhas de infraestrutura em `AppError` 500. | Conter regras de negócio. |
+
+Integrações externas não passam pelo repository. O service recebe uma interface pelo construtor (hoje, `EmailSender`), e o `container.ts` injeta a implementação (`SmtpEmailSender`). Detalhes em [`conventions.md`](./conventions.md#47-integrações-externas).
 
 Arquivos de apoio de cada módulo:
 
@@ -104,7 +106,7 @@ Arquivos de apoio de cada módulo:
 ### Código transversal
 
 - **`src/middlewares/`** — middlewares reutilizáveis: autenticação, rate limit, validação e tratamento global de erros.
-- **`src/shared/`** — erros customizados, tipos globais e utilitários (hash, tokens, cookies, geração de código, validação de CPF/CNPJ).
+- **`src/shared/`** — erros customizados, tipos globais, envio de e-mail (`email/`) e utilitários (hash, tokens, cookies, geração de código, validação de CPF/CNPJ).
 - **`src/lib/`** — clientes de infraestrutura instanciados uma única vez (`prisma`, `redis`).
 
 Detalhes em [`folder-structure.md`](./folder-structure.md).
@@ -127,14 +129,14 @@ flowchart LR
     MOD -- Prisma --> PG[(PostgreSQL<br/>users, clients, products)]
     MW -- ioredis --> RD[(Redis)]
     MOD -- ioredis --> RD
-    MOD -- nodemailer --> SMTP[Gmail SMTP]
+    MOD -- EmailSender / nodemailer --> SMTP[Servidor SMTP<br/>Gmail ou Mailpit]
 ```
 
 | Componente | Papel | Configuração |
 |---|---|---|
 | **PostgreSQL** | Dados persistentes de negócio. | `DATABASE_URL` · ver [`../database/schema.md`](../database/schema.md) |
 | **Redis** | Dados temporários com TTL: contadores de rate limit, cadastros pendentes de confirmação, cooldown de reenvio, whitelist de refresh tokens e fluxo de recuperação de senha. | `REDIS_HOST`, `REDIS_PORT` |
-| **Gmail SMTP** | Envio dos códigos de 6 dígitos (cadastro e recuperação de senha). | `USER_EMAIL`, `USER_PASSWORD` |
+| **Servidor SMTP** | Envio dos códigos de 6 dígitos (cadastro e recuperação de senha). Gmail fora do desenvolvimento; Mailpit (`docker-compose.dev.yml`) em dev. | `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `EMAIL_FROM` |
 
 ### Variáveis de ambiente
 
@@ -147,7 +149,7 @@ flowchart LR
 | `REDIS_HOST`, `REDIS_PORT` | Conexão com o Redis. |
 | `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET` | Assinatura dos tokens de acesso e refresh. |
 | `PEPPER` | Pepper concatenado aos valores antes do hash Argon2. |
-| `USER_EMAIL`, `USER_PASSWORD` | Credenciais do remetente no Nodemailer. |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `EMAIL_FROM` | Servidor, credenciais e remetente do `SmtpEmailSender`. |
 
 ---
 

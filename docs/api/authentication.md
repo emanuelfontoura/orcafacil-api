@@ -20,7 +20,7 @@ related:
   - "modules/auth.md"
   - "infrastructure/security.md"
   - "infrastructure/redis.md"
-last_reviewed: 2026-10-15
+last_reviewed: 2026-11-15
 ---
 
 # API — Autenticação
@@ -28,7 +28,7 @@ last_reviewed: 2026-10-15
 > **Escopo:** como a API autentica usuários e protege rotas: modelo de tokens, cookies, middleware `authenticate`, sessões no Redis, rotação de refresh token, logout, recuperação de senha, rate limit e como um cliente (frontend) deve consumir a autenticação.
 > **Documentos relacionados:** [`endpoints.md`](./endpoints.md#3-autenticação-e-cadastro--userauth) · [`error-handling.md`](./error-handling.md) · [`../modules/auth.md`](../modules/auth.md) (implementação detalhada do service) · [`../architecture/request-lifecycle.md`](../architecture/request-lifecycle.md#5-fluxos-de-autenticação) (diagramas de sequência)
 > **Fonte da verdade:** `src/modules/auth/`, `src/middlewares/authenticate.ts`, `src/shared/utils/generateTokens.ts`, `src/shared/utils/AuthCookies.ts`, `src/shared/utils/ArgonHash.ts`.
-> **Última revisão:** 2026-10-15.
+> **Última revisão:** 2026-11-15.
 
 ---
 
@@ -221,6 +221,6 @@ A troca de senha **não** revoga as sessões (refresh tokens) existentes.
 | `JWT_ACCESS_SECRET` | Assina/valida o access token |
 | `JWT_REFRESH_SECRET` | Assina/valida o refresh token |
 | `PEPPER` | Concatenado antes do hash Argon2 |
-| `USER_EMAIL`, `USER_PASSWORD` | Remetente dos e-mails de código (Gmail) |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `EMAIL_FROM` | Servidor SMTP e remetente dos e-mails de código (`SmtpEmailSender`) |
 | `NODE_ENV` | `production` ativa `secure` nos cookies |
 | `REDIS_HOST`, `REDIS_PORT` | Sessões, códigos e rate limit |

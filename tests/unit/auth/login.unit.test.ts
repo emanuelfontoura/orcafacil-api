@@ -20,11 +20,11 @@ function makeSut(){
     }
 
     const sut = new AuthUserService(
-        {} as any,
         UserRepository as any,
         ArgonHash as any,
         Redis as any,
-        TokenService as any
+        TokenService as any,
+        { send: vi.fn() }
     )
 
     return {sut, UserRepository, ArgonHash, Redis, TokenService}

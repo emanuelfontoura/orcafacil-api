@@ -17,7 +17,7 @@ sources:
 related:
   - "infrastructure/environment.md"
   - "architecture/overview.md"
-last_reviewed: 2026-11-14
+last_reviewed: 2026-11-15
 ---
 
 # Infraestrutura — Dependências
@@ -25,7 +25,7 @@ last_reviewed: 2026-11-14
 > **Escopo:** dependências do `orcafacil-api`: runtime, serviços externos, pacotes npm de produção e de desenvolvimento (com versão declarada e versão instalada), onde cada um é usado, scripts npm e regras para adicionar dependências.
 > **Documentos relacionados:** [`environment.md`](./environment.md) · [`redis.md`](./redis.md) · [`security.md`](./security.md) · [`../architecture/overview.md`](../architecture/overview.md#2-stack)
 > **Fonte da verdade:** `package.json` e `package-lock.json` (lockfile v3) no repositório `orcafacil-api`.
-> **Última revisão:** 2026-11-14.
+> **Última revisão:** 2026-11-15.
 
 ---
 
@@ -37,7 +37,7 @@ last_reviewed: 2026-11-14
 | npm | O que acompanha a imagem Node | `npm ci` no Docker, `npm install` no CI |
 | PostgreSQL | 15 em dev e CI; 17 em produção | `docker-compose.dev.yml`, `bitbucket-pipelines.yml`, `docker-compose.prod.yml` |
 | Redis | 7 em dev e CI; 8 (`redis:8-alpine`) em produção | idem |
-| SMTP | Gmail (via Nodemailer, `service: "gmail"`) | `src/modules/auth/auth.repository.ts` |
+| SMTP | Gmail (`smtp.gmail.com:465`) fora do desenvolvimento; Mailpit (`axllent/mailpit:v1.31`) em dev | `SMTP_*` em `src/config/env.ts`, `src/shared/email/SmtpEmailSender.ts`, `docker-compose.dev.yml` |
 | Módulo JS | CommonJS (`"type": "commonjs"`, `module: CommonJS`) | `package.json`, `tsconfig.json` |
 
 ---
@@ -56,7 +56,7 @@ last_reviewed: 2026-11-14
 | `zod` | ^4.3.6 | 4.4.3 | Validação de schemas | `*.schema.ts`, `validate.ts`, `handleError.ts` |
 | `jsonwebtoken` | ^9.0.3 | 9.0.3 | Emissão e verificação de JWT | `generateTokens.ts`, `authenticate.ts`, `auth.service.ts` |
 | `argon2` | ^0.44.0 | 0.44.0 | Hash Argon2id (módulo nativo) | `src/shared/utils/ArgonHash.ts` |
-| `nodemailer` | ^8.0.3 | 8.0.11 | Envio de e-mails | `src/modules/auth/auth.repository.ts` |
+| `nodemailer` | ^8.0.3 | 8.0.11 | Envio de e-mails por SMTP | `src/shared/email/SmtpEmailSender.ts` (único import) |
 | `cpf-cnpj-validator` | ^2.1.2 | 2.1.2 | Validação de CPF/CNPJ | `src/shared/utils/IsValidCnpjCpf.ts` (schemas de `auth` e `clients`) |
 | `tsconfig-paths` | ^4.2.0 | 4.2.0 | Resolve o alias `@/` em desenvolvimento (`-r tsconfig-paths/register`) | script `dev` |
 | `tsc-alias` | ^1.8.16 | 1.9.0 | Reescreve o alias `@/` no build | script `build` |

@@ -12,11 +12,12 @@ modules:
   - "user"
 sources:
   - "tests/unit/"
+  - "src/shared/email/"
 related:
   - "testing/strategy.md"
   - "modules/auth.md"
   - "modules/clients.md"
-last_reviewed: 2026-11-14
+last_reviewed: 2026-11-15
 ---
 
 # Testes — Cobertura
@@ -24,26 +25,28 @@ last_reviewed: 2026-11-14
 > **Escopo:** o que está coberto por testes no `orcafacil-api` hoje: resultado da última execução, matriz de cobertura por módulo, método e camada, inventário de cenários de cada arquivo de teste, lacunas e prioridades, e como medir cobertura de código.
 > **Documentos relacionados:** [`strategy.md`](./strategy.md) · [`../modules/auth.md`](../modules/auth.md) · [`../modules/clients.md`](../modules/clients.md) · [`../modules/user.md`](../modules/user.md)
 > **Fonte da verdade:** `tests/unit/` no repositório `orcafacil-api`. Atualize este documento sempre que testes forem adicionados ou removidos.
-> **Última revisão:** 2026-11-14.
+> **Última revisão:** 2026-11-15.
 
 ---
 
 ## 1. Situação atual
 
-Execução de `npm run test:unit:run` em 2026-10-16 (Vitest 4.1.9):
+Execução de `npm run test:unit:run` em 2026-11-15 (Vitest 4.1.9):
 
 ```
-Test Files  8 passed (8)
-     Tests  62 passed (62)
-  Duration  ~0.6s
+Test Files  2 passed (2)
+     Tests  11 passed (11)
+  Duration  ~0.3s
 ```
+
+Os 4 arquivos de teste de `clients` estavam vazios desde a passagem para classes instanciáveis e foram removidos em 2026-11-15: o Vitest acusava `No test suite found` neles e derrubava o CI.
 
 | Indicador | Valor |
 |---|---|
-| Arquivos de teste | 8 |
-| Casos de teste (`it`) | 62 |
-| Módulos com testes | 2 de 3 (`auth`, `clients`) |
-| Métodos de service testados | 8 de 14 |
+| Arquivos de teste | 2 |
+| Casos de teste (`it`) | 11 |
+| Módulos com testes | 1 de 3 (`auth`) |
+| Métodos de service testados | 2 de 14 |
 | Testes de integração / E2E | 0 (removidos) |
 | Cobertura de linhas | Não medida (sem provider de coverage instalado) |
 
@@ -55,18 +58,18 @@ Test Files  8 passed (8)
 |---|---|---|---|---|
 | `auth` | `AuthUserService.verifyEmail` | ✅ | `tests/unit/auth/verifyEmail.unit.test.ts` | 6 |
 | `auth` | `AuthUserService.confirmEmail` | ❌ | — | — |
-| `auth` | `AuthUserService.resendEmailCode` | ✅ | `tests/unit/auth/resendEmailCode.unit.test.ts` | 11 |
-| `auth` | `AuthUserService.login` | ✅ | `tests/unit/auth/login.unit.test.ts` | 10 |
+| `auth` | `AuthUserService.resendEmailCode` | ❌ | — (arquivo removido) | — |
+| `auth` | `AuthUserService.login` | ✅ | `tests/unit/auth/login.unit.test.ts` | 5 |
 | `auth` | `AuthUserService.refreshToken` | ❌ | — | — |
 | `auth` | `AuthUserService.sendCodeRecovery` | ❌ | — | — |
 | `auth` | `AuthUserService.confirmCodeRecovery` | ❌ | — | — |
-| `auth` | `AuthUserService.createNewPassword` | ✅ | `tests/unit/auth/createNewPassword.unit.test.ts` | 6 |
+| `auth` | `AuthUserService.createNewPassword` | ❌ | — (arquivo removido) | — |
 | `auth` | `AuthUserService.logout` | ❌ | — | — |
-| `clients` | `ClientsService.create` | ✅ | `tests/unit/clients/create.unit.test.ts` | 5 |
-| `clients` | `ClientsService.edit` | ✅ | `tests/unit/clients/edit.unit.test.ts` | 10 |
-| `clients` | `ClientsService.delete` | ✅ | `tests/unit/clients/delete.unit.test.ts` | 6 |
+| `clients` | `ClientsService.create` | ❌ | — (arquivo vazio removido) | — |
+| `clients` | `ClientsService.edit` | ❌ | — (arquivo vazio removido) | — |
+| `clients` | `ClientsService.delete` | ❌ | — (arquivo vazio removido) | — |
 | `clients` | `ClientsService.getAll` | ❌ | — | — |
-| `clients` | `ClientsService.getById` | ✅ | `tests/unit/clients/getById.unit.test.ts` | 4 |
+| `clients` | `ClientsService.getById` | ❌ | — (arquivo vazio removido) | — |
 | `user` | `UserService` | — | Classe vazia | — |
 
 ---
@@ -75,148 +78,51 @@ Test Files  8 passed (8)
 
 | Camada | Itens | Testados |
 |---|---|---|
-| Services | `AuthUserService` (9 métodos), `ClientsService` (5) | 8 métodos (4 de `auth`, 4 de `clients`) |
-| Controllers | `AuthUserController`, `ClientsController` | 0 |
-| Repositórios | `UserRepository`, `ClientsRepository`, `AuthUserRepository` | 0 (mockados nos testes de service) |
+| Services | `AuthUserService` (9 métodos), `ClientsService` (5) | 2 métodos (`verifyEmail` e `login`) |
+| Controllers | `AuthUserController`, `ClientsController`, `ProductsController` | 0 |
+| Repositórios | `UserRepository`, `ClientsRepository`, `ProductsRepository` | 0 (substituídos por objetos falsos nos testes de service) |
+| Integrações | `SmtpEmailSender` | 0 (substituído por `{ send: vi.fn() }` nos testes de service) |
+| Templates de e-mail | `renderEmail`, `escapeHtml`, `verifyEmailCode`, `recoveryPasswordCode` | Indireto: o teste de `verifyEmail` usa o template real e confere assunto, HTML e texto |
 | Middlewares | `authenticate`, `rateLimit`, `validateSchema`, `handleError` | 0 |
 | Schemas Zod | `authSchemas`, `ClientsSchema` | 0 |
-| Utilitários | `ArgonHash`, `generateCode`, `generateTokens`, `verifyKeyExists`, `isValidCnpjCpf`, `AuthCookies` | 0 (mockados nos testes de service) |
+| Utilitários | `ArgonHash`, `TokenService`, `generateCode`, `isValidCnpjCpf`, `AuthCookies` | 0 (`generateCode` roda de verdade no teste de `verifyEmail`) |
 
 ---
 
 ## 4. Inventário de cenários
 
+Os dois arquivos seguem o mesmo modelo: um `makeSut()` cria objetos falsos com `vi.fn()` e os injeta no construtor de `AuthUserService`, na ordem `UserRepository`, `ArgonHash`, `Redis`, `TokenService`, `EmailSender`. Nada é mockado com `vi.mock`.
+
 ### 4.1 `verifyEmail.unit.test.ts` — `AuthUserService.verifyEmail` (6 casos)
 
-**Modelo:** classe instanciável. O `makeSut()` cria mocks com `vi.fn()` e injeta no construtor de `AuthUserService`: `UserRepository.findByEmail` (padrão `null`), `ArgonHash.hash` (1ª chamada `'hashed-password'`, 2ª `'hashed-code'`), `Redis.exists` (padrão `0`), `Redis.set` (padrão `'OK'`), `AuthUserRepository.sendEmailVerificationCode` (padrão `undefined`). O `TokenService` entra como `{}`, porque o método não usa. O `generateCode` não é mockado: o código é conferido com `/^\d{6}$/`.
+**Falsos:** `UserRepository.findByEmail` (padrão `null`), `ArgonHash.hash` (1ª chamada `'hashed-password'`, 2ª `'hashed-code'`), `Redis.exists` (padrão `0`), `Redis.set` (padrão `'OK'`), `EmailSender.send` (padrão: resolve). O `TokenService` entra como `{}`, porque o método não usa. O `generateCode` e o template `verifyEmailCode` não são substituídos: rodam de verdade.
 
-Os testes de erro verificam só o erro e até onde o fluxo chegou. O conteúdo do payload e os argumentos de cada colaborador ficam no caso de sucesso.
+Os testes de erro verificam só o erro e até onde o fluxo chegou. O conteúdo do payload, os argumentos de cada colaborador e o conteúdo do e-mail ficam no caso de sucesso.
 
 | Categoria | Caso | Verifica |
 |---|---|---|
-| Sucesso + colaboração | deve retornar os dados de cadastro do usuário | Retorno `{ email, name, cnpjCpf }`; `findByEmail(email)`; `hash` 1º com a senha, 2º com o código; `exists('verify-email-cooldown-{email}')`; 1º `set`: `verify-email-{email}`, JSON `{ code, name, cnpjCpf, password }` com os hashes, `EX 600`; 2º `set`: cooldown, `1`, `EX 60`; `sendEmailVerificationCode({ email, code })` |
+| Sucesso + colaboração | deve retornar os dados de cadastro do usuário | Retorno `{ email, name, cnpjCpf }`; `findByEmail(email)`; `hash` 1º com a senha, 2º com um código de 6 dígitos; `exists('verify-email-cooldown-{email}')`; 1º `set`: `verify-email-{email}`, JSON `{ code, name, cnpjCpf, password }` com os hashes, `EX 600`; 2º `set`: cooldown, `1`, `EX 60`; `EmailSender.send` com `to` e o assunto `'Confirme seu e-mail no OrçaFácil'`; o código que foi para o hash aparece no `text` e no `html` do e-mail |
 | Erro de negócio | deve retornar 409 ConflictError caso o email já tenha usuário vinculado | 409 `USER_ALREADY_EXISTS`; sem hash, `exists`, `set` e envio |
 | Erro de negócio | deve retornar 409 ConflictError caso o email esteja em cooldown no redis | 409 `LIMIT_ATTEMPTS`; 1 hash (senha, ver ISS-29); sem `set` e sem envio |
 | Erro de infraestrutura | deve retornar 500 AppError ao dar erro no primeiro Redis.set | 500 `REDIS_SAVE_ERROR` ("Erro ao salvar código de verificação."); 1 `set`; e-mail não enviado |
 | Erro de infraestrutura | deve retornar 500 AppError ao dar erro no segundo Redis.set | 500 `REDIS_SAVE_ERROR` ("Erro ao salvar email na fila de cooldown."); 2 `set`; e-mail enviado 1x |
-| Erro de infraestrutura | deve retornar 500 AppError caso o envio do email falhe | O mesmo `AppError` do repository sobe sem alteração (`toBe`); 1 `set` (cooldown não gravado) |
+| Erro de infraestrutura | deve retornar 500 AppError caso o envio do email falhe | `EmailSender.send` rejeita com `Error('ETIMEDOUT')`; o service converte em 500 `SEND_EMAIL_CODE_ERROR` ("Erro ao enviar email de verificação"); 1 `set` (cooldown não gravado) |
 
 Não cobertos neste método: falha do `findByEmail`, do `exists` e do `hash` (o service não trata esses erros; eles sobem crus e viram 500 no `handleError`).
 
-### 4.2 `login.unit.test.ts` — `AuthUserService.login` (10 casos)
+### 4.2 `login.unit.test.ts` — `AuthUserService.login` (5 casos)
 
-**Mocks:** `UserRepository`, `ArgonHash`, `crypto` (`randomUUID` → `jti` fixo), `generateTokens`, `redis` — todos por automock.
-
-| Categoria | Caso | Verifica |
-|---|---|---|
-| Sucesso + colaboração | deveria retornar um objeto com o acessToken e o refreshToken | `returnLoginCredentials(email)`, `argonVerify`, `argonRehash`, `updatePasswordHash(1, hash)`, `randomUUID`, `generateTokens(id, jti)`, `redis.set('refresh-token-{jti}', id, 'EX', 604800)`, retorno = tokens |
-| Erro de negócio | deveria retornar UnauthorizedError caso não encontre as credenciais | 401 `INVALID_CREDENTIALS` |
-| Erro de negócio | deveria retornar UnauthorizedError caso a verificação da senha dê credenciais incorretas | 401 `INVALID_CREDENTIALS` |
-| Ramo condicional | deveria NÃO atualizar o hash caso não precise de rehash | `updatePasswordHash` não chamado |
-| Erro de infraestrutura | deveria falhar caso o returnLoginCredentials falhe | Propaga 500 `INTERNAL_SERVER_ERROR` |
-| Erro de infraestrutura | deveria falhar caso o argonVerify falhe | Propaga 500 |
-| Erro de infraestrutura | deveria falhar caso o argonRehash falhe | Propaga 500 |
-| Erro de infraestrutura | deveria falhar caso o updatePasswordHash falhe | Propaga 500 `UPDATE_DATABASE_ERROR` |
-| Erro de infraestrutura | deveria falhar caso o generateTokens falhe | Propaga 500 |
-| Erro de infraestrutura | deveria falhar caso o redis.set falhe | Convertido em 500 `REDIS_SAVE_ERROR` |
-
-Método com cobertura completa de ramos e dependências.
-
-### 4.3 `createNewPassword.unit.test.ts` — `AuthUserService.createNewPassword` (6 casos)
-
-**Mocks:** `redis` (factory com `get`), `ArgonHash` (automock), `UserRepository` (automock).
+**Falsos:** `UserRepository.returnLoginCredentials` (padrão: usuário `id: 1` com `password: 'hash-salvo'`), `UserRepository.updatePasswordHash`, `ArgonHash.verify` (padrão `true`), `ArgonHash.rehash` (padrão `null`), `Redis.set` (padrão `'OK'`), `TokenService.generateAccessToken` (`'access'`) e `generateRefreshToken` (`'refresh'`). O `EmailSender` entra como `{ send: vi.fn() }`, porque o método não usa. O `randomUUID` roda de verdade.
 
 | Categoria | Caso | Verifica |
 |---|---|---|
-| Sucesso + colaboração | deveria criar uma nova senha com sucesso | Resolve `undefined`; `get('recovery-password-{uuid}')`; `argonHash(newPassword)`; `updatePasswordHash('user-id', hash)` |
-| Erro de infraestrutura | deveria gerar um AppError se o redis causar erro ao dar o get na key | `REDIS_GET_ERROR` |
-| Erro de negócio | deveria gerar um UnauthorizedError ao receber um tokenUUID inválido/não encontrar a key no redis | `INVALID_TOKEN` |
-| Erro de negócio | deveria gerar um UnauthorizedError caso o authorized seja false | `UNAUTHORIZED_USER`; sem hash e sem update |
-| Erro de infraestrutura | deveria retornar um Erro caso o Argon dê erro ao hashear a nova senha | Erro propagado |
-| Erro de infraestrutura | deveria retornar um AppErro caso o updatePasswordHash dê erro | `UPDATE_DATABASE_ERROR` |
+| Sucesso + colaboração | deve retornar os tokens e salvar o refresh token no Redis | Retorno `{ accessToken, refreshToken }`; `returnLoginCredentials(email)`; `verify('hash-salvo', senha)`; `rehash(senha, 'hash-salvo')`; sem `updatePasswordHash`; `generateRefreshToken({ userId: '1', jti })`; `set('refresh-token-…', 1, 'EX', 604800)` |
+| Erro de negócio | recusa com 401 quando email não existe | 401 `INVALID_CREDENTIALS` |
+| Erro de negócio | recusa com 401 quando a senha está incorreta | 401 `INVALID_CREDENTIALS`; nenhum token gerado |
+| Ramo condicional | rehash necessário | `updatePasswordHash(1, 'hash-novo')`; tokens retornados |
+| Erro de infraestrutura | deve retornar REDIS_SAVE_ERROR caso redis falhe ao salvar refresh token | 500 `REDIS_SAVE_ERROR`; 1 `set` |
 
-Método com cobertura completa de ramos e dependências.
-
-### 4.4 `resendEmailCode.unit.test.ts` — `AuthUserService.resendEmailCode` (11 casos)
-
-**Mocks:** `ArgonHash` (automock, `argonHash` → `'new-hashed-code'`), `verifyKeyExists` (automock), `redis` (factory com `get` e `set`), `AuthUserRepository` (automock), `generateCode` (factory, retorna `'654321'`).
-
-| Categoria | Caso | Verifica |
-|---|---|---|
-| Sucesso | deveria reenviar o código e retornar o email | Retorno `{ email }` |
-| Colaboração | deveria verificar o cooldown e buscar o cadastro pendente com as keys corretas | `verifyKeyExists('verify-email-cooldown-{email}')`; `get('verify-email-{email}')` |
-| Colaboração | deveria hashear o novo código antes de salvar no Redis | `argonHash('654321')`, 1 chamada |
-| Colaboração | deveria regravar o cadastro com o hash do novo código e o cooldown com os TTLs corretos | 1º `set`: dados anteriores + `code` com hash, `EX 600`; 2º `set`: cooldown, `1`, `EX 60`; 2 chamadas |
-| Regressão (ISS-03) | não deveria salvar o código em texto puro no Redis | `code` salvo ≠ código gerado |
-| Colaboração | deveria enviar o código em texto puro por email | `{ email, code: '654321' }` |
-| Erro de negócio | deveria gerar ConflictError caso o cooldown do email ainda estiver ativo | 409 `LIMIT_ATTEMPTS`; sem `get`, `set` e e-mail |
-| Erro de negócio | deveria gerar ConflictError caso o cadastro pendente tenha expirado | 409 `TIME_OUT_REGISTER`; sem `set` e e-mail |
-| Erro de infraestrutura | deveria lançar AppError se o redis.get falhar | 500 `REDIS_GET_ERROR`; sem `set` |
-| Erro de infraestrutura | deveria lançar AppError se o primeiro redis.set (code) falhar | 500 `REDIS_SAVE_ERROR`; 1 `set`; e-mail não enviado |
-| Erro de infraestrutura | deveria lançar AppError se o segundo redis.set (email cooldown) falhar | 500 `REDIS_SAVE_ERROR`; e-mail já enviado |
-
-Não cobertos neste método: falha do `verifyKeyExists`, do `argonHash` e do `sendEmailVerificationCode`.
-
-### 4.5 `create.unit.test.ts` — `ClientsService.create` (5 casos)
-
-**Mocks:** `ClientsRepository` (automock).
-
-| Categoria | Caso | Verifica |
-|---|---|---|
-| Sucesso | deveria criar o cliente e retornar os dados cadastrados | Retorno = cliente criado |
-| Colaboração | deveria verificar duplicidade do CPF/CNPJ apenas entre os clientes do usuário | `searchClientByCnpjCpf(cnpjCpf, userId)` |
-| Colaboração | deveria criar o cliente vinculado ao userId recebido | `create(data)` com o `userId` recebido do controller |
-| Erro de negócio | deveria gerar ConflictError caso o CPF/CNPJ já esteja cadastrado para o usuário | 409 `CLIENT_ALREADY_EXISTS`; `create` não chamado |
-| Erro de infraestrutura | deveria propagar o AppError do repositório se a criação falhar | 500 `INTERNAL_SERVER_ERROR` |
-
-Método com cobertura completa de ramos e dependências. A origem do `userId` (`req.user`, ISS-04) fica no controller, que não tem testes unitários.
-
-### 4.6 `edit.unit.test.ts` — `ClientsService.edit` (10 casos)
-
-**Mocks:** `ClientsRepository` (automock).
-
-| Categoria | Caso | Verifica |
-|---|---|---|
-| Sucesso | deveria editar o cliente e retornar os dados atualizados | Retorno = cliente atualizado |
-| Colaboração | deveria buscar o cliente pelo id e pelo userId do usuário autenticado | `searchClientById(id, userId)` |
-| Colaboração | deveria verificar duplicidade do CPF/CNPJ apenas entre os clientes do usuário | `searchClientByCnpjCpf(cnpjCpf, userId)` |
-| Ramo condicional | não deveria verificar duplicidade quando o CPF/CNPJ não for enviado | `searchClientByCnpjCpf` não chamado |
-| Regressão (ISS-15) | deveria permitir reenviar o próprio CPF/CNPJ do cliente | Registro encontrado com o mesmo `id` não gera conflito |
-| Colaboração | deveria editar o cliente filtrando pelo id e pelo userId | `edit(id, userId, data)` |
-| Erro de negócio (ISS-05) | deveria gerar NotFoundError caso o cliente não exista ou pertença a outro usuário | 404 `INVALID_ID_CLIENT`; `edit` não chamado |
-| Erro de negócio | deveria gerar ConflictError caso o CPF/CNPJ pertença a outro cliente do usuário | 409 `CLIENT_ALREADY_EXISTS`; `edit` não chamado |
-| Erro de infraestrutura | deveria propagar o AppError do repositório se a busca do cliente falhar | 500 `INTERNAL_SERVER_ERROR`; `edit` não chamado |
-| Erro de infraestrutura | deveria propagar o AppError do repositório se a edição falhar | 500 `INTERNAL_SERVER_ERROR` |
-
-Método com cobertura completa de ramos e dependências.
-
-### 4.7 `delete.unit.test.ts` — `ClientsService.delete` (6 casos)
-
-**Mocks:** `ClientsRepository` (automock).
-
-| Categoria | Caso | Verifica |
-|---|---|---|
-| Sucesso | deveria excluir o cliente e retornar os dados excluídos | Retorno = cliente excluído |
-| Colaboração | deveria buscar o cliente pelo id e pelo userId do usuário autenticado | `searchClientById(id, userId)` |
-| Colaboração | deveria excluir o cliente filtrando pelo id e pelo userId | `delete(id, userId)` |
-| Erro de negócio (ISS-05) | deveria gerar NotFoundError caso o cliente não exista ou pertença a outro usuário | 404 `INVALID_ID_CLIENT`; `delete` não chamado |
-| Erro de infraestrutura | deveria propagar o AppError do repositório se a busca do cliente falhar | 500 `INTERNAL_SERVER_ERROR`; `delete` não chamado |
-| Erro de infraestrutura | deveria propagar o AppError do repositório se a exclusão falhar | 500 `INTERNAL_SERVER_ERROR` |
-
-Método com cobertura completa de ramos e dependências.
-
-### 4.8 `getById.unit.test.ts` — `ClientsService.getById` (4 casos)
-
-**Mocks:** `ClientsRepository` (automock).
-
-| Categoria | Caso | Verifica |
-|---|---|---|
-| Sucesso | deveria retornar o cliente encontrado | Retorno = cliente |
-| Colaboração | deveria buscar o cliente pelo id e pelo userId do usuário autenticado | `searchClientById(id, userId)` |
-| Erro de negócio (ISS-05) | deveria gerar NotFoundError caso o cliente não exista ou pertença a outro usuário | 404 `INVALID_ID_CLIENT` |
-| Erro de infraestrutura | deveria propagar o AppError do repositório se a busca falhar | 500 `INTERNAL_SERVER_ERROR` |
-
-Método com cobertura completa de ramos e dependências.
+Não cobertos neste método: falha do `returnLoginCredentials`, do `verify`, do `rehash`, do `updatePasswordHash` e da geração dos tokens.
 
 ---
 
@@ -226,12 +132,17 @@ Ordem sugerida para ampliar a cobertura, mantendo o padrão de [`strategy.md`](.
 
 | Prioridade | Alvo | Cenários principais |
 |---|---|---|
-| 1 | `AuthUserService.confirmEmail` | Sucesso (cria usuário); chave ausente → 401 `INVALID_OR_EXPIRED_CODE`; código inválido → 401 `INVALID_CODE`; falha `redis.get` → `REDIS_GET_ERROR`; falha `createUser` |
-| 1 | `AuthUserService.refreshToken` | Sucesso com rotação (`del` antigo + `set` novo); `jti` ausente → `INVALID_TOKEN`; JWT expirado → `TOKEN_EXPIRED`; JWT inválido → `INVALID_TOKEN`; falha do `set` → `REDIS_SAVE_ERROR`; erro inesperado → `INTERNAL_SERVER_ERROR` (mockar `jsonwebtoken`) |
+| 1 | `ClientsService.create`, `edit`, `delete`, `getById` | Criar `tests/unit/clients/{create,edit,delete,getById}.unit.test.ts` no modelo `makeSut()`. Os arquivos antigos guardavam os testes de regressão de ISS-04, ISS-05 e ISS-15 (cliente sempre filtrado por `userId`, 404 `INVALID_ID_CLIENT` para cliente de outro usuário, reenvio do próprio CPF/CNPJ sem 409) |
+| 1 | `AuthUserService.resendEmailCode` | Regressão de ISS-03 (o código vai para o Redis com hash, nunca em texto puro); cooldown → 409 `LIMIT_ATTEMPTS`; cadastro expirado → 409 `TIME_OUT_REGISTER`; envio com o template `verifyEmailCode`; falha do envio → 500 `SEND_EMAIL_CODE_ERROR`; falhas do `get` e dos dois `set` |
+| 1 | `AuthUserService.confirmEmail` | Sucesso (cria usuário); chave ausente → 401 `INVALID_OR_EXPIRED_CODE`; código inválido → 401 `INVALID_CODE`; falha `Redis.get` → `REDIS_GET_ERROR`; falha `createUser` |
+| 1 | `AuthUserService.refreshToken` | Sucesso com rotação (`del` antigo + `set` novo); token inválido → `INVALID_TOKEN`; `del` sem remover → `INVALID_TOKEN`; falha do `set` → `REDIS_SAVE_ERROR` |
 | 1 | `AuthUserService.confirmCodeRecovery` | Sucesso (novo UUID, `authorized: true`, `del` antigo); chave ausente; `attempts >= 5` → `del` + `LIMIT_ATTEMPTS`; incremento com `KEEPTTL`; código inválido; falhas do Redis |
+| 2 | `AuthUserService.createNewPassword` | Sucesso; `tokenUUID` inexistente → `INVALID_TOKEN`; `authorized: false` → `UNAUTHORIZED_USER`; falha do `Redis.get` → `REDIS_GET_ERROR`; falha do `updatePasswordHash` |
+| 2 | `AuthUserService.sendCodeRecovery` | E-mail inexistente → `INVALID_CREDENTIALS`; chave/TTL/JSON do Redis; envio com o template `recoveryPasswordCode`; falha do envio → `SEND_EMAIL_CODE_ERROR` |
+| 2 | `SmtpEmailSender` | Transporter criado uma vez para vários envios; `from` da configuração; `secure` na 465; `requireTLS` com login fora da 465; sem `auth` quando `user` é vazio (Mailpit); erro do nodemailer sobe sem conversão (mockar `nodemailer` com `vi.mock` + `vi.hoisted`) |
+| 2 | Templates de e-mail | `renderEmail` com o mesmo conteúdo no HTML e no texto; `escapeHtml` nos 5 caracteres; código fora do assunto |
 | 2 | `ClientsService.getAll` | Repassa `userId` e filtros ao repositório; lista vazia; falha do repositório |
-| 2 | `AuthUserService.sendCodeRecovery` | E-mail inexistente → `INVALID_CREDENTIALS`; chave/TTL/JSON do Redis; envio do e-mail |
-| 2 | `AuthUserService.logout` | Sucesso (`del`); JWT inválido/expirado; falha do `del` → `REDIS_DEL_ERROR` |
+| 2 | `AuthUserService.logout` | Sucesso (`del`); token inválido; falha do `del` |
 | 3 | Utilitários puros | `isValidCnpjCpf` (CPF/CNPJ válidos, inválidos, com máscara, tamanhos errados), `generateCode` (6 dígitos), `ArgonHash` (hash/verify com pepper) |
 | 3 | Middlewares | `handleError` (ZodError → 400, AppError → status/code, outro → 500), `authenticate` (sem cookie, token inválido, válido → `req.user`), `rateLimit` (limite e TTL) |
 

@@ -1,5 +1,4 @@
 import { AuthDTOs } from '@/modules/auth/auth.dtos'
-import { AuthUserRepository } from '@/modules/auth/auth.repository'
 import { UserRepository } from '@/modules/user/user.repository'
 import { ArgonHash } from '@/shared/utils/ArgonHash'
 import { ConflictError } from '@/shared/errors/ConflictError'
@@ -10,15 +9,20 @@ import { generateCode } from '@/shared/utils/GenerateCode'
 import { randomUUID } from "crypto";
 import { TokenService } from '@/shared/utils/TokenService'
 import Redis from 'ioredis'
+import { EmailMessage, EmailSender } from '@/shared/email/EmailSender'
+import { verifyEmailCode } from '@/shared/email/templates/VerifyEmailCode'
+import { recoveryPasswordCode } from '@/shared/email/templates/RecoveryPasswordCode'
+
+const CODE_TTL_MINUTES = 10
 
 export class AuthUserService{
 
     constructor(
-        private readonly AuthUserRepository: AuthUserRepository,
         private readonly UserRepository: UserRepository,
         private readonly ArgonHash: ArgonHash,
         private readonly Redis: Redis,
-        private readonly TokenService: TokenService
+        private readonly TokenService: TokenService,
+        private readonly EmailSender: EmailSender
     ){}
 
     async verifyEmail(data: AuthDTOs['VerifyEmailRequestDTO']):Promise<AuthDTOs['VerifyEmailResponseDTO']>{
@@ -53,7 +57,7 @@ export class AuthUserService{
             throw new AppError('Erro ao salvar código de verificação.', 500, ErrorCode.REDIS_SAVE_ERROR)
         }
         
-        await this.AuthUserRepository.sendEmailVerificationCode({email: data.email, code})
+        await this.sendEmail({to: data.email, ...verifyEmailCode({code, expiresInMinutes: CODE_TTL_MINUTES})})
 
         try{
             await this.Redis.set(
@@ -133,7 +137,7 @@ export class AuthUserService{
             throw new AppError('Erro ao salvar código de verificação.', 500, ErrorCode.REDIS_SAVE_ERROR)
         }
 
-        await this.AuthUserRepository.sendEmailVerificationCode({email: data.email, code: newCode})
+        await this.sendEmail({to: data.email, ...verifyEmailCode({code: newCode, expiresInMinutes: CODE_TTL_MINUTES})})
 
         try{
             await this.Redis.set(
@@ -230,10 +234,7 @@ export class AuthUserService{
             throw new AppError('Erro ao salvar código de verificação', 500, ErrorCode.REDIS_SAVE_ERROR)
         }
 
-        await this.AuthUserRepository.sendEmailVerificationCode({
-            email,
-            code
-        })
+        await this.sendEmail({to: email, ...recoveryPasswordCode({code, expiresInMinutes: CODE_TTL_MINUTES})})
 
         return {tokenUUID}
     }
@@ -314,6 +315,14 @@ export class AuthUserService{
             }
         }catch{
             throw new AppError('Erro interno do servidor', 500, ErrorCode.INTERNAL_SERVER_ERROR)
+        }
+    }
+
+    private async sendEmail(message: EmailMessage){
+        try{
+            await this.EmailSender.send(message)
+        }catch{
+            throw new AppError('Erro ao enviar email de verificação', 500, ErrorCode.SEND_EMAIL_CODE_ERROR)
         }
     }
 }

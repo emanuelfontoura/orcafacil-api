@@ -19,7 +19,7 @@ related:
   - "api/endpoints.md"
   - "api/validation.md"
   - "architecture/conventions.md"
-last_reviewed: 2026-11-14
+last_reviewed: 2026-11-15
 ---
 
 # API — Tratamento de Erros
@@ -27,7 +27,7 @@ last_reviewed: 2026-11-14
 > **Escopo:** como os erros são criados, propagados e transformados em respostas HTTP no `orcafacil-api`: hierarquia de classes, enum `ErrorCode`, middleware `handleError`, formato das respostas, mapa de status, responsabilidades por camada e como criar novos erros.
 > **Documentos relacionados:** [`endpoints.md`](./endpoints.md) (erros por rota) · [`validation.md`](./validation.md) · [`authentication.md`](./authentication.md) · [`../architecture/request-lifecycle.md`](../architecture/request-lifecycle.md#27-tratamento-de-erros--handleerror) · [`../architecture/conventions.md`](../architecture/conventions.md#5-erros)
 > **Fonte da verdade:** `src/shared/errors/`, `src/middlewares/handleError.ts`, `src/shared/types/apiResponse.ts`.
-> **Última revisão:** 2026-11-14.
+> **Última revisão:** 2026-11-15.
 
 ---
 
@@ -234,7 +234,7 @@ O cliente deve tratar erros pelo **`code`** (estável) e exibir o **`error`** (m
 | Prisma | Capturado no repositório → `AppError` 500. |
 | Redis (`ioredis`) | Capturado no service (ou em `verifyKeyExists`) → `AppError` 500 `REDIS_*_ERROR`. |
 | `jsonwebtoken` | `TokenExpiredError` → 401 `TOKEN_EXPIRED`; `JsonWebTokenError` → 401 `INVALID_TOKEN` (no `auth`) ou 401 `UNAUTHORIZED_USER` (no `authenticate`). |
-| `nodemailer` | Capturado no `AuthUserRepository` → 500 `SEND_EMAIL_CODE_ERROR`. |
+| `nodemailer` | O `SmtpEmailSender` deixa o erro subir; o método privado `sendEmail` do `AuthUserService` converte em 500 `SEND_EMAIL_CODE_ERROR`. |
 | Zod | Não capturado — o `ZodError` vai direto ao `handleError` (400). |
 
 ---

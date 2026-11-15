@@ -23,7 +23,7 @@ sources:
 related:
   - "architecture/overview.md"
   - "architecture/conventions.md"
-last_reviewed: 2026-11-14
+last_reviewed: 2026-11-15
 ---
 
 # Arquitetura — Estrutura de Pastas
@@ -31,7 +31,7 @@ last_reviewed: 2026-11-14
 > **Escopo:** organização de pastas e arquivos do `orcafacil-api`, o papel de cada diretório e onde colocar código novo.
 > **Documentos relacionados:** [`overview.md`](./overview.md) · [`request-lifecycle.md`](./request-lifecycle.md) · [`conventions.md`](./conventions.md)
 > **Fonte da verdade:** árvore de arquivos do repositório `orcafacil-api`.
-> **Última revisão:** 2026-11-14.
+> **Última revisão:** 2026-11-15.
 
 ---
 
@@ -74,11 +74,10 @@ orcafacil-api/
 │   │   ├── auth/
 │   │   │   ├── auth.controller.ts
 │   │   │   ├── auth.dtos.ts
-│   │   │   ├── auth.repository.ts      # Envio de e-mail (Nodemailer)
 │   │   │   ├── auth.route.ts
 │   │   │   ├── auth.schema.ts
 │   │   │   ├── auth.service.ts
-│   │   │   └── auth.types.ts
+│   │   │   └── auth.types.ts           # (sem uso, ver ISS-34)
 │   │   ├── clients/
 │   │   │   ├── clients.controller.ts
 │   │   │   ├── clients.dtos.ts
@@ -96,6 +95,13 @@ orcafacil-api/
 │   │       └── user.types.ts
 │   │
 │   └── shared/                         # Código compartilhado entre módulos
+│       ├── email/
+│       │   ├── EmailSender.ts          # Interface EmailSender e tipos EmailMessage/EmailContent
+│       │   ├── SmtpEmailSender.ts      # Implementação SMTP (nodemailer); transporter criado uma vez
+│       │   └── templates/              # Funções puras que montam assunto, HTML e texto
+│       │       ├── Layout.ts           # renderEmail + escapeHtml
+│       │       ├── RecoveryPasswordCode.ts
+│       │       └── VerifyEmailCode.ts
 │       ├── errors/
 │       │   ├── AppError.ts             # Erro base (message, statusCode, code)
 │       │   ├── ConflictError.ts        # 409
@@ -116,7 +122,6 @@ orcafacil-api/
 ├── tests/
 │   └── unit/                           # Testes unitários (Vitest), espelhando os módulos
 │       └── auth/
-│           ├── createNewPassword.unit.test.ts
 │           ├── login.unit.test.ts
 │           └── verifyEmail.unit.test.ts
 │
@@ -125,7 +130,7 @@ orcafacil-api/
 ├── CLAUDE.md                           # Instruções curtas carregadas pelo Claude Code (aponta para docs/README.md)
 ├── .gitignore
 ├── bitbucket-pipelines.yml             # CI dos pull requests
-├── docker-compose.dev.yml              # PostgreSQL + Redis para desenvolvimento
+├── docker-compose.dev.yml              # PostgreSQL + Redis + Mailpit para desenvolvimento
 ├── docker-compose.prod.yml             # API + PostgreSQL + Redis para produção
 ├── Dockerfile                          # Build multi-stage da API
 ├── eslint.config.mjs                   # Configuração do ESLint (flat config)
@@ -176,6 +181,7 @@ Um módulo pode usar o **repository de outro módulo** (ex.: `auth` e `clients` 
 
 ### `src/shared/`
 Código reutilizado por vários módulos:
+- `email/` — envio de e-mail: a interface `EmailSender`, a implementação `SmtpEmailSender` e os templates. O service recebe a interface pelo construtor, e o `container.ts` cria a implementação uma vez ([`conventions.md`](./conventions.md#47-integrações-externas)).
 - `errors/` — hierarquia de erros (`AppError` e subclasses) e o enum `ErrorCode`.
 - `types/` — tipos globais (`ApiResponse<T>`) e augmentations do Express (`req.user`).
 - `utils/` — funções e classes utilitárias sem estado de domínio.
@@ -212,5 +218,7 @@ Use `@/...` para importar de outra pasta de `src/`. Imports relativos (`./`) apa
 | Um novo código de erro | `src/shared/errors/ErrorCodes.ts`, na seção do domínio |
 | Um middleware genérico | `src/middlewares/` |
 | Um cliente de serviço externo | `src/lib/` |
+| Uma integração externa usada por services (e-mail, WhatsApp, storage) | `src/shared/{integracao}/`: interface + implementação, instanciada no `container.ts` ([`conventions.md`](./conventions.md#47-integrações-externas)) |
+| Um e-mail novo | Template em `src/shared/email/templates/`, usando `renderEmail` |
 | Uma tabela ou coluna | `prisma/schema.prisma` + `npx prisma migrate dev --name <descricao>` |
 | Um teste unitário de service | `tests/unit/{modulo}/{metodo}.unit.test.ts` |

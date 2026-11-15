@@ -11,12 +11,11 @@ modules:
   - "clients"
 sources:
   - "src/modules/clients/"
-  - "tests/unit/clients/"
 related:
   - "database/schema.md"
   - "database/relationships.md"
   - "api/endpoints.md"
-last_reviewed: 2026-10-16
+last_reviewed: 2026-11-15
 ---
 
 # Módulo `clients`
@@ -24,7 +23,7 @@ last_reviewed: 2026-10-16
 > **Escopo:** responsabilidades, arquivos, endpoints, regras de negócio, acesso a dados e erros do módulo de clientes.
 > **Documentos relacionados:** [`auth.md`](./auth.md) (emissão do token usado nas rotas) · [`user.md`](./user.md) · [`../database/schema.md`](../database/schema.md#32-clients-model-client) · [`../database/relationships.md`](../database/relationships.md#21-users-1--n-clients) · [`../architecture/request-lifecycle.md`](../architecture/request-lifecycle.md#4-exemplo-completo--post-clientscreate) · [`../architecture/conventions.md`](../architecture/conventions.md)
 > **Fonte da verdade:** `src/modules/clients/` no repositório `orcafacil-api`.
-> **Última revisão:** 2026-10-16.
+> **Última revisão:** 2026-11-15.
 
 ---
 
@@ -221,13 +220,12 @@ Buscas retornam `null` quando não encontram; quem transforma isso em erro é o 
 
 ## 8. Testes
 
-Local: `tests/unit/clients/` (Vitest, dependências mockadas), um arquivo por método em `tests/unit/clients/{metodo}.unit.test.ts`, mockando `@/modules/clients/clients.repository` e `@/modules/user/user.repository` (ver [`../architecture/conventions.md`](../architecture/conventions.md#10-testes)).
+O módulo está **sem testes**. Os arquivos de `tests/unit/clients/` ficaram vazios na passagem para classes instanciáveis e foram removidos em 2026-11-15. Eles devem voltar em `tests/unit/clients/{metodo}.unit.test.ts`, no modelo `makeSut()` de `tests/unit/auth/verifyEmail.unit.test.ts`, cobrindo pelo menos:
 
-| Arquivo | Método | Cobertura |
-|---|---|---|
-| `edit.unit.test.ts` | `edit` | Retorno; busca por `(id, userId)`; duplicidade por `(cnpjCpf, userId)` só quando há `cnpjCpf`; reenvio do próprio CPF/CNPJ permitido; `edit(id, userId, data)`; cliente inexistente/de outro usuário → 404; CPF/CNPJ de outro cliente → 409; falhas do repositório. |
-| `delete.unit.test.ts` | `delete` | Retorno; busca e exclusão por `(id, userId)`; cliente inexistente/de outro usuário → 404; falhas do repositório. |
-| `getById.unit.test.ts` | `getById` | Retorno; busca por `(id, userId)`; cliente inexistente/de outro usuário → 404; falha do repositório. |
-| `create.unit.test.ts` | `create` | Retorno do cliente criado; duplicidade verificada com `(cnpjCpf, userId)`; `create` chamado com o `userId` recebido; CPF/CNPJ duplicado → 409 `CLIENT_ALREADY_EXISTS`; falha do repositório propagada. |
-
-Métodos ainda sem testes: `getAll`.
+| Método | Cenários |
+|---|---|
+| `create` | Retorno do cliente criado; duplicidade verificada com `(cnpjCpf, userId)`; `create` chamado com o `userId` recebido (regressão ISS-04); CPF/CNPJ duplicado → 409 `CLIENT_ALREADY_EXISTS`; falha do repositório propagada. |
+| `edit` | Retorno; busca por `(id, userId)`; duplicidade por `(cnpjCpf, userId)` só quando há `cnpjCpf`; reenvio do próprio CPF/CNPJ permitido (regressão ISS-15); `edit(id, userId, data)`; cliente inexistente/de outro usuário → 404 (regressão ISS-05); CPF/CNPJ de outro cliente → 409; falhas do repositório. |
+| `delete` | Retorno; busca e exclusão por `(id, userId)`; cliente inexistente/de outro usuário → 404 (regressão ISS-05); falhas do repositório. |
+| `getById` | Retorno; busca por `(id, userId)`; cliente inexistente/de outro usuário → 404 (regressão ISS-05); falha do repositório. |
+| `getAll` | Repassa `userId` e filtros ao repositório; lista vazia; falha do repositório. |

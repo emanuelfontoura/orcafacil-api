@@ -21,14 +21,22 @@ const jwtSecret = z
 const envSchema = z.object({
     PORT: port(3000),
     NODE_ENV: z.enum(['development', 'test', 'production'], {error: 'Obrigatório: development, test ou production.'}),
+    
     DATABASE_URL: z
       .string({ error: 'Obrigatória, ex.: postgresql://orcafacil:orcafacil@localhost:5432/orcafacil.' })
       .regex(/^postgres(ql)?:\/\//, { error: 'Use uma URL postgresql://.' }), 
+
     REDIS_HOST: z.string().min(1),
     REDIS_PORT: port(6379),
+
     PEPPER: z.string().min(1),
-    USER_EMAIL: z.email(),
-    USER_PASSWORD: z.string().min(1),
+
+    SMTP_HOST: z.string().min(1).default('smtp.gmail.com'),
+    SMTP_PORT: port(465),
+    SMTP_USER: z.string().default(''),
+    SMTP_PASS: z.string().default(''),
+    EMAIL_FROM: z.string().min(1, { error: 'Obrigatório, ex.: OrçaFácil <orcafacil@gmail.com>' }),
+
     JWT_ACCESS_SECRET: jwtSecret,
     JWT_REFRESH_SECRET: jwtSecret
 })

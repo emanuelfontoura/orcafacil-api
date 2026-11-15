@@ -90,9 +90,12 @@ DATABASE_NAME="orcafacil"
 REDIS_HOST=localhost
 REDIS_PORT=6379
 
-# Email (para o Nodemailer)
-USER_EMAIL="email@gmail.com"
-USER_PASSWORD="senha_de_app"
+# Email (SMTP; no Gmail, use uma senha de app)
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=465
+SMTP_USER="email@gmail.com"
+SMTP_PASS="senha_de_app"
+EMAIL_FROM="OrçaFácil <email@gmail.com>"
 
 # PEPPER para o Argon2
 PEPPER=gere_um_valor_aleatorio

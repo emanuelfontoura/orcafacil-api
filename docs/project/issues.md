@@ -25,7 +25,7 @@ related:
   - "database/schema.md"
   - "modules/auth.md"
   - "modules/clients.md"
-last_reviewed: 2026-11-14
+last_reviewed: 2026-11-15
 ---
 
 # Projeto — Problemas Conhecidos (Issues)
@@ -33,7 +33,7 @@ last_reviewed: 2026-11-14
 > **Escopo:** erros, falhas de segurança, inconsistências e débitos técnicos encontrados no `orcafacil-api`. Cada item informa módulo, arquivo e local, explicação, impacto e solução proposta.
 > **Documentos relacionados:** [`overview.md`](./overview.md) · [`../infrastructure/security.md`](../infrastructure/security.md) · [`../database/schema.md`](../database/schema.md) · [`../modules/auth.md`](../modules/auth.md) · [`../modules/clients.md`](../modules/clients.md)
 > **Origem:** revisão do código, execução de `tsc --noEmit`, `eslint`, `vitest` e `docker compose config` em 2026-10-15 (branch `main`, commit `cf9f1b6`).
-> **Última revisão:** 2026-11-14.
+> **Última revisão:** 2026-11-15.
 
 As linhas citadas se referem ao commit acima e podem mudar. Ao corrigir um item, **remova-o deste arquivo** (ou marque como resolvido) e atualize os documentos afetados.
 
@@ -78,7 +78,6 @@ As linhas citadas se referem ao commit acima e podem mudar. Ao corrigir um item,
 | [ISS-30](#iss-30--testes-com-erros-de-tipo-e-fixtures-incompletas) | 🟢 | tests | Testes com erros de tipo e fixtures incompletas |
 | [ISS-31](#iss-31--aviso-de-lint-no-handleerror) | 🟢 | middlewares | Aviso de lint no `handleError` |
 | [ISS-32](#iss-32--mensagens-e-códigos-de-erro-incorretos) | 🟢 | clients / shared / auth | Mensagens e códigos de erro incorretos |
-| [ISS-33](#iss-33--envio-de-e-mail-remetente-e-transporter) | 🟢 | auth | Envio de e-mail: remetente e transporter |
 | [ISS-34](#iss-34--código-legado-e-não-utilizado) | 🟢 | vários | Código legado e não utilizado |
 | [ISS-35](#iss-35--readme-desatualizado) | 🟢 | docs | README desatualizado |
 | [ISS-36](#iss-36--pipeline-de-ci-incompleto) | 🟢 | infra | Pipeline de CI incompleto |
@@ -494,32 +493,18 @@ return res.status(500).json({ success: false, error: 'Erro interno do servidor' 
 
 ---
 
-### ISS-33 — Envio de e-mail: remetente e transporter
-
-| | |
-|---|---|
-| **Módulo** | `auth` |
-| **Local** | `src/modules/auth/auth.repository.ts:11`–`19` |
-
-**Problema:** um `transporter` do Nodemailer é criado a cada envio, e `from: "OrçaFácil"` não contém endereço de e-mail.
-
-**Impacto:** custo de conexão a cada envio; remetente pode ser reescrito pelo Gmail ou o e-mail ser marcado como spam.
-
-**Solução:** criar o transporter uma vez (ex.: `src/lib/mailer.ts`) e usar `from: \`"OrçaFácil" <${env.USER_EMAIL}>\``.
-
----
-
 ### ISS-34 — Código legado e não utilizado
 
 | | |
 |---|---|
 | **Módulo** | vários |
-| **Local** | `src/shared/errors/ErrorCodes.ts` · `package.json` · `src/modules/user/user.dtos.ts` · `bitbucket-pipelines.yml` |
+| **Local** | `src/shared/errors/ErrorCodes.ts` · `package.json` · `src/modules/user/user.dtos.ts` · `src/modules/auth/auth.types.ts` · `bitbucket-pipelines.yml` |
 
 **Problema:**
 - `ErrorCode.SELLER_NOT_EXISTS` (módulo removido), `CREATE_DATABASE_ERROR` (valor `'DATABASE_ERROR'` diferente da chave), `DELETE_DATABASE_ERROR`, `INTERNAL_HASH_ERROR` sem uso.
 - `nodemon` em `dependencies` sem uso.
 - `UserResponseDTO` (snake_case) sem uso.
+- `AuthTypes` (`auth.types.ts`) sem uso desde que o envio de e-mail saiu do `auth.repository.ts`.
 - `REDIS_URL` exportada no CI sem uso.
 
 **Solução:** remover ou alinhar esses itens.
@@ -622,6 +607,7 @@ return res.status(500).json({ success: false, error: 'Erro interno do servidor' 
 | ISS-15 | 🟡 | clients | Editar cliente com o próprio CPF/CNPJ retorna 409 | 2026-10-16 | `ClientsService.edit` só lança `CLIENT_ALREADY_EXISTS` quando o CPF/CNPJ pertence a **outro** cliente (`oldClient.id !== id`). |
 | ISS-19 | 🟡 | clients | "Não encontrado" retorna 409 em vez de 404 | 2026-10-16 | `edit`, `delete` e `getById` lançam `NotFoundError` (404) com `INVALID_ID_CLIENT` e mensagem `'Cliente não encontrado.'`. |
 | ISS-27 | 🟡 | clients | `refine` do schema de edição é inócuo | 2026-10-16 | Sem `userId` no schema, o `refine` volta a exigir ao menos um campo; mensagem corrigida para "campo". |
+| ISS-33 | 🟢 | auth | Envio de e-mail: remetente e transporter | 2026-11-15 | Envio movido para `src/shared/email/`: interface `EmailSender` e `SmtpEmailSender`, criado uma vez no `container.ts` (um único transporter); remetente vem de `EMAIL_FROM` (`Nome <email>`); variáveis `SMTP_*` no lugar de `USER_EMAIL`/`USER_PASSWORD`; `auth.repository.ts` removido. |
 
 ---
 

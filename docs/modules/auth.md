@@ -9,24 +9,26 @@ tags:
   - "cookies"
   - "redis"
   - "senha"
+  - "email"
 modules:
   - "auth"
 sources:
   - "src/modules/auth/"
+  - "src/shared/email/"
   - "tests/unit/auth/"
 related:
   - "modules/user.md"
   - "api/authentication.md"
   - "infrastructure/redis.md"
-last_reviewed: 2026-10-16
+last_reviewed: 2026-11-15
 ---
 
 # Módulo `auth`
 
 > **Escopo:** responsabilidades, arquivos, endpoints, regras de negócio, uso do Redis, tokens/cookies e testes do módulo de autenticação.
 > **Documentos relacionados:** [`user.md`](./user.md) (repositório da tabela `users`) · [`clients.md`](./clients.md) · [`../architecture/request-lifecycle.md`](../architecture/request-lifecycle.md#5-fluxos-de-autenticação) (diagramas dos fluxos) · [`../architecture/conventions.md`](../architecture/conventions.md) · [`../database/schema.md`](../database/schema.md#31-users-model-user)
-> **Fonte da verdade:** `src/modules/auth/` no repositório `orcafacil-api`.
-> **Última revisão:** 2026-10-16.
+> **Fonte da verdade:** `src/modules/auth/` e `src/shared/email/` no repositório `orcafacil-api`.
+> **Última revisão:** 2026-11-15.
 
 ---
 
@@ -52,11 +54,12 @@ Todas as rotas do módulo são **públicas** (sem `authenticate`) e ficam sob o 
 |---|---|
 | `auth.route.ts` | `AuthUserRoutes`: 9 rotas `POST`, cada uma com `rateLimit` e (quando há body) `validateSchema`. |
 | `auth.controller.ts` | `AuthUserController`: extrai dados de `req.body`/`req.cookies`, chama o service, seta/limpa cookies, responde `ApiResponse`. |
-| `auth.service.ts` | `AuthUserService`: todas as regras de negócio (Redis, hash, tokens, criação de usuário, troca de senha). |
-| `auth.repository.ts` | `AuthUserRepository.sendEmailVerificationCode`: envio de e-mail via Nodemailer (Gmail). **Não acessa o banco.** |
+| `auth.service.ts` | `AuthUserService`: todas as regras de negócio (Redis, hash, tokens, criação de usuário, troca de senha, envio dos e-mails de código). |
 | `auth.schema.ts` | `authSchemas`: schemas Zod de cada rota. |
 | `auth.dtos.ts` | `AuthDTOs`: formatos de request/response. |
-| `auth.types.ts` | `AuthTypes`: `EmailCode { email, code }` (entrada do envio de e-mail). |
+| `auth.types.ts` | `AuthTypes`: `EmailCode { email, code }`. **Sem uso** desde que o envio passou para o `EmailSender` (ver ISS-34). |
+
+O módulo não tem repository próprio: o banco é acessado pelo `UserRepository`, e o e-mail sai pelo `EmailSender` (seção 4.10).
 
 ### Dependências
 
@@ -70,7 +73,8 @@ Todas as rotas do módulo são **públicas** (sem `authenticate`) e ficam sob o 
 | `verifyKeyExists` | Verifica existência de chave no Redis (cooldown). |
 | `AuthCookies` | Seta e limpa os cookies de autenticação. |
 | `randomUUID` (`crypto`) | `jti` dos refresh tokens e `tokenUUID` da recuperação de senha. |
-| `nodemailer` | Envio de e-mails (`USER_EMAIL`, `USER_PASSWORD`). |
+| `EmailSender` (`@/shared/email/EmailSender`) | Envio dos e-mails de código. O service recebe a interface pelo construtor; o `container.ts` injeta o `SmtpEmailSender`. |
+| `verifyEmailCode`, `recoveryPasswordCode` (`@/shared/email/templates/`) | Montam assunto, HTML e texto dos e-mails de código. |
 
 ---
 
@@ -113,7 +117,7 @@ Prefixo: `/user/auth`. Todos respondem **200** com `ApiResponse` em caso de suce
 3. `verifyKeyExists('verify-email-cooldown-{email}')` → se existir: `ConflictError` 409 `LIMIT_ATTEMPTS`.
 4. Gera o código (`generateCode`) e o hash dele.
 5. Grava no Redis `verify-email-{email}` = `{ code: <hash>, name, cnpjCpf, password: <hash> }` com TTL **600 s**.
-6. Envia o código em texto puro por e-mail (`AuthUserRepository.sendEmailVerificationCode`).
+6. Envia o código em texto puro por e-mail, com o template `verifyEmailCode` (seção 4.10).
 7. Grava `verify-email-cooldown-{email}` = `1` com TTL **60 s**.
 8. Retorna `{ email, name, cnpjCpf }`.
 
@@ -131,7 +135,7 @@ Prefixo: `/user/auth`. Todos respondem **200** com `ApiResponse` em caso de suce
 1. Cooldown `verify-email-cooldown-{email}` ativo → `ConflictError` 409 `LIMIT_ATTEMPTS`.
 2. Lê `verify-email-{email}` (falha do Redis → 500 `REDIS_GET_ERROR`) → ausente: `ConflictError` 409 `TIME_OUT_REGISTER` (o cadastro pendente expirou; é preciso chamar `/email/verify` de novo).
 3. Gera um novo código, calcula o hash Argon2 (`ArgonHash.argonHash`) e regrava `verify-email-{email}` com os mesmos dados e o **hash** do novo código, renovando o TTL para 600 s. O código só existe em texto puro no e-mail enviado.
-4. Envia o novo código por e-mail e regrava o cooldown (60 s).
+4. Envia o novo código por e-mail (template `verifyEmailCode`) e regrava o cooldown (60 s).
 5. Retorna `{ email }`.
 
 ### 4.4 `login({ email, password })`
@@ -158,7 +162,7 @@ Mapeamento de erros: `TokenExpiredError` → 401 `TOKEN_EXPIRED`; `JsonWebTokenE
 1. `UserRepository.findByEmail(email)` → ausente: `UnauthorizedError` 401 `INVALID_CREDENTIALS`.
 2. Gera `tokenUUID`, código e hash do código.
 3. Grava `recovery-password-{tokenUUID}` = `{ id, code: <hash>, authorized: false, attempts: 0 }` com TTL 600 s.
-4. Envia o código por e-mail.
+4. Envia o código por e-mail com o template `recoveryPasswordCode`.
 5. Retorna `{ tokenUUID }` — o frontend guarda esse valor para as próximas etapas.
 
 ### 4.7 `confirmCodeRecovery({ tokenUUID, code })` — recuperação, etapa 2
@@ -184,6 +188,26 @@ Mapeamento de erros: `TokenExpiredError` → 401 `TOKEN_EXPIRED`; `JsonWebTokenE
 3. O controller limpa os cookies com `AuthCookies.clearAuthCookies` e responde `data: null`.
 
 Erros de JWT: `JsonWebTokenError` → 401 `INVALID_TOKEN`; `TokenExpiredError` → 401 `TOKEN_EXPIRED`.
+
+### 4.10 Envio de e-mail
+
+Os três envios (`verifyEmail`, `resendEmailCode` e `sendCodeRecovery`) passam pelo método privado `sendEmail(message)`:
+
+```ts
+await this.sendEmail({to: data.email, ...verifyEmailCode({code, expiresInMinutes: CODE_TTL_MINUTES})})
+```
+
+1. O template (`verifyEmailCode` ou `recoveryPasswordCode`, em `src/shared/email/templates/`) devolve `{ subject, html, text }`; o service acrescenta o `to`.
+2. `sendEmail` chama `EmailSender.send`. Qualquer erro do provedor (timeout, autenticação, conexão recusada) vira `AppError` 500 `SEND_EMAIL_CODE_ERROR` com a mensagem `'Erro ao enviar email de verificação'`, nos três fluxos.
+3. `CODE_TTL_MINUTES` (10) é o prazo mostrado no e-mail. Ele precisa acompanhar o TTL das chaves `verify-email-{email}` e `recovery-password-{uuid}` (600 s), que continua escrito à parte.
+
+Regras dos templates:
+
+- O código vai só no corpo, nunca no assunto (o assunto aparece na tela bloqueada).
+- O nome do cadastro não entra no e-mail: antes da confirmação, ele é texto de quem cadastrou, que pode não ser o dono da caixa.
+- Todo texto passa por `escapeHtml` em `renderEmail` (`templates/Layout.ts`), que monta o HTML e o texto puro a partir do mesmo conteúdo.
+
+Trocar o provedor (outro SMTP, Mailpit no desenvolvimento) é só mudar as variáveis `SMTP_*` e `EMAIL_FROM` ([`../infrastructure/environment.md`](../infrastructure/environment.md#2-variáveis-de-ambiente)). Um provedor que não fale SMTP (API HTTP) pede uma nova classe que implemente `EmailSender`, instanciada no `container.ts`.
 
 ---
 
@@ -227,7 +251,7 @@ Os tokens nunca vão no corpo da resposta.
 | `INVALID_TOKEN` | 401 | Refresh token inválido/revogado ou `tokenUUID` inexistente. |
 | `TOKEN_EXPIRED` | 401 | Refresh token expirado. |
 | `UNAUTHORIZED_USER` | 401 | `tokenUUID` sem `authorized: true`. |
-| `SEND_EMAIL_CODE_ERROR` | 500 | Falha no Nodemailer. |
+| `SEND_EMAIL_CODE_ERROR` | 500 | Falha no envio pelo `EmailSender` (convertida em `sendEmail`). |
 | `REDIS_SAVE_ERROR` / `REDIS_GET_ERROR` / `REDIS_DEL_ERROR` | 500 | Falha no Redis. |
 | `USER_CREATION_FAILED`, `QUERY_DATABASE_ERROR`, `UPDATE_DATABASE_ERROR` | 500 | Falhas do `UserRepository`. |
 
@@ -239,9 +263,7 @@ Local: `tests/unit/auth/` (Vitest, dependências mockadas).
 
 | Arquivo | Método | Cobertura |
 |---|---|---|
-| `verifyEmail.unit.test.ts` | `verifyEmail` | Envio do código; chamadas a `findByEmail` e `verifyKeyExists`; hash de senha e código; chaves e TTLs do Redis; erros de negócio (e-mail existente, cooldown); falhas dos dois `redis.set`. |
-| `login.unit.test.ts` | `login` | Retorno dos tokens; gravação do `jti` no Redis; credenciais inexistentes ou incorretas; rehash condicional; falha de cada dependência. |
-| `resendEmailCode.unit.test.ts` | `resendEmailCode` | Retorno; chaves de cooldown e cadastro; hash do novo código; regravação com o hash (nunca o código em texto puro) e TTLs; envio do código; erros de negócio (cooldown, cadastro expirado); falhas do `redis.get` e dos dois `redis.set`. |
-| `createNewPassword.unit.test.ts` | `createNewPassword` | Sucesso; erro do Redis; `tokenUUID` inexistente; `authorized: false`; falha do hash; falha do `updatePasswordHash`. |
+| `verifyEmail.unit.test.ts` | `verifyEmail` | Retorno; `findByEmail`, cooldown (`Redis.exists`), hash de senha e código; chaves, JSON e TTLs do Redis; e-mail enviado pelo `EmailSender.send` com destinatário, assunto e o mesmo código do hash no HTML e no texto; erros de negócio (e-mail existente, cooldown); falhas dos dois `Redis.set`; falha do envio convertida em 500 `SEND_EMAIL_CODE_ERROR`. |
+| `login.unit.test.ts` | `login` | Retorno dos tokens e gravação do refresh token no Redis; e-mail inexistente; senha incorreta; rehash; falha do `Redis.set`. |
 
-Métodos ainda sem testes: `confirmEmail`, `refreshToken`, `sendCodeRecovery`, `confirmCodeRecovery`, `logout`.
+Métodos ainda sem testes: `confirmEmail`, `resendEmailCode`, `refreshToken`, `sendCodeRecovery`, `confirmCodeRecovery`, `createNewPassword`, `logout`. O `SmtpEmailSender` e os templates de e-mail também não têm testes ([`../testing/test-coverage.md`](../testing/test-coverage.md#5-lacunas-e-prioridades)).

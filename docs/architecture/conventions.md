@@ -20,7 +20,7 @@ related:
   - "architecture/folder-structure.md"
   - "testing/strategy.md"
   - "database/schema.md"
-last_reviewed: 2026-11-14
+last_reviewed: 2026-11-15
 ---
 
 # Arquitetura — Convenções e Padrões
@@ -28,7 +28,7 @@ last_reviewed: 2026-11-14
 > **Escopo:** convenções de código e padrões identificados no `orcafacil-api`: nomenclatura, estilo, estrutura de cada camada, tipagem, validação, erros, respostas, Redis, rotas, testes, Git e CI. Use este documento como guia para escrever código que pareça ter sido escrito pelo mesmo autor.
 > **Documentos relacionados:** [`overview.md`](./overview.md) · [`folder-structure.md`](./folder-structure.md) · [`request-lifecycle.md`](./request-lifecycle.md) · [`../database/schema.md`](../database/schema.md) (convenções de banco)
 > **Fonte da verdade:** código do repositório `orcafacil-api`.
-> **Última revisão:** 2026-11-14.
+> **Última revisão:** 2026-11-15.
 
 ---
 
@@ -72,7 +72,7 @@ Termo de domínio fixo: **`cnpjCpf`** (campo único que aceita CPF ou CNPJ) e **
 | Métodos de busca no repository | `findBy{Campo}` / `search{Entidade}By{Campo}` | `findByEmail`, `searchClientById` |
 | Enum de erros | `ErrorCode.{SNAKE_UPPER}` | `ErrorCode.CLIENT_ALREADY_EXISTS` |
 
-> No módulo `auth`, os nomes carregam o sufixo `User`: `AuthUserController`, `AuthUserService`, `AuthUserRepository`, `AuthUserRoutes`.
+> No módulo `auth`, os nomes carregam o sufixo `User`: `AuthUserController`, `AuthUserService`, `AuthUserRoutes`.
 
 ---
 
@@ -147,7 +147,7 @@ export { ClientsRoutes }
 
 ### 4.4 Repository
 
-- Classe com **métodos estáticos**; cada método envolve **uma** operação Prisma (ou integração externa) em `try/catch`.
+- Classe com **métodos estáticos**; cada método envolve **uma** operação Prisma em `try/catch`. Integrações externas não ficam aqui (seção 4.7).
 - Falha → `throw new AppError('<mensagem>', 500, ErrorCode.<CODIGO>)`.
 - Tipos de entrada/saída vêm de `{Modulo}Types`.
 - Buscas retornam `null` quando não encontram (quem decide se é erro é o service).
@@ -201,6 +201,31 @@ const data: ClientsDTOs['CreateRequestDTO'] = req.body
 - Types: sufixos `Type`, `ResponseType`.
 - Tipos de request derivam do schema Zod com `z.infer<typeof Schema.x>`.
 - Tipos repetidos referenciam outro membro (`ClientsDTOs['CreateResponseDTO']`) em vez de duplicar.
+
+### 4.7 Integrações externas
+
+Serviços de fora da API usados por services (hoje, o envio de e-mail; depois, WhatsApp ou storage) ficam em `src/shared/{integracao}/`, atrás de uma interface. Modelo: `src/shared/email/`.
+
+```ts
+// EmailSender.ts — o contrato; o service só conhece isto
+export interface EmailSender {
+    send(message: EmailMessage): Promise<void>
+}
+
+// SmtpEmailSender.ts — uma implementação
+export class SmtpEmailSender implements EmailSender { … }
+
+// container.ts — o único lugar que escolhe a implementação
+const emailSender = new SmtpEmailSender({ host: env.SMTP_HOST, … })
+const authUserService = new AuthUserService(userRepository, argonHash, redis, tokenService, emailSender)
+```
+
+- A implementação declara `implements {Interface}` e recebe a configuração pelo construtor. Ela não importa `env`: só o `container.ts` lê `env`.
+- Recursos caros (conexão, transporter, cliente HTTP) são criados no construtor. Como o container instancia a classe uma vez, eles são reaproveitados em todas as requisições.
+- A implementação não trata erro: deixa a falha da biblioteca subir. O service converte em `AppError(…, 500, ErrorCode.<CODIGO>)`.
+- Trocar de provedor que fala o mesmo protocolo (outro servidor SMTP, Mailpit) é só configuração. Um protocolo diferente (API HTTP) pede uma nova classe que implemente a mesma interface.
+- Conteúdo montado sem I/O (templates de e-mail) fica em funções puras, sem interface.
+- Nos testes do service, a interface é substituída por um objeto literal: `{ send: vi.fn<EmailSender['send']>().mockResolvedValue() }`.
 
 ---
 

@@ -13,14 +13,14 @@ modules:
   - "budgets"
 sources:
   - "prisma/schema.prisma"
-  - "src/modules/auth/auth.repository.ts"
+  - "src/shared/email/"
 related:
   - "domain/budgets.md"
   - "domain/business-rules.md"
   - "domain/roadmap.md"
   - "domain/glossary.md"
   - "infrastructure/security.md"
-last_reviewed: 2026-10-16
+last_reviewed: 2026-11-15
 ---
 
 # Domínio — Especificação: Envio do Orçamento
@@ -28,7 +28,7 @@ last_reviewed: 2026-10-16
 > **Escopo:** especificação funcional do **envio do orçamento ao cliente** (Fase 6 do [roadmap](./roadmap.md#fase-6--envio-do-orçamento-ao-cliente)): geração de PDF, envio por e-mail, link público, aprovação/recusa pelo cliente, notificações ao usuário e histórico de envio. O envio por WhatsApp (Fase 7) aparece só como canal previsto.
 > **Documentos relacionados:** [`budgets.md`](./budgets.md) · [`business-rules.md`](./business-rules.md) · [`roadmap.md`](./roadmap.md) · [`glossary.md`](./glossary.md) · [`../infrastructure/security.md`](../infrastructure/security.md)
 > **Fonte da verdade:** especificação validada pelo responsável pelo produto em 2026-10-16.
-> **Última revisão:** 2026-10-16.
+> **Última revisão:** 2026-11-15.
 
 ---
 
@@ -327,6 +327,7 @@ Antes de implementar o envio por e-mail, avaliar se o SMTP do Gmail atende:
 - **Entrega:** e-mails de uma conta Gmail genérica com o nome de outra empresa no remetente tendem a cair em spam; um domínio próprio com SPF, DKIM e DMARC melhora a entrega.
 - **Bloqueio:** envio em volume para destinatários desconhecidos pode levar o Google a suspender a conta, interrompendo também os códigos de cadastro e recuperação de senha, que usam a mesma conta.
 - **Alternativa:** serviços transacionais (ex.: Amazon SES, Resend, Brevo) têm planos gratuitos ou baratos para esse volume e não exigem mudar a regra RN-E13.
+- **Impacto no código:** o envio já passa pela interface `EmailSender` (`src/shared/email/`). Outro servidor SMTP é só configuração (`SMTP_*`); um provedor por API HTTP é uma nova classe que implementa `EmailSender`. Para RN-E12 e RN-E13, `EmailMessage` precisará de anexos (PDF) e de `replyTo`.
 
 ### Propostas descartadas
 

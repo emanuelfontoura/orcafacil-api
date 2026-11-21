@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { AuthUserService } from "@/modules/auth/auth.service";
 import { AuthDTOs } from "@/modules/auth/auth.dtos";
-import { ApiResponse } from "@/shared/types/apiResponse";
+import { ApiResponse } from "@/shared/types/ApiResponse";
 import { UnauthorizedError } from "@/shared/errors/UnauthorizedError";
 import { AuthCookies } from "@/shared/utils/AuthCookies";
 

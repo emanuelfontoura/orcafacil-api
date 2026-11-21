@@ -1,4 +1,4 @@
-import { ApiResponse } from '@/shared/types/apiResponse';
+import { ApiResponse } from '@/shared/types/ApiResponse';
 import { Request, Response, NextFunction } from 'express'
 import { ProductsDTOs } from './products.dtos';
 import { ProductsService } from './products.service';

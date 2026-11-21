@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express"
 import { ClientsDTOs } from "./clients.dtos"
-import { ApiResponse } from "@/shared/types/apiResponse"
+import { ApiResponse } from "@/shared/types/ApiResponse"
 import { ClientsService } from "./clients.service"
 import { ClientsSchema } from "./clients.schema"
 

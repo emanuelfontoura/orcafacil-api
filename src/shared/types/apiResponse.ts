@@ -1,10 +1,16 @@
-type ZodIssue = {
-    field: string,
-    message: string
+export interface ApiSuccess<T>{
+    success: true,
+    data: T,
+    message?: string
 }
 
-export type ApiResponse<T> = { 
-    success: true, data: T 
-} | {
-    success: false, error: string, code?: string, details?: ZodIssue[]
+export interface ApiFailure{
+    success: false,
+    error: {
+        code: string,
+        message: string,
+        details?: unknown
+    }
 }
+
+export type ApiResponse<T> = ApiSuccess<T> | ApiFailure
